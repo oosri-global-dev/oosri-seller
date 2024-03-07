@@ -19,7 +19,8 @@ export default function StyledComponentsRegistry({ children }) {
 
   return (
     <StyleSheetManager sheet={styledComponentsStyleSheet.instance}>
-      {children}
+      {/* {children} */}
+      <p>Loading</p>
     </StyleSheetManager>
   );
 }
