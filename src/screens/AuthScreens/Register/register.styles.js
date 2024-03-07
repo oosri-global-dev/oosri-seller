@@ -15,7 +15,7 @@ export const RegisterWrapper = styled(FlexibleDiv)`
   .profile__picture {
     width: 100px;
     height: 100px;
-    border: 2px dashed #333333;
+    border: 2px dashed #8d98aa;
     border-radius: 8px;
     margin-top: 10px;
     padding: 10px;
