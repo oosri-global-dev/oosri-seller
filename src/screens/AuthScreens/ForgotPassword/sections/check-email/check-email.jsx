@@ -43,7 +43,7 @@ export default function CheckEmail() {
     >
       <CheckEmailWrapper>
         <FlexibleDiv className="lock__icon__wrapper">
-          <LockIcon size={40} color="var(--orrsiPrimary)" />
+          <LockIcon size={40} color="var(--oosriPrimary)" />
         </FlexibleDiv>
         <FlexibleDiv
           alignItems="center"
@@ -118,10 +118,10 @@ export default function CheckEmail() {
 
           <Button
             width="100%"
-            backgroundColor="var(--orrsiPrimary)"
+            backgroundColor="var(--oosriPrimary)"
             type="submit"
             htmlType="submit"
-            color="var(--orrsiWhite)"
+            color="var(--oosriWhite)"
             radius="10px"
             margin="15px 0 0 0"
           >
