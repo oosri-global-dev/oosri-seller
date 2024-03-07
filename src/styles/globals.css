@@ -1,0 +1,75 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap");
+
+html {
+  box-sizing: border-box;
+  font-size: 14px;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+body {
+  background-color: var(--orrsiWhite);
+  -ms-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  color: var(--orrsiBlack);
+  scroll-behavior: smooth;
+  font-family: "Inter", sans-serif;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+.ant-form {
+  width: 100%;
+}
+
+.ant-form-item {
+  margin: 0;
+  width: 100%;
+}
+
+td, th {
+  white-space: nowrap;
+}
+
+.ant-popover {
+  .ant-popover-inner {
+    padding: 8px;
+
+    .popover__custom {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
+
+
+.ant-switch-checked {
+   background-color: var(--oosriPrimary) !important;
+}
+
+form {
+  width: 100%;
+}
