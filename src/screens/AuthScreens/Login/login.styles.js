@@ -5,10 +5,18 @@ export const LoginWrapper = styled(FlexibleDiv)`
   flex-direction: column;
   gap: 35px;
 
+  .header__text {
+    font-weight: 500;
+  }
+
+  .sub__text {
+    color: #555555;
+  }
+
   label {
     font-size: 0.9rem;
-    color: var(--oosriBlack);
-    font-weight: bold;
+    color: #212121;
+    font-weight: 500;
   }
 
   .login__form {
@@ -35,6 +43,7 @@ export const LoginWrapper = styled(FlexibleDiv)`
       span {
         color: var(--oosriPrimary);
         cursor: pointer;
+        font-weight: 500;
       }
     }
   }
@@ -45,11 +54,10 @@ export const LoginWrapper = styled(FlexibleDiv)`
       font-size: 1.6rem;
     }
 
-    .sub__text{
-      font-size: .9rem;
+    .sub__text {
+      font-size: 0.9rem;
     }
-    
-    
+
     .form__parent__wrapper {
       width: 80%;
     }

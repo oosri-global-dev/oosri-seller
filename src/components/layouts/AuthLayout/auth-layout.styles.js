@@ -41,11 +41,12 @@ export const AuthLayoutWrapper = styled(FlexibleDiv)`
 
       .hero__text {
         font-size: 2.5rem;
-        font-weight: 900;
+        font-weight: 700;
       }
 
       p {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
+        font-weight: 500;
       }
     }
   }
@@ -65,16 +66,9 @@ export const AuthLayoutWrapper = styled(FlexibleDiv)`
       width: 100%;
       padding: 10px;
 
-
       .sub__text {
         text-align: center;
       }
-
-      .form__parent__wrapper {
-        width: 92%;
-      }
-
-
     }
   }
 `;
