@@ -13,7 +13,9 @@ export default function LoginPage() {
   const {push} = useRouter()
 
 
-  const handleSubmitLogin = (values) => {};
+  const handleSubmitLogin = (values) => {
+    console.log(values);
+  };
 
   return (
     <AuthLayout
@@ -21,7 +23,7 @@ export default function LoginPage() {
       subText="Streamline Operations, Maximize Sales"
     >
       <LoginWrapper>
-        <h1>Login</h1>
+        <h1 className="header__text">Login</h1>
         <p className="sub__text">
           Welcome back, Seller! Please log in to manage your online store.
         </p>
@@ -68,9 +70,16 @@ export default function LoginPage() {
                   bgColor="#FAFAFA"
                 />
               </Form.Item>
-              <FlexibleDiv className="forgot__pass" flexDir="row" justifyContent="flex-end">
+              <FlexibleDiv
+                className="forgot__pass"
+                flexDir="row"
+                justifyContent="flex-end"
+              >
                 <p>
-                  Forgot password? <span onClick={()=>push('/forgot-password')}>Click here</span>
+                  Forgot password?{" "}
+                  <span onClick={() => push("/forgot-password")}>
+                    Click here
+                  </span>
                 </p>
               </FlexibleDiv>
             </FlexibleDiv>
@@ -81,11 +90,13 @@ export default function LoginPage() {
               color="var(--oosriWhite)"
               backgroundColor="var(--oosriPrimary)"
               htmlType="submit"
+              // onClick={() => push("/dashboard")}
             >
-              Create Account
+              Login
             </Button>
             <p className="already__acct">
-              I have account already <span onClick={()=>push('/register')}>Register here</span>
+              I have account already{" "}
+              <span onClick={() => push("/register")}>Register here</span>
             </p>
           </form>
         </FlexibleDiv>
