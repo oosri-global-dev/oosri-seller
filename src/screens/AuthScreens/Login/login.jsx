@@ -3,18 +3,35 @@ import { LoginWrapper } from "./login.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import TextField from "@/components/lib/TextField";
 import Button from "@/components/lib/Button";
-import { FcGoogle as GoogleIcon } from "react-icons/fc";
 import { Form } from "antd";
 import TextFieldPassword from "@/components/lib/TextFieldPassword";
 import { useRouter } from "next/router";
+import { handleLogin } from "@/network/user";
+import useNotification from "@/hooks/useNotification";
+import { useState } from "react";
+import CustomLoader from "@/components/lib/CustomLoader";
 
 export default function LoginPage() {
   const [form] = Form.useForm();
-  const {push} = useRouter()
+  const { push } = useRouter();
+  const [success, error] = useNotification();
+  const [btnLoading, setBtnLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
 
+  const handleSubmitLogin = async (values) => {
+    setBtnLoading(true);
+    //all fields are already required
+    try {
+      const res = await handleLogin(values);
 
-  const handleSubmitLogin = (values) => {
-    console.log(values);
+      setPageLoading(true);
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1500);
+    } catch (err) {
+      setBtnLoading(false);
+      error(err?.response?.data?.message);
+    }
   };
 
   return (
@@ -22,6 +39,7 @@ export default function LoginPage() {
       heroText="Manage Your Business Effortlessly"
       subText="Streamline Operations, Maximize Sales"
     >
+      {pageLoading && <CustomLoader />}
       <LoginWrapper>
         <h1 className="header__text">Login</h1>
         <p className="sub__text">
@@ -34,9 +52,9 @@ export default function LoginPage() {
           width="42%"
           gap="40px"
         >
-          <form
+          <Form
             form={form}
-            onSubmit={handleSubmitLogin}
+            onFinish={handleSubmitLogin}
             className="login__form"
           >
             <FlexibleDiv
@@ -88,9 +106,9 @@ export default function LoginPage() {
               width="100%"
               radius="8px"
               color="var(--oosriWhite)"
+              loading={btnLoading}
               backgroundColor="var(--oosriPrimary)"
               htmlType="submit"
-              // onClick={() => push("/dashboard")}
             >
               Login
             </Button>
@@ -98,7 +116,7 @@ export default function LoginPage() {
               I have account already{" "}
               <span onClick={() => push("/register")}>Register here</span>
             </p>
-          </form>
+          </Form>
         </FlexibleDiv>
       </LoginWrapper>
     </AuthLayout>

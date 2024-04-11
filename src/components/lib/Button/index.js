@@ -3,14 +3,15 @@ import { Button } from "antd";
 
 export default styled(Button)`
   width: ${({ width }) => width || "max-content"};
+  width: ${({ maxWidth }) => maxWidth && maxWidth};
   margin: ${({ margin }) => margin};
   height: ${({ height }) => height || "40px"};
   min-height: ${({ height }) => height || "40px"};
-  padding: ${({ padding }) => (padding ? padding : "0 20px")};
+  padding: ${({ padding }) => (padding ? padding : "0px 20px")};
   border-color: ${({ borderColor }) => borderColor || "transparent"};
   border: ${({ border }) => border || "1px solid transparent"};
   background: ${({ backgroundColor }) => backgroundColor || "transparent"};
-  border-radius: ${({ radius }) => radius || "0"};
+  border-radius: ${({ radius }) => radius || "8px"};
   box-shadow: ${({ boxShadow }) => boxShadow || "none"};
   opacity: ${({ opacity }) => opacity || "1"};
   outline: none;

@@ -1,5 +1,5 @@
 import ForgotPassword from "./sections/forgot-password/forgot-password";
-import CheckEmail from "./sections/check-email/check-email";
+import CheckEmail from "../EmailVerification/email-verification";
 import { useState } from "react";
 
 export default function ForgotPasswordSection() {
