@@ -50,7 +50,8 @@ p {
   width: 100%;
 }
 
-td, th {
+td,
+th {
   white-space: nowrap;
 }
 
@@ -65,11 +66,34 @@ td, th {
   }
 }
 
-
 .ant-switch-checked {
-   background-color: var(--oosriPrimary) !important;
+  background-color: var(--oosriPrimary) !important;
 }
 
 form {
   width: 100%;
+}
+
+.ant-notification-notice-message {
+  font-size: 1rem !important;
+  margin: 0 !important;
+  margin-left: 25px !important;
+}
+
+.ant-notification-notice-icon{
+  font-size: 16px !important;
+  padding-top: 1px;
+}
+
+.ant-notification-notice-icon {
+  height: fit-content;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.ant-spin-dot-item {
+  background-color: var(--oosriPrimary) !important;
 }

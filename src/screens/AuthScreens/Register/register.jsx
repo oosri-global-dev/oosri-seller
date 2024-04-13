@@ -12,12 +12,16 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { isValidImageFile } from "@/utils/upload-helper";
 import { MdCancel as CancelIcon } from "react-icons/md";
+import { handleRegistration } from "@/network/user";
+import CustomLoader from "@/components/lib/CustomLoader";
 
 export default function RegisterPage() {
   const [form] = Form.useForm();
   const [imageFile, setImageFile] = useState(undefined);
   const [imageObjectURL, setImageObjectURL] = useState(undefined);
-  const [success, error] = useNotification();
+  const [success, error, info] = useNotification();
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
   const { push } = useRouter();
   const businessType = [
     { value: "corporate", label: "Corporate" },
@@ -50,13 +54,51 @@ export default function RegisterPage() {
     setImageObjectURL(URL.createObjectURL(event.target.files[0]));
   };
 
-  const handleSubmitLogin = (values) => {};
+  const handleSubmitLogin = async (values) => {
+    setIsLoading(true);
+    if (!imageObjectURL) {
+      info("Please upload a profile picture to continue");
+      setIsLoading(false);
+      return;
+    }
+
+    const formData = new FormData();
+
+    //set the formData
+    formData.append("first_name", values?.first_name);
+    formData.append("last_name", values?.last_name);
+    formData.append("email", values?.email);
+    formData.append("password", values?.password);
+    formData.append("business_type", values?.business_type);
+    formData.append("phone", values?.phone);
+    formData.append("profile_photo", imageFile);
+
+    //call api
+    try {
+      const res = await handleRegistration(formData);
+      success(`${res?.data?.message}, redirecting you to the OTP page`);
+
+      setPageLoading(true);
+      setTimeout(() => {
+        window.location.href = `/check-email?email=${encodeURIComponent(
+          values?.email
+        )}`;
+      }, 1500);
+
+      //redirect to the OTP page
+      setIsLoading(false);
+    } catch (err) {
+      error(`${err?.response?.data?.message}`);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <AuthLayout
       heroText="Join Our Marketplace as a Seller"
       subText="Unlock New Opportunities, Reach More Customers, and Grow Your Business with Us!"
     >
+      {pageLoading && <CustomLoader />}
       <RegisterWrapper>
         <FlexibleDiv
           justifyContent="flex-start"
@@ -74,9 +116,9 @@ export default function RegisterPage() {
           width="100%"
           gap="40px"
         >
-          <form
+          <Form
             form={form}
-            onSubmit={handleSubmitLogin}
+            onFinish={handleSubmitLogin}
             className="login__form"
           >
             <FlexibleDiv
@@ -95,7 +137,7 @@ export default function RegisterPage() {
                 className="half__box"
               >
                 <label>First Name</label>
-                <Form.Item name={"firstName"}>
+                <Form.Item name={"first_name"}>
                   <TextField
                     name="fullName"
                     type="text"
@@ -114,7 +156,7 @@ export default function RegisterPage() {
                 className="half__box"
               >
                 <label>Last Name</label>
-                <Form.Item name={"lastName"}>
+                <Form.Item name={"last_name"}>
                   <TextField
                     name="lastName"
                     type="text"
@@ -188,7 +230,7 @@ export default function RegisterPage() {
                 className="half__box"
               >
                 <label>Business Type</label>
-                <Form.Item name={"firstName"}>
+                <Form.Item name={"business_type"}>
                   <Select
                     name="businessType"
                     options={businessType}
@@ -208,7 +250,7 @@ export default function RegisterPage() {
                 className="half__box"
               >
                 <label>Mobile Number</label>
-                <Form.Item name={"phoneNumber"}>
+                <Form.Item name={"phone"}>
                   <TextField
                     name="text"
                     type="text"
@@ -247,8 +289,8 @@ export default function RegisterPage() {
                       color="red"
                       className="cancel__icon"
                       onClick={() => {
-                        setImageFile(undefined);
-                        setImageObjectURL(undefined);
+                        setImageFile("");
+                        setImageObjectURL("");
                       }}
                     />
                   </FlexibleDiv>
@@ -265,6 +307,7 @@ export default function RegisterPage() {
                         type="file"
                         id={"addProfileImage"}
                         name="file"
+                        className="hide__input"
                         onChange={handleMediaChange}
                       />
                       <AddImage size={25} color="#8D98AA" />
@@ -281,18 +324,17 @@ export default function RegisterPage() {
               color="var(--oosriWhite)"
               backgroundColor="var(--oosriPrimary)"
               className="submit__btn"
+              loading={isLoading}
               htmlType="submit"
-              // onClick={() => {
-              //   error("Please verify your email to continue");
-              // }}
             >
               Create Account
             </Button>
+
             <p className="already__acct">
               I have account already{" "}
               <span onClick={() => push("/")}>Login here</span>
             </p>
-          </form>
+          </Form>
         </FlexibleDiv>
       </RegisterWrapper>
     </AuthLayout>

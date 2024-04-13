@@ -64,6 +64,7 @@ export const AuthLayoutWrapper = styled(FlexibleDiv)`
 
     .right__section {
       width: 100%;
+      box-sizing: border-box;
       padding: 10px;
 
       .sub__text {

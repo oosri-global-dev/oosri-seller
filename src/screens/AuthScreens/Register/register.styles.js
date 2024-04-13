@@ -60,6 +60,11 @@ export const RegisterWrapper = styled(FlexibleDiv)`
     flex-direction: column;
     gap: 25px;
     width: 100%;
+    position: relative;
+
+    .hide__input {
+      display: none;
+    }
 
     .already__acct {
       font-size: 0.9rem;
