@@ -21,7 +21,7 @@ export default function RegisterPage() {
   const [imageObjectURL, setImageObjectURL] = useState(undefined);
   const [success, error, info] = useNotification();
   const [isLoading, setIsLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
   const { push } = useRouter();
   const businessType = [
     { value: "corporate", label: "Corporate" },
@@ -80,7 +80,7 @@ export default function RegisterPage() {
 
       setPageLoading(true);
       setTimeout(() => {
-        window.location.href = `/check-email?${encodeURIComponent(
+        window.location.href = `/check-email?email=${encodeURIComponent(
           values?.email
         )}`;
       }, 1500);

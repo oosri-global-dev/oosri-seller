@@ -10,6 +10,8 @@ import { handleLogin } from "@/network/user";
 import useNotification from "@/hooks/useNotification";
 import { useState } from "react";
 import CustomLoader from "@/components/lib/CustomLoader";
+import { useMainContext } from "@/context";
+import { CURRENT_USER } from "@/context/types";
 
 export default function LoginPage() {
   const [form] = Form.useForm();
@@ -17,12 +19,21 @@ export default function LoginPage() {
   const [success, error] = useNotification();
   const [btnLoading, setBtnLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
+  const { dispatch } = useMainContext();
 
   const handleSubmitLogin = async (values) => {
     setBtnLoading(true);
     //all fields are already required
     try {
       const res = await handleLogin(values);
+
+      //set the details to context
+      // await dispatch({
+      //   type: CURRENT_USER,
+      //   payload: {
+      //     ...data?.user,
+      //   },
+      // });
 
       setPageLoading(true);
       setTimeout(() => {
