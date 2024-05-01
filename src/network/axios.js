@@ -1,3 +1,4 @@
+import { getDataInCookie } from "@/data-helpers/auth-session";
 import axios from "axios";
 
 let userToken = null;
@@ -5,8 +6,8 @@ let refreshToken = null;
 
 if (typeof window !== "undefined") {
   // Perform sessionStorage action
-  userToken = sessionStorage.getItem("user_token");
-  refreshToken = sessionStorage.getItem("refresh_token");
+  userToken = getDataInCookie("access_token");
+  // refreshToken = sessionStorage.getItem("refresh_token");
 }
 
 export const instance = axios.create({

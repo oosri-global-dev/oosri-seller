@@ -28,8 +28,6 @@ export default function EmailVerificationScreen() {
 
     await handleOTP({ email: decodeURIComponent(query?.email), pin: otp })
       .then((res) => {
-        console.log(res);
-
         setPageLoading(true);
         setTimeout(() => {
           window.location.href = "/dashboard";

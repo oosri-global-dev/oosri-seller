@@ -80,7 +80,7 @@ form {
   margin-left: 25px !important;
 }
 
-.ant-notification-notice-icon{
+.ant-notification-notice-icon {
   font-size: 16px !important;
   padding-top: 1px;
 }
@@ -96,4 +96,35 @@ form {
 
 .ant-spin-dot-item {
   background-color: var(--oosriPrimary) !important;
+}
+
+.select__public__content {
+  display: flex;
+  flex-direction: row;
+
+  .ant-select-item-option-content {
+    display: flex;
+    flex-direction: row;
+    gap: 7px;
+    align-items: center;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.country__select {
+  .ant-select-selection-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+
+    img {
+      width: 20px;
+      height: 20px;
+    }
+  }
 }

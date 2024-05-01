@@ -1,4 +1,5 @@
 import axios from "axios";
+import { instance } from "./axios";
 
 export const handleRegistration = async (payload) => {
   const data = await axios.post(
@@ -9,7 +10,7 @@ export const handleRegistration = async (payload) => {
 };
 
 export const handleOTP = async (payload) => {
-  const data = await axios.post(
+  const data = await instance.post(
     `${process.env.NEXT_PUBLIC_BASE_URL}/seller/check-pin`,
     payload
   );
