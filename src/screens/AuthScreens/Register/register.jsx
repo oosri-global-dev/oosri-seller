@@ -14,6 +14,8 @@ import { isValidImageFile } from "@/utils/upload-helper";
 import { MdCancel as CancelIcon } from "react-icons/md";
 import { handleRegistration } from "@/network/user";
 import CustomLoader from "@/components/lib/CustomLoader";
+import { countries } from "@/data-helpers/auth-helpers";
+import { storeDataInCookie } from "@/data-helpers/auth-session";
 
 export default function RegisterPage() {
   const [form] = Form.useForm();
@@ -62,6 +64,18 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!values?.business_type) {
+      info("Please select a business type");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!values?.location) {
+      info("Please select a country");
+      setIsLoading(false);
+      return;
+    }
+
     const formData = new FormData();
 
     //set the formData
@@ -70,7 +84,7 @@ export default function RegisterPage() {
     formData.append("email", values?.email);
     formData.append("password", values?.password);
     formData.append("business_type", values?.business_type);
-    formData.append("phone", values?.phone);
+    formData.append("location", values?.location);
     formData.append("profile_photo", imageFile);
 
     //call api
@@ -80,6 +94,12 @@ export default function RegisterPage() {
 
       setPageLoading(true);
       setTimeout(() => {
+        //Store the tokens in cookie
+        storeDataInCookie(
+          "access_token",
+          res?.data?.data?.authorization?.token,
+          1
+        );
         window.location.href = `/check-email?email=${encodeURIComponent(
           values?.email
         )}`;
@@ -241,7 +261,7 @@ export default function RegisterPage() {
                 </Form.Item>
               </FlexibleDiv>
 
-              {/* phone */}
+              {/* business type */}
               <FlexibleDiv
                 flexDir="column"
                 alignItems="flex-start"
@@ -249,16 +269,31 @@ export default function RegisterPage() {
                 gap="5px"
                 className="half__box"
               >
-                <label>Mobile Number</label>
-                <Form.Item name={"phone"}>
-                  <TextField
-                    name="text"
-                    type="text"
+                <label>Country</label>
+                <Form.Item name={"location"}>
+                  <Select
+                    name="location"
                     required
-                    max={14}
-                    autoComplete="new-password"
                     bgColor="#FAFAFA"
-                  />
+                    height="40px"
+                    showSearch
+                    className="country__select"
+                  >
+                    {countries.map((cty, idx) => (
+                      <Select.Option
+                        key={idx}
+                        value={cty.name}
+                        className="select__public__content"
+                      >
+                        <img
+                          className="small__drop__down__img"
+                          src={`https://flagsapi.com/${cty?.code}/flat/64.png`}
+                          alt={`${cty?.name?.toLowerCase()}-icon`}
+                        />
+                        <p>{cty.name}</p>
+                      </Select.Option>
+                    ))}
+                  </Select>
                 </Form.Item>
               </FlexibleDiv>
             </FlexibleDiv>
