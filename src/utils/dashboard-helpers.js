@@ -125,7 +125,7 @@ export const dashboardTableData = [
     status: "Sent for pickup",
   },
   {
-    key: "orderId",
+    key: "orderId1",
     orderId: "#777480",
     orderDate: "27th April, 2023",
     amount: "N7000",
@@ -134,7 +134,7 @@ export const dashboardTableData = [
     status: "Delivered",
   },
   {
-    key: "orderId",
+    key: "orderId2",
     orderId: "#773780",
     orderDate: "27th April, 2023",
     amount: "N7000",
@@ -143,7 +143,7 @@ export const dashboardTableData = [
     status: "Sent for pickup",
   },
   {
-    key: "orderId",
+    key: "orderId4",
     orderId: "#227780",
     orderDate: "27th April, 2023",
     amount: "N7000",
