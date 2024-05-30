@@ -1,5 +1,5 @@
 import { DBWrapper } from "./dashboard-layout.styles";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Layout, Menu, theme } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
@@ -18,17 +18,25 @@ import { FaWindowClose as CloseIcon } from "react-icons/fa";
 import { GoStack as StackIcon } from "react-icons/go";
 const { Header, Sider, Content } = Layout;
 import { BsArrowLeft as LeftArrow } from "react-icons/bs";
+import { MainContext } from "@/context";
+import { handleFetchUser } from "@/network/user";
+import CustomLoader from "@/components/lib/CustomLoader";
+import { CURRENT_USER } from "@/context/types";
 
 export default function DashboardLayout({ children, title, showBackBtn }) {
   const [collapsed, setCollapsed] = useState(false);
-
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
+  const [pageLoading, setIsPageLoading] = useState(false);
   const [current, setCurrent] = useState(
     pathname === "/" || pathname === "" ? "/dashboard" : pathname
   );
+  const {
+    dispatch,
+    state: { user },
+  } = useContext(MainContext);
 
   const menuItems = [
     {
@@ -80,8 +88,43 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
     },
   ];
 
+  useEffect(() => {
+    setIsPageLoading(true);
+    const GetActiveUser = async () => {
+      const res = await handleFetchUser();
+
+      //store data in dispatch
+      await dispatch({
+        type: CURRENT_USER,
+        payload: {
+          ...res?.data?.data,
+        },
+      });
+
+      //check if businesses exist
+      if (res?.data?.data?.businesses?.length < 1) {
+        //redirect back
+        window.location.href = "/create-business";
+      } else {
+        //disable the page load
+        setIsPageLoading(false);
+      }
+    };
+
+    //log user out if api throws err
+    try {
+      GetActiveUser();
+    } catch (err) {
+      //if API throws error
+      window.location.href = "/";
+    }
+  }, [dispatch]);
+
+  console.log(user);
+
   return (
     <DBWrapper openMenu={collapsed}>
+      {pageLoading && typeof user !== "undefined" && <CustomLoader />}
       <Layout className="layout__box">
         <Sider
           trigger={null}
@@ -127,7 +170,8 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                 <FlexibleDiv flexDir="column" className="welcome__box">
                   <p className="dashboard__text">{title || "Dashboard"}</p>
                   <p className="sub__text">
-                    {!title && "Welcome, Ayebulu Eric!"}
+                    {!title &&
+                      `Welcome, ${user?.first_name} ${user?.last_name}!`}
                   </p>
                 </FlexibleDiv>
               </FlexibleDiv>
@@ -142,12 +186,20 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                 >
                   <img
                     className="profile__image"
-                    src={ProfileImage.src}
+                    src={user?.profile_photo || ProfileImage.src}
                     alt="show-img"
                   />
                   <div>
-                    <h4>Ayebulu E.</h4>
-                    <p>Admin</p>
+                    {user?.first_name && (
+                      <h4>
+                        {`${user?.first_name || ""} ${
+                          user?.last_name[0] || ""
+                        }`}
+                        .
+                      </h4>
+                    )}
+
+                    <p>Seller</p>
                   </div>
                 </FlexibleDiv>
               </FlexibleDiv>

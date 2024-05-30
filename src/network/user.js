@@ -11,7 +11,7 @@ export const handleRegistration = async (payload) => {
 
 export const handleOTP = async (payload) => {
   const data = await instance.post(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/seller/check-pin`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}/seller/activate`,
     payload
   );
   return data;
@@ -21,6 +21,13 @@ export const handleLogin = async (payload) => {
   const data = await axios.post(
     `${process.env.NEXT_PUBLIC_BASE_URL}/seller/login`,
     payload
+  );
+  return data;
+};
+
+export const handleFetchUser = async () => {
+  const data = await instance.get(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/seller/me`
   );
   return data;
 };

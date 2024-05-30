@@ -4,7 +4,7 @@ import useNotification from "@/hooks/useNotification";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
 import { useEffect } from "react";
 import StyledComponentsRegistry from "@/hooks/registry";
-import { MainContext, MainProvider } from "@/context";
+import { MainProvider } from "@/context";
 
 export default function App({ Component, pageProps }) {
   const [isOnline] = useOnlineStatus();

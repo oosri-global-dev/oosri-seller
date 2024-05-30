@@ -8,10 +8,11 @@ import TextFieldPassword from "@/components/lib/TextFieldPassword";
 import { useRouter } from "next/router";
 import { handleLogin } from "@/network/user";
 import useNotification from "@/hooks/useNotification";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import CustomLoader from "@/components/lib/CustomLoader";
-import { useMainContext } from "@/context";
+import { MainContext, useMainContext } from "@/context";
 import { CURRENT_USER } from "@/context/types";
+import { storeDataInCookie } from "@/data-helpers/auth-session";
 
 export default function LoginPage() {
   const [form] = Form.useForm();
@@ -19,7 +20,7 @@ export default function LoginPage() {
   const [success, error] = useNotification();
   const [btnLoading, setBtnLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
-  const { dispatch } = useMainContext();
+  const { dispatch } = useContext(MainContext);
 
   const handleSubmitLogin = async (values) => {
     setBtnLoading(true);
@@ -27,18 +28,28 @@ export default function LoginPage() {
     try {
       const res = await handleLogin(values);
 
-      //set the details to context
-      // await dispatch({
-      //   type: CURRENT_USER,
-      //   payload: {
-      //     ...data?.user,
-      //   },
-      // });
-
       setPageLoading(true);
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 1500);
+
+      if (res?.status === 200) {
+        //set the details to context
+        await dispatch({
+          type: CURRENT_USER,
+          payload: {
+            ...res?.data?.data,
+          },
+        });
+
+        //store in cookie
+        storeDataInCookie(
+          "access_token",
+          res?.data?.data?.authorization?.token,
+          30
+        );
+
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1500);
+      }
     } catch (err) {
       setBtnLoading(false);
       error(err?.response?.data?.message);
