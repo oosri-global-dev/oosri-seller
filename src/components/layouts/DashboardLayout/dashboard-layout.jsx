@@ -98,7 +98,7 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
     }
   };
 
-  console.log("user", user);
+  // console.log("user", user);
 
   return (
     <DBWrapper openMenu={collapsed}>

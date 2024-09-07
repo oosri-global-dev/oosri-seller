@@ -42,7 +42,6 @@ export default function LoginPage() {
         //store in cookie
         storeDataInCookie("access_token", res?.data?.token, 30);
 
-
         setTimeout(() => {
           window.location.href = "/dashboard";
         }, 1500);
