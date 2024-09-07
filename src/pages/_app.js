@@ -5,6 +5,7 @@ import useOnlineStatus from "@/hooks/useOnlineStatus";
 import { useEffect } from "react";
 import StyledComponentsRegistry from "@/hooks/registry";
 import { MainProvider } from "@/context";
+import AppWrapper from "@/components/app-wrapper/AppWrapper";
 
 export default function App({ Component, pageProps }) {
   const [isOnline] = useOnlineStatus();
@@ -20,7 +21,9 @@ export default function App({ Component, pageProps }) {
   return (
     <MainProvider>
       <StyledComponentsRegistry>
-        <Component {...pageProps} />
+        <AppWrapper>
+          <Component {...pageProps} />
+        </AppWrapper>
       </StyledComponentsRegistry>
     </MainProvider>
   );

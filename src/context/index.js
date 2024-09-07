@@ -3,6 +3,7 @@ import { Reducer } from "./reducer";
 
 export const MainContext = createContext({
   user: {},
+  showNoBusinessModal: false,
 });
 
 export const MainProvider = ({ children }) => {

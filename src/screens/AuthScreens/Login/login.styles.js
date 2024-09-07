@@ -50,6 +50,10 @@ export const LoginWrapper = styled(FlexibleDiv)`
 
   //target only 550px
   @media (max-width: 550px) {
+    height: 100dvh;
+    justify-content: flex-start;
+    padding-top: 80px;
+
     h1 {
       font-size: 1.6rem;
     }

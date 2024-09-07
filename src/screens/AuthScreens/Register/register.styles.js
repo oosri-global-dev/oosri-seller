@@ -5,6 +5,9 @@ export const RegisterWrapper = styled(FlexibleDiv)`
   flex-direction: column;
   gap: 35px;
   width: 65%;
+  min-height: 100vh;
+  height: 100%;
+  padding: 35px 0px;
 
   .header__text {
     font-weight: 500;
@@ -90,12 +93,25 @@ export const RegisterWrapper = styled(FlexibleDiv)`
     }
   }
 
-  //target only 550px
-  @media (max-width: 550px) {
+  //target only 650px
+  @media (max-width: 650px) {
     width: 100%;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 35px 0;
+    min-height: 100%;
+    height: fit-content;
 
     .form__parent__wrapper {
       width: 100%;
+
+      .single__row {
+        flex-direction: column;
+        .half__box {
+          width: 100%;
+        }
+      }
     }
   }
 
