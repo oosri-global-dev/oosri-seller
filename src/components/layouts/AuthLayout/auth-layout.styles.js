@@ -54,18 +54,24 @@ export const AuthLayoutWrapper = styled(FlexibleDiv)`
   .right__section {
     height: 100%;
     width: 65%;
+    overflow-y: scroll;
   }
 
   //target only 550px
-  @media (max-width: 550px) {
+  @media (max-width: 650px) {
+    height: 100%;
+
     .left__section {
       display: none;
     }
 
     .right__section {
       width: 100%;
+      height: fit-content;
       box-sizing: border-box;
       padding: 10px;
+      justify-content: flex-start;
+      align-items: flex-start;
 
       .sub__text {
         text-align: center;

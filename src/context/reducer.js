@@ -1,4 +1,4 @@
-import { CURRENT_USER, DRAFT_PICKS } from "./types";
+import { CURRENT_USER, DRAFT_PICKS, NO_BUSINESS_MODAL } from "./types";
 
 export const Reducer = (state, { type, payload }) => {
   switch (type) {
@@ -6,6 +6,11 @@ export const Reducer = (state, { type, payload }) => {
       return {
         ...state,
         user: payload || undefined,
+      };
+    case NO_BUSINESS_MODAL:
+      return {
+        ...state,
+        showNoBusinessModal: payload || false,
       };
 
     default:

@@ -19,9 +19,8 @@ import { GoStack as StackIcon } from "react-icons/go";
 const { Header, Sider, Content } = Layout;
 import { BsArrowLeft as LeftArrow } from "react-icons/bs";
 import { MainContext } from "@/context";
-import { handleFetchUser } from "@/network/user";
-import CustomLoader from "@/components/lib/CustomLoader";
-import { CURRENT_USER } from "@/context/types";
+import { isEmpty, isNull } from "lodash";
+import BlockerModal from "@/components/lib/NoBusinessModal";
 
 export default function DashboardLayout({ children, title, showBackBtn }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -29,13 +28,12 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
-  const [pageLoading, setIsPageLoading] = useState(false);
   const [current, setCurrent] = useState(
     pathname === "/" || pathname === "" ? "/dashboard" : pathname
   );
   const {
     dispatch,
-    state: { user },
+    state: { user, showNoBusinessModal },
   } = useContext(MainContext);
 
   const menuItems = [
@@ -88,43 +86,26 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
     },
   ];
 
-  useEffect(() => {
-    setIsPageLoading(true);
-    const GetActiveUser = async () => {
-      const res = await handleFetchUser();
-
-      //store data in dispatch
-      await dispatch({
-        type: CURRENT_USER,
-        payload: {
-          ...res?.data?.data,
-        },
-      });
-
-      //check if businesses exist
-      if (res?.data?.data?.businesses?.length < 1) {
-        //redirect back
-        window.location.href = "/create-business";
-      } else {
-        //disable the page load
-        setIsPageLoading(false);
+  const handleUserBusinessCheck = () => {
+    if (user?.businessType === "Personal") {
+      if (isEmpty(user?.personalBusinessAccount)) {
+        push("/create-business");
       }
-    };
-
-    //log user out if api throws err
-    try {
-      GetActiveUser();
-    } catch (err) {
-      //if API throws error
-      window.location.href = "/";
+    } else if (userObj.businessType === "Corporate") {
+      if (isEmpty(userObj.corporateBusinessAccount)) {
+        push("/create-business");
+      }
     }
-  }, [dispatch]);
+  };
 
-  console.log(user);
+  console.log("user", user);
 
   return (
     <DBWrapper openMenu={collapsed}>
-      {pageLoading && typeof user !== "undefined" && <CustomLoader />}
+      <BlockerModal
+        visible={showNoBusinessModal}
+        onCreateProfile={handleUserBusinessCheck}
+      />
       <Layout className="layout__box">
         <Sider
           trigger={null}
@@ -170,8 +151,7 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                 <FlexibleDiv flexDir="column" className="welcome__box">
                   <p className="dashboard__text">{title || "Dashboard"}</p>
                   <p className="sub__text">
-                    {!title &&
-                      `Welcome, ${user?.first_name} ${user?.last_name}!`}
+                    {!title && `Welcome, ${user?.firstName} ${user?.lastName}!`}
                   </p>
                 </FlexibleDiv>
               </FlexibleDiv>
@@ -186,7 +166,7 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                 >
                   <img
                     className="profile__image"
-                    src={user?.profile_photo || ProfileImage.src}
+                    src={user?.profilePicture || ProfileImage.src}
                     alt="show-img"
                   />
                   <div>

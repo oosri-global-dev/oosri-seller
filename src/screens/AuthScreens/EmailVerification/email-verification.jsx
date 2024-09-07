@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 import { isEmpty } from "lodash";
 import CustomLoader from "@/components/lib/CustomLoader";
 import useNotification from "@/hooks/useNotification";
-import { handleOTP } from "@/network/user";
+import { handleOTP, handleResendOTP } from "@/network/user";
 
 export default function EmailVerificationScreen() {
   const [otp, setOtp] = useState("");
@@ -17,6 +17,7 @@ export default function EmailVerificationScreen() {
   const [pageLoading, setPageLoading] = useState(true);
   const [success, error] = useNotification();
   const [btnLoading, setBtnLoading] = useState(false);
+  const [resendOtpBtnLoading, setResetOTPBtnLoading] = useState(false);
 
   const handleSubmitOTP = async () => {
     setBtnLoading(true);
@@ -26,7 +27,7 @@ export default function EmailVerificationScreen() {
       return;
     }
 
-    await handleOTP({ email: decodeURIComponent(query?.email), pin: otp })
+    await handleOTP({ email: decodeURIComponent(query?.email), code: otp })
       .then((res) => {
         setPageLoading(true);
         setTimeout(() => {
@@ -39,25 +40,18 @@ export default function EmailVerificationScreen() {
       });
   };
 
-  const handleResendOTP = async () => {
-    setBtnLoading(true);
+  const handleResendOTPClick = async () => {
+    setResetOTPBtnLoading(true);
 
-    //load btn
-    //change btn text
-
-    // await handleOTP({ email: decodeURIComponent(query?.email), pin: otp })
-    //   .then((res) => {
-    //     console.log(res);
-
-    //     setPageLoading(true);
-    //     setTimeout(() => {
-    //       window.location.href = "/dashboard";
-    //     }, 1500);
-    //   })
-    //   .catch((err) => {
-    //     setBtnLoading(false);
-    //     error(err?.response?.data?.message);
-    //   });
+    await handleResendOTP({ email: decodeURIComponent(query?.email) })
+      .then((res) => {
+        setResetOTPBtnLoading(false);
+        success(res?.data?.message);
+      })
+      .catch((err) => {
+        setResetOTPBtnLoading(false);
+        error(err?.response?.data?.message);
+      });
   };
 
   useEffect(() => {
@@ -108,9 +102,17 @@ export default function EmailVerificationScreen() {
             flexDir="column"
             gap="28px"
           >
-            <p className="code__text">
-              Didn't get a code? <span>Click to resend</span>
-            </p>
+            {resendOtpBtnLoading ? (
+              <p className="code__text">Resending new OTP to your email</p>
+            ) : (
+              <p className="code__text">
+                Didn't get a code?{" "}
+                <span onClick={() => handleResendOTPClick()}>
+                  Click to resend
+                </span>
+              </p>
+            )}
+
             <Button
               backgroundColor="var(--oosriPrimary)"
               color="#fff"

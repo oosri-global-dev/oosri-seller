@@ -16,6 +16,7 @@ import { handleRegistration } from "@/network/user";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { countries } from "@/data-helpers/auth-helpers";
 import { storeDataInCookie } from "@/data-helpers/auth-session";
+import SignupAvatar from "@/components/lib/SignupAvatar";
 
 export default function RegisterPage() {
   const [form] = Form.useForm();
@@ -24,10 +25,14 @@ export default function RegisterPage() {
   const [success, error, info] = useNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
+  const [selectedImageGender, setSelectedImageGender] = useState({
+    type: "",
+    url: "",
+  });
   const { push } = useRouter();
   const businessType = [
-    { value: "corporate", label: "Corporate" },
-    { value: "personal", label: "Personal" },
+    { value: "Corporate", label: "Corporate" },
+    { value: "Personal", label: "Personal" },
   ];
 
   const handleMediaChange = (event) => {
@@ -58,7 +63,7 @@ export default function RegisterPage() {
 
   const handleSubmitLogin = async (values) => {
     setIsLoading(true);
-    if (!imageObjectURL) {
+    if (!imageObjectURL && !selectedImageGender.type) {
       info("Please upload a profile picture to continue");
       setIsLoading(false);
       return;
@@ -70,7 +75,7 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!values?.location) {
+    if (!values?.country) {
       info("Please select a country");
       setIsLoading(false);
       return;
@@ -79,13 +84,18 @@ export default function RegisterPage() {
     const formData = new FormData();
 
     //set the formData
-    formData.append("first_name", values?.first_name);
-    formData.append("last_name", values?.last_name);
+    formData.append("firstName", values?.first_name);
+    formData.append("lastName", values?.last_name);
     formData.append("email", values?.email);
     formData.append("password", values?.password);
-    formData.append("business_type", values?.business_type);
-    formData.append("location", values?.location);
-    formData.append("profile_photo", imageFile);
+    formData.append("businessType", values?.business_type);
+    formData.append("country", values?.country);
+
+    if (selectedImageGender.type) {
+      formData.append("profilePicture", selectedImageGender.type);
+    } else {
+      formData.append("profilePicture", imageFile);
+    }
 
     //call api
     try {
@@ -112,6 +122,7 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <AuthLayout
@@ -270,9 +281,9 @@ export default function RegisterPage() {
                 className="half__box"
               >
                 <label>Country</label>
-                <Form.Item name={"location"}>
+                <Form.Item name={"country"}>
                   <Select
-                    name="location"
+                    name="country"
                     required
                     bgColor="#FAFAFA"
                     height="40px"
@@ -312,13 +323,17 @@ export default function RegisterPage() {
                 width="50%"
                 className="half__box"
               >
-                {imageObjectURL ? (
+                {imageObjectURL || selectedImageGender.url ? (
                   <FlexibleDiv
                     className="profile__picture"
                     flexDir="column"
                     gap="5px"
                   >
-                    <img className="h-84" id="blah" src={imageObjectURL} />
+                    <img
+                      className="h-84"
+                      id="blah"
+                      src={selectedImageGender.url || imageObjectURL || ""}
+                    />
                     <CancelIcon
                       size={22}
                       color="red"
@@ -326,29 +341,60 @@ export default function RegisterPage() {
                       onClick={() => {
                         setImageFile("");
                         setImageObjectURL("");
+                        setSelectedImageGender({ type: "", url: "" });
                       }}
                     />
                   </FlexibleDiv>
                 ) : (
-                  <label htmlFor="addProfileImage">
-                    Upload a profile picture
+                  <FlexibleDiv
+                    flexDir="column"
+                    justifyContent="flex-start"
+                    alignItems="flex-start"
+                    gap="10px"
+                  >
+                    <label htmlFor="addProfileImage">
+                      Upload a profile picture
+                      <FlexibleDiv
+                        className="profile__picture"
+                        flexDir="column"
+                        gap="5px"
+                      >
+                        <input
+                          hidden
+                          type="file"
+                          id={"addProfileImage"}
+                          name="file"
+                          className="hide__input"
+                          onChange={handleMediaChange}
+                        />
+                        <AddImage size={25} color="#8D98AA" />
+                        <small>Upload your photo</small>
+                      </FlexibleDiv>
+                    </label>
                     <FlexibleDiv
-                      className="profile__picture"
+                      justifyContent="flex-start"
+                      alignItems="flex-start"
                       flexDir="column"
-                      gap="5px"
+                      gap="4px"
                     >
-                      <input
-                        hidden
-                        type="file"
-                        id={"addProfileImage"}
-                        name="file"
-                        className="hide__input"
-                        onChange={handleMediaChange}
-                      />
-                      <AddImage size={25} color="#8D98AA" />
-                      <small>Upload your photo</small>
+                      <label>You can choose any of the avatars below</label>
+                      <FlexibleDiv
+                        flexDir="row"
+                        justifyContent="flex-start"
+                        alignItems="flex-start"
+                        gap="8px"
+                      >
+                        <SignupAvatar
+                          gender="male"
+                          setSelectedObject={setSelectedImageGender}
+                        />
+                        <SignupAvatar
+                          gender="female"
+                          setSelectedObject={setSelectedImageGender}
+                        />
+                      </FlexibleDiv>
                     </FlexibleDiv>
-                  </label>
+                  </FlexibleDiv>
                 )}
               </FlexibleDiv>
             </FlexibleDiv>
