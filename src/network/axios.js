@@ -6,7 +6,7 @@ let refreshToken = null;
 
 if (typeof window !== "undefined") {
   // Perform sessionStorage action
-  userToken = getDataInCookie("access_token");
+  userToken = getDataInCookie("access_token__seller");
   // refreshToken = sessionStorage.getItem("refresh_token");
 }
 

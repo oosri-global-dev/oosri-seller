@@ -21,6 +21,7 @@ import { BsArrowLeft as LeftArrow } from "react-icons/bs";
 import { MainContext } from "@/context";
 import { isEmpty, isNull } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
+import { NO_BUSINESS_MODAL } from "@/context/types";
 
 export default function DashboardLayout({ children, title, showBackBtn }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -54,14 +55,6 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       },
     },
     {
-      key: "/sellers",
-      icon: <UserIcon />,
-      label: "Sellers",
-      onClick: () => {
-        push("/sellers");
-      },
-    },
-    {
       key: "/order-history",
       icon: <ProductIcon />,
       label: "Order History",
@@ -91,20 +84,24 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       if (isEmpty(user?.personalBusinessAccount)) {
         push("/create-business");
       }
-    } else if (userObj.businessType === "Corporate") {
-      if (isEmpty(userObj.corporateBusinessAccount)) {
+    } else if (user?.businessType === "Corporate") {
+      if (isEmpty(user?.corporateBusinessAccount)) {
         push("/create-business");
       }
     }
   };
-
-  // console.log("user", user);
 
   return (
     <DBWrapper openMenu={collapsed}>
       <BlockerModal
         visible={showNoBusinessModal}
         onCreateProfile={handleUserBusinessCheck}
+        onClose={() => {
+          dispatch({
+            type: NO_BUSINESS_MODAL,
+            payload: false,
+          });
+        }}
       />
       <Layout className="layout__box">
         <Sider
@@ -170,12 +167,9 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                     alt="show-img"
                   />
                   <div>
-                    {user?.first_name && (
+                    {user?.firstName && (
                       <h4>
-                        {`${user?.first_name || ""} ${
-                          user?.last_name[0] || ""
-                        }`}
-                        .
+                        {`${user?.firstName || ""} ${user?.lastName[0] || ""}`}.
                       </h4>
                     )}
 

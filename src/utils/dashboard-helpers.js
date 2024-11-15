@@ -25,13 +25,13 @@ export const summaryBoxes = [
   },
   {
     icon: <BagIcon size={22} color="#FB5183" />,
-    value: "760",
-    label: "Total Orders",
+    value: "20",
+    label: "Total Order",
   },
   {
     icon: <CardIcon size={22} color="#FB5183" />,
     value: "N10,580",
-    label: "New Customers",
+    label: "Profit",
   },
 ];
 

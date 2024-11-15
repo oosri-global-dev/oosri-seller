@@ -85,6 +85,11 @@ export const RegisterWrapper = styled(FlexibleDiv)`
     }
   }
 
+  .choose__avts {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
   @media (max-width: 950px) {
     width: 75%;
 
