@@ -13,8 +13,9 @@ const BlockerModal = ({ visible, onClose, onCreateProfile }) => {
       visible={visible}
       onCancel={onClose}
       footer={null}
-      closable={false}
+      closable={true}
       centered
+      maskClosable={true}
     >
       <ModalTitle>Create Your Business Profile</ModalTitle>
       <ModalText>

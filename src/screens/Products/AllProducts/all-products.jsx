@@ -11,9 +11,18 @@ import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import TextField from "@/components/lib/TextField";
 import { LuArrowUpDown as FilterArrow } from "react-icons/lu";
 import { useState } from "react";
+import { useMainContext } from "@/context";
+import { useRouter } from "next/router";
+import { isBusinessActive } from "@/utils/business-checker";
+import { NO_BUSINESS_MODAL } from "@/context/types";
 
 export default function AllProductsScreen() {
   const [activeTab, setActiveTab] = useState("products");
+  const { push } = useRouter();
+  const {
+    dispatch,
+    state: { user },
+  } = useMainContext();
   const items = [
     {
       key: "1",
@@ -24,8 +33,32 @@ export default function AllProductsScreen() {
       label: "Pending Products",
     },
   ];
+
   return (
     <DashboardLayout title={"Products"}>
+      <FlexibleDiv
+        width="100%"
+        justifyContent="flex-end"
+        margin="0px 0px 20px 0"
+      >
+        <Button
+          backgroundColor="var(--oosriPrimary)"
+          color="#fff"
+          onClick={() => {
+            if (isBusinessActive(user)) {
+              push("/product/create");
+            } else {
+              dispatch({
+                type: NO_BUSINESS_MODAL,
+                payload: true,
+              });
+            }
+          }}
+        >
+          + Add New Product
+        </Button>
+      </FlexibleDiv>
+
       <TopMenuWrapper>
         <Tabs
           className="tabs__custom"

@@ -8,7 +8,7 @@ export const CreateBusinessWrapper = styled(FlexibleDiv)`
   padding: 30px 0;
 
   .form__wrapper {
-    width: 52%;
+    width: 50%;
     margin-top: 20px;
     flex-direction: column;
     display: flex;

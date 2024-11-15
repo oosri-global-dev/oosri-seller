@@ -7,13 +7,19 @@ import { getDataInCookie } from "@/data-helpers/auth-session";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 
+// Array of paths that should be excluded from redirection
+const excludedPaths = ["/otp", "/register", "/login", "/forgot-password", "/check-email"];
+
 const AppWrapper = ({ children }) => {
-  const { dispatch } = useContext(MainContext);
+  const {
+    dispatch,
+    state: { user },
+  } = useContext(MainContext);
   const [pageLoading, setIsPageLoading] = useState(true);
   const { pathname, push } = useRouter();
 
   useEffect(() => {
-    const userToken = getDataInCookie("access_token");
+    const userToken = getDataInCookie("access_token__seller");
 
     if (!userToken) {
       setIsPageLoading(false);
@@ -27,25 +33,36 @@ const AppWrapper = ({ children }) => {
           type: CURRENT_USER,
           payload: res?.data?.data,
         });
-        if (pathname === "/") {
-          push("/dashboard").then(() => {
-            setIsPageLoading(false);
-          });
-          return;
-        }
+
+        // Check if the current path is in the excluded list
+        const isExcludedPath = excludedPaths.some((path) =>
+          pathname.startsWith(path)
+        );
+
+        // if (pathname === "/" && !isExcludedPath) {
+        //   push("/dashboard").then(() => {
+        //     setIsPageLoading(false);
+        //   });
+        //   return;
+        // }
         setIsPageLoading(false);
       } catch (err) {
-        window.location.href = "/";
+        // Only redirect to home if not on an excluded path
+        if (!excludedPaths.some((path) => pathname.startsWith(path))) {
+          window.location.href = "/";
+        } else {
+          setIsPageLoading(false);
+        }
       }
     };
 
     fetchUser();
-  }, [dispatch]);
+  }, [dispatch, pathname]);
 
   useEffect(() => {
     // Function to check business status
     const checkBusinessStatus = () => {
-      if (!isBusinessActive()) {
+      if (!isBusinessActive(user)) {
         dispatch({
           type: NO_BUSINESS_MODAL,
           payload: true,
@@ -61,7 +78,7 @@ const AppWrapper = ({ children }) => {
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
+  }, [user]); // Empty dependency array means this effect runs once on mount and cleans up on unmount
 
   if (pageLoading) {
     return <CustomLoader />;
