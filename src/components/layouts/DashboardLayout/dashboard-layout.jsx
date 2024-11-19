@@ -70,9 +70,7 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       key: "/sellers-analytics-page",
       icon: <GraphIcon />,
       label: "Sales Analytics",
-      onClick: ({ item, key }) => {
-        push("/sellers-analytics-page")
-    },
+      onClick: ({ item, key }) => {},
   },
     {
       key: "/setings",
