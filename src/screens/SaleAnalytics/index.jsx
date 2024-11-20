@@ -2,16 +2,17 @@ import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layo
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { salesBoxes } from "@/utils/dashboard-helpers";
 import { SaleAnalyticsWrapper } from "./index.styles";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import Button from "@/components/lib/Button";
 import SalesChart from "./sales-chart";
-import Link from "next/link";
 import Select from "@/components/lib/Select";
 import { ProductReportData } from "@/utils/sale-analytics";
 import { HiOutlineChartBar } from "react-icons/hi2";
-import Search from "antd/es/transfer/search";
 import { CustomSearchBar } from "@/components/lib/SearchBar";
 import PurchasingChart from "./purchasing-chart";
+import { FaArrowDown, FaArrowUp } from "react-icons/fa";
+import TopSellingProduct from "@/assets/images/topSellingProduct.png"
+import LeastSellingProduct from "@/assets/images/leastSellingProduct.png"
 
 export default function SaleAnalytics(){
   const [filters, setFilters] = useState([
@@ -94,15 +95,20 @@ export default function SaleAnalytics(){
                   <h2>Top SELLING PRODUCT</h2>
                   <FlexibleDiv padding="50px 50px 80px 0px" justifyContent="start" flexWrap="noWrap" flexDir="row">
                     <FlexibleDiv className="image__text" justifyContent="column" flexWrap="noWrap" flexDir="row">
-                      <img className="product__image" src="https://placehold.co/100x100/png" />
+                      <img className="product__image" src={TopSellingProduct.src}/>
                       <FlexibleDiv flexDir="column" justifyContent="start" alignItems="start">
                         <h5>Iphone XS Max</h5>
-                        <p>90 sold</p>
+                        <p className="percent__increase">90 sold</p>
                       </FlexibleDiv>
                     </FlexibleDiv>
                     {/* Chart */}
                     <FlexibleDiv width="300px" >
                       <PurchasingChart increasing={true} />
+                      <FlexibleDiv flexWrap="noWrap" margin="6px 0px" gap="2px">
+                        <span className="percent__increase"> <FaArrowUp /> </span>
+                          <p className="percent__increase">2.8%</p>
+                          <p className="neutral">from last week</p>
+                      </FlexibleDiv>
                     </FlexibleDiv>
                   </FlexibleDiv>
                 </FlexibleDiv>
@@ -111,15 +117,20 @@ export default function SaleAnalytics(){
                   <h2>LEAST PURCHASED</h2>
                   <FlexibleDiv padding="50px 50px 80px 0px" flexWrap="noWrap">
                     <FlexibleDiv flexDir="row" flexWrap="noWrap" justifyContent="start" className="image__text">
-                      <img className="product__image" src="https://placehold.co/100x100/png" />
+                      <img className="product__image" src={LeastSellingProduct.src} />
                       <FlexibleDiv flexDir="column" justifyContent="start" alignItems="start">
-                        <h5>Iphone XS Max</h5>
-                        <p>90 sold</p>
+                        <h5>Apple Series 8 Watch</h5>
+                        <p className="percent__increase">10 sold</p>
                       </FlexibleDiv>
                     </FlexibleDiv>
                     {/* Chart */}
                     <FlexibleDiv width="300px" >
                       <PurchasingChart />
+                      <FlexibleDiv flexWrap="noWrap" margin="6px 0px" gap="2px">
+                        <span className="percent__decrease"> <FaArrowDown /> </span>
+                          <p className="percent__decrease">2.8%</p>
+                          <p className="neutral">from last week</p>
+                      </FlexibleDiv>
                     </FlexibleDiv>
                   </FlexibleDiv>
                 </FlexibleDiv>

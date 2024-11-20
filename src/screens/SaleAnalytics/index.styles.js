@@ -120,8 +120,8 @@ export const SaleAnalyticsWrapper= styled.div`
         img{
             border-radius:100%;
             object-fit:cover;
-            width:50px;
-            height:50px;
+            width:70px;
+            height:70px;
         }
 
         .report__table{
@@ -170,6 +170,31 @@ export const SaleAnalyticsWrapper= styled.div`
             display:flex;
             align-items:center;
             gap:12px;
+        }
+
+        
+        .percent__decrease{
+          color:#F76241;
+          font-weight:500;
+
+          svg{
+            fill:#F76241;
+            margin:3px 5px 0px 0px;
+          }
+        }
+
+        .percent__increase{
+          color:#89B46D;
+          font-weight:500;
+
+          svg{
+            fill:#89B46D;
+            margin:2px 5px 0px 0px;
+          }
+        }
+
+        .neutral{
+          color:#999999;
         }
     }
     .item__box1{

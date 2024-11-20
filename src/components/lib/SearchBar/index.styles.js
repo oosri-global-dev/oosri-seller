@@ -33,10 +33,12 @@ export const SearchBarWrapper=styled(FlexibleDiv)`
         padding-top:2px;
         border-radius:12px;
 
-        // svg{
-        //     stroke:#9E9E9E;
-        // }
-    }
+        }
+        svg{
+            stroke:#9E9E9E;
+            min-width:24px;
+            min-height:24px;
+        }
 `
 
 export const SearchItemWrapper=styled(FlexibleDiv)`
@@ -51,12 +53,16 @@ export const SearchItemWrapper=styled(FlexibleDiv)`
     }
 
     p{
-        color:rgba(251, 81, 131, 1) !important;
+        color:#FB5183 !important;
         margin-top:0px !important; 
+        font-weight:500;
     }
 
     svg{
-        fill:rgba(201, 65, 105, 1);
+        margin-top:2px;
+       path{
+        stroke:rgba(201, 65, 105, 1);
         cursor:pointer;
+       }
     }
 ` 
