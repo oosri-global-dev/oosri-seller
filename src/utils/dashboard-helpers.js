@@ -35,6 +35,19 @@ export const summaryBoxes = [
   },
 ];
 
+export const summaryBoxes2 = [
+  {
+    icon: <StackIcon size={22} color="#FB5183" />,
+    value: "N50,300.98",
+    label: "Total Sales",
+  },
+  {
+    icon: <BagIcon size={22} color="#FB5183" />,
+    value: "N10,560.98",
+    label: "Total Orders",
+  },
+];
+
 const dropdownItems = [
   {
     key: "1",

@@ -67,11 +67,11 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       onClick: ({ item, key }) => {},
     },
     {
-      key: "/sales-analytics",
+      key: "/sellers-analytics-page",
       icon: <GraphIcon />,
       label: "Sales Analytics",
       onClick: ({ item, key }) => {},
-    },
+  },
     {
       key: "/setings",
       icon: <SettingsIcon />,
