@@ -55,10 +55,12 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       },
     },
     {
-      key: "/order-history",
+      key: "/order",
       icon: <ProductIcon />,
-      label: "Order History",
-      onClick: ({ item, key }) => {},
+      label: "Order",
+      onClick: ({ item, key }) => {
+        push("/order")
+      },
     },
     {
       key: "/payments",

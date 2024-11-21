@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import { SearchBarWrapper, SearchItemWrapper } from './index.styles'
+import { MultiSearchBarWrapper, SearchItemWrapper } from './index.styles'
 import Input from 'antd/es/input/Input'
 import { FiSearch } from "react-icons/fi";
 import { IoCloseOutline } from "react-icons/io5";
 import { FlexibleDiv } from '../Box/styles';
 
-export const CustomSearchBar = ({placeholder}) => {
-  const [inputValue, setInputValue] = useState(" ")
+export const CustomMultiSearchBar = ({placeholder,Multi=false,onChange=(e)=>{},width}) => {
+  const [inputValue, setInputValue] = useState("")
   const [searchItems, setSearchItems] = useState([])
   const [isFocused, setIsFocused] = useState(false);
 
@@ -35,6 +35,7 @@ export const CustomSearchBar = ({placeholder}) => {
   // handle input change
   const handleChange = (e) =>{
     setInputValue(e.target.value)
+    onChange(e)
   }
   // Handle search deletion
   const handleDeleteItem = (itemToDelete) => {
@@ -42,8 +43,10 @@ export const CustomSearchBar = ({placeholder}) => {
   };
 
   return (
-    <SearchBarWrapper>
-        {/* <Input addonBefore={<FiSearch/>} placeholder={placeholder} /> */}
+    <MultiSearchBarWrapper width={width}>
+      {Multi?
+        <Input addonBefore={<FiSearch/>} placeholder={placeholder} onChange={handleChange} /> 
+       :
         <Input 
           addonBefore={
           <FlexibleDiv flexWrap="noWrap" gap="6px"> 
@@ -60,6 +63,8 @@ export const CustomSearchBar = ({placeholder}) => {
           onChange={(e)=>handleChange(e)}
           value={inputValue}
         />
-    </SearchBarWrapper>
+              
+        }
+    </MultiSearchBarWrapper>
   )
 }

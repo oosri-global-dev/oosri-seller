@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { FlexibleDiv } from "../Box/styles";
 
-export const SearchBarWrapper=styled(FlexibleDiv)`
+export const MultiSearchBarWrapper=styled(FlexibleDiv)`
     .ant-input-affix-wrapper{
         padding:7px 15px;
         border-radius:12px;

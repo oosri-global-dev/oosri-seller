@@ -8,7 +8,7 @@ import SalesChart from "./sales-chart";
 import Select from "@/components/lib/Select";
 import { ProductReportData } from "@/utils/sale-analytics";
 import { HiOutlineChartBar } from "react-icons/hi2";
-import { CustomSearchBar } from "@/components/lib/SearchBar";
+import { CustomMultiSearchBar } from "@/components/lib/MultiSearchBar";
 import PurchasingChart from "./purchasing-chart";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import TopSellingProduct from "@/assets/images/topSellingProduct.png"
@@ -150,7 +150,7 @@ export default function SaleAnalytics(){
                 className="top__recent__box"
               >
                 <FlexibleDiv width="50%">
-                  <CustomSearchBar placeholder="search by product name"/>
+                  <CustomMultiSearchBar Multi={true} placeholder="search by product name"/>
                 </FlexibleDiv>
                   <FlexibleDiv
                      gap="15px"
