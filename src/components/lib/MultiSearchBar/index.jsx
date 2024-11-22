@@ -22,7 +22,7 @@ export const CustomMultiSearchBar = ({placeholder,Multi=false,onChange=(e)=>{},w
   // Check if the 'Enter' key was pressed and the input is focused
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && isFocused) {
-      const wordRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
+      const wordRegex = /^\S+$/;
       if(wordRegex.test(inputValue)){
         setSearchItems((prevItems) => {
           const newItems = [...prevItems, inputValue];
@@ -45,10 +45,8 @@ export const CustomMultiSearchBar = ({placeholder,Multi=false,onChange=(e)=>{},w
   return (
     <MultiSearchBarWrapper width={width}>
       {Multi?
-        <Input addonBefore={<FiSearch/>} placeholder={placeholder} onChange={handleChange} /> 
-       :
         <Input 
-          addonBefore={
+        addonBefore={
           <FlexibleDiv flexWrap="noWrap" gap="6px"> 
             <FiSearch/> 
               {searchItems.length > 0 && searchItems.map(item => (
@@ -62,8 +60,9 @@ export const CustomMultiSearchBar = ({placeholder,Multi=false,onChange=(e)=>{},w
           onKeyDown={handleKeyDown}
           onChange={(e)=>handleChange(e)}
           value={inputValue}
-        />
-              
+        /> 
+        :
+        <Input addonBefore={<FiSearch/>} placeholder={placeholder} onChange={handleChange} /> 
         }
     </MultiSearchBarWrapper>
   )
