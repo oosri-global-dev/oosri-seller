@@ -1,7 +1,6 @@
 import { Space } from "antd";
 import { FaEllipsis } from "react-icons/fa6";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { useState } from "react";
 
 const SortSVG=()=>(
     <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -130,7 +129,9 @@ export const orderTableColumns = [
                 <p className={_.toLowerCase()==="paid"?"paid":"delivery_pay"}>{_}</p>
                 <div className="details__container">
                 <FaEllipsis onClick={togglePopup} />
-                <div className="details__popup invinsible" id={obj.orderId} onClick={()=>console.log("skdl")}>
+                <div className="details__popup invinsible" id={obj.orderId}
+                //  onClick={()=>push(`order/${obj.orderId}`)}
+                 >
                     <div>
                      <p>View Details</p>    
                     </div>
