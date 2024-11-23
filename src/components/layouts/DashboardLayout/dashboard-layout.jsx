@@ -80,6 +80,9 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       key: "/profile",
       icon: <BsPeopleFill />,
       label: "Profile",
+      onClick: ({ item, key }) => {
+        push("/sellers-profile-page")
+      },
     },
   ];
 
