@@ -58,8 +58,8 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       key: "/order",
       icon: <ProductIcon />,
       label: "Order",
-      onClick: ({ item, key }) => {
-        push("/order")
+      onClick: () => {
+        push("/order");
       },
     },
     {
@@ -69,11 +69,11 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       onClick: ({ item, key }) => {},
     },
     {
-      key: "/sellers-analytics-page",
+      key: "/sales-analytics",
       icon: <GraphIcon />,
       label: "Sales Analytics",
-      onClick: ({ item, key }) => {
-        push("/sales-analytics")
+      onClick: () => {
+        push("/sales-analytics");
       },
     },
     {

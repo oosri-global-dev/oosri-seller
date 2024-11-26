@@ -1,5 +1,5 @@
-import { Order } from "@/screens/Order";
+import OrderScreen from "@/screens/Order/orders";
 
-export default function OrderScreens() {
-  return <Order />;
+export default function DashboardPage() {
+  return <OrderScreen />;
 }

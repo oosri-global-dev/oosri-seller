@@ -5,7 +5,7 @@ import { FiSearch } from "react-icons/fi";
 import { IoCloseOutline } from "react-icons/io5";
 import { FlexibleDiv } from '../Box/styles';
 
-export const CustomMultiSearchBar = ({placeholder,Multi=false,onChange=(e)=>{},width}) => {
+export default function CustomMultiSearchBar ({placeholder,Multi=false,onChange=(e)=>{},width}) {
   const [inputValue, setInputValue] = useState("")
   const [searchItems, setSearchItems] = useState([])
   const [isFocused, setIsFocused] = useState(false);

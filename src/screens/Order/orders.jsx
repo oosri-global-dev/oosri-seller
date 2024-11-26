@@ -1,13 +1,13 @@
 import DashboardLayout from '@/components/layouts/DashboardLayout/dashboard-layout'
 import React from 'react'
-import { OrderWrapper } from './index,styles'
+import { OrderWrapper } from './orders.styles'
 import { FlexibleDiv } from '@/components/lib/Box/styles'
-import { CustomMultiSearchBar } from '@/components/lib/MultiSearchBar'
+import CustomMultiSearchBar  from '@/components/lib/MultiSearchBar'
 import Select from '@/components/lib/Select'
 import { Table } from 'antd'
 import { orderTableColumns, orderTableData } from '@/utils/order-helpers'
 
-export const Order = () => {
+export default function OrderScreen(){
     const options=[
         { value: "This Year", label: "This Year" },
     ]
@@ -29,4 +29,4 @@ export const Order = () => {
         </OrderWrapper>
     </DashboardLayout>
   )
-}
+};

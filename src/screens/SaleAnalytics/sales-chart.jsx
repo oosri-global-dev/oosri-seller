@@ -1,7 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Chart } from "react-chartjs-2";
 import { Line } from "react-chartjs-2";
-import { AreaChart } from "react-chartkick";
 
 export default function SalesChart(){
     const[data,setData]=useState([""])
