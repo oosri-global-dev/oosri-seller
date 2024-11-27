@@ -1,8 +1,9 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import {DashboardWrapper} from "../Dashboard/dashboard.styles";
-import {SellersProfileWrapper} from "./seller-profile.styles";
 import { Tabs, Form } from "antd";
 import { useState } from "react";
+
+import { SellersProfileWrapper } from "../SellerProfile/seller-profile.styles";
 import TextField from "@/components/lib/TextField";
 import Select from "@/components/lib/Select";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
@@ -11,7 +12,7 @@ import Button from "@/components/lib/Button";
 import useNotification from "@/hooks/useNotification";
 import CustomLoader from "@/components/lib/CustomLoader";
 
-export default function SellerProfile() {
+export default function EditBusiness() {
     const [activeTab, setActiveTab] = useState("personal-details");
   const items = [
     {
@@ -171,6 +172,7 @@ export default function SellerProfile() {
                 <FlexibleDiv 
                 className="business__details__section"
                 style={{
+                    border:"1px solid red",
                     display: "flex",
                     justifyContent: " space-around"
                 }}
@@ -178,6 +180,7 @@ export default function SellerProfile() {
                     <FlexibleDiv 
                     className="business__info__wrapper"
                     style={{
+                        border: "1px solid red",
                         width: "50%"
                     }}
                     >
@@ -185,7 +188,7 @@ export default function SellerProfile() {
                             justifyContent: "flex-start", 
                             textAlign: "left",
                             width: "100%", 
-                            paddingBottom: "15px"
+                            paddingLeft: "30px"
                         }}>Business Details</h2>
 
                 <Form
@@ -194,6 +197,7 @@ export default function SellerProfile() {
                     className="business__details__form"
                     style={{
                         width: "100%",
+                        border: "1px solid red",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "left",
@@ -215,7 +219,15 @@ export default function SellerProfile() {
             className="single__row"
           >
             <label>Business Name</label>
-            <p>{businessData.name}</p>
+            <Form.Item name="business_name" rules={[{ required: true, message: "Business name is required" }]}>
+              <TextField
+                name="businessName"
+                type="text"
+                maxLength={100}
+                required
+                bgColor="#FAFAFA"
+              />
+            </Form.Item>
           </FlexibleDiv>
 
           {/* Business Type */}
@@ -227,7 +239,14 @@ export default function SellerProfile() {
             className="single__row"
           >
             <label>Business Type</label>
-            <p>{businessData.type}</p>
+            <Form.Item name="business_type" rules={[{ required: true, message: "Business type is required" }]}>
+              <Select
+                name="businessType"
+                options={businessTypeOptions}
+                required
+                bgColor="#FAFAFA"
+              />
+            </Form.Item>
           </FlexibleDiv>
             </FlexibleDiv>
 
@@ -236,7 +255,7 @@ export default function SellerProfile() {
                 display: "flex",
                 justifyContent: "space-between"
             }}>
-                {/* reg num and business address */}
+                {/* Industry */}
           <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
@@ -244,12 +263,19 @@ export default function SellerProfile() {
             gap="5px"
             className="single__row"
           >
-          {/* Registration Number */}
-            <label>Business Registration Number</label>
-            <p>{businessData.regNum}</p>
+            <label>Industry</label>
+            <Form.Item name="industry" rules={[{ required: true, message: "Please select your industry" }]}>
+            <TextField
+                name="registrationNumber"
+                type="text"
+                maxLength={50}
+                required
+                bgColor="#FAFAFA"
+              />
+            </Form.Item>
           </FlexibleDiv>
 
-          {/* Business Desc */}
+          {/* Registration Number */}
           <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
@@ -258,42 +284,65 @@ export default function SellerProfile() {
             className="single__row"
           >
             <label>Registration Number</label>
-            <p>{businessData.address}</p>
+            <Form.Item name="registration_number" rules={[{ required: true, message: "Registration number is required" }]}>
+              <TextField
+                name="registrationNumber"
+                type="text"
+                maxLength={50}
+                required
+                bgColor="#FAFAFA"
+              />
+            </Form.Item>
           </FlexibleDiv>
 
             </FlexibleDiv>
           
 
-          {/* Business Desc */}
-            <FlexibleDiv
+          {/* Business Address */}
+          <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
             width="100%"
             gap="5px"
             className="single__row"
           >
-            <label>Business Desccription</label>
-            <p>{businessData.description}</p>
-            </FlexibleDiv>
+            <label>Business Address</label>
+            <Form.Item name="business_address" rules={[{ required: true, message: "Business address is required" }]}>
+              <TextField
+                name="businessAddress"
+                type="text"
+                maxLength={150}
+                required
+                bgColor="#FAFAFA"
+              />
+            </Form.Item>
+          </FlexibleDiv>
+
+          {/* Submit Button */}
+          <FlexibleDiv width="100%" justifyContent="center">
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              bgColor="#1890FF"
+              textColor="#FFFFFF"
+            >
+              Save Business Details
+            </Button>
+          </FlexibleDiv>
         </Form>
 
                         
                     </FlexibleDiv>
 
                     <FlexibleDiv 
-                    className="edit__details__cont"
-                    style={{ width:"50%", height:"370px", display:"flex", justifyContent:""}}
-                    >
-                <Button
-                    type="submit"
-                    radius="8px"
-                    color="var(--oosriWhite)"
-                    backgroundColor="var(--oosriPrimary)"
-                    isLoading={isLoading}
-                >
-                    Edit Details
-                </Button>
-          </FlexibleDiv>
+                        className="edit__details__cont"
+                        style={{
+                            width:"30%",
+                            border:"1px solid red"
+                        }}
+                        >
+                            ddd
+                    </FlexibleDiv>
                 </FlexibleDiv>
             )}
 

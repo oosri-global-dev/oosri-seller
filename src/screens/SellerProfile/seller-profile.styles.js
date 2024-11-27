@@ -55,7 +55,7 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
     }
   }
 
-  .profile__details__section{
+  .profile__details__section, .business__details__section{
   padding:20px 0;
   border:1px solid red;
   border-radius: 12px;
@@ -70,7 +70,7 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
   width:40%;
   }
 
-  .info_cont {
+  .info_cont, .business__info__wrapper {
   padding: 20px 30px;
   }
 
@@ -96,4 +96,15 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
  .info1 p:nth-child(2), .info2 > p:nth-child(2) {
       color:var(--oosriFadedWhite)
   }
+
+
+  // Business details styling
+
+  .single__row label {
+  font-weight: 600
+  }
+
+  .single__row p {
+  color: #777777;
+  font-size: 0.98rem}
 `;
