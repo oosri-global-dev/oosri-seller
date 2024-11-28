@@ -11,6 +11,7 @@ import { HiOutlineShoppingBag as ProductIcon } from "react-icons/hi2";
 import { MdPayments as PaymentIcon } from "react-icons/md";
 import { VscGraph as GraphIcon } from "react-icons/vsc";
 import { IoSettingsOutline as SettingsIcon } from "react-icons/io5";
+import { FaUserFriends as ProfileIcon } from "react-icons/fa";
 import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import Button from "@/components/lib/Button";
@@ -71,6 +72,14 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       icon: <GraphIcon />,
       label: "Sales Analytics",
       onClick: ({ item, key }) => {},
+  },
+  {
+    key: "/sellers-profile-page",
+    icon: <ProfileIcon />,
+    label: "Profile",
+    onClick: () => {
+      push("/sellers-profile-page");
+    },
   },
     {
       key: "/setings",
