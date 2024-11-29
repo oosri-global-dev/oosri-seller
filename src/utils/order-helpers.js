@@ -49,7 +49,7 @@ export const orderTableColumns = [
     },
     {
       title: ()=>(
-        <FlexibleDiv width="100%" gap="5px" className="sort__icons" justifyContent="start">
+        <FlexibleDiv flexWrap="noWrap" gap="5px" className="sort__icons" justifyContent="start">
             <p>Amount</p>
             <SortSVG />
         </FlexibleDiv>
@@ -123,16 +123,14 @@ export const orderTableColumns = [
                     element.classList.add("invinsible")
                 }
             }
-          };
+         };
     
         return(
             <FlexibleDiv justifyContent="space-between" padding="0px 6px 0px 0px"  >
                 <p className={_.toLowerCase()==="paid"?"paid":"delivery_pay"}>{_}</p>
                 <div className="details__container">
                 <FaEllipsis onClick={togglePopup} />
-                <Link href={`/order/${obj.orderId.slice(1)}`} className="details__popup invinsible" id={obj.orderId}
-                //  onClick={()=>push(`order/${obj.orderId}`)}
-                 >
+                <Link href={`/order/${obj.orderId.slice(1)}`} className="details__popup invinsible" id={obj.orderId}>
                     <div>
                      <p>View Details</p>    
                     </div>

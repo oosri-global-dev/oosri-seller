@@ -1,13 +1,21 @@
-"use client";
+'use client'
 
 import { useEffect, useState } from "react";
-import { Line } from "react-chartjs-2";
+import dynamic from 'next/dynamic';
+import 'chart.js/auto';
+const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
+  ssr: false,
+});
 export default function PurchasingChart({increasing}){
     const[data,setData]=useState([""])
     const[bgColor,setBgColor]=useState("")
     const profit=increasing||false
 
     const chartOptions={
+          resizeDelay:2,
+          responsive:true,
+          aspectRatio:4,
+
           plugins: {
             filler: {
               propagate: false,
@@ -59,9 +67,7 @@ export default function PurchasingChart({increasing}){
     return(
         <Line
             options={chartOptions}
-            width="200px"
-            height="100px"
-            suppressHydrationWarning
+            height={"100px"}
             data={{
                 labels: ["Jan","Feb","fn","Sn","SHr","yui","jgv"],
                 datasets:[

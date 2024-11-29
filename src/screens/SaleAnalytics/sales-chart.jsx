@@ -1,12 +1,20 @@
-"use client";
+'use client'
 
 import { useState } from "react";
-import { Line } from "react-chartjs-2";
+import dynamic from 'next/dynamic';
+import 'chart.js/auto';
+const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
+  ssr: false,
+});
 
 export default function SalesChart(){
     const[data,setData]=useState([""])
 
     const chartOptions={
+          resizeDelay:2,
+          responsive:true,
+          aspectRatio:3,
+
           plugins: {
             filler: {
               propagate: false,

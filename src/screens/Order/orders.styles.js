@@ -81,6 +81,7 @@ export const OrderWrapper=styled.div`
         position:absolute;
         padding:6px;
         right:0px;
+        bottom:-40px;
         cursor:pointer;
 
         div{

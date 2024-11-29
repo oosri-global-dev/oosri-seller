@@ -53,6 +53,7 @@ export const SaleAnalyticsWrapper= styled.div`
     border-radius: 8px;
     gap: 30px;
     padding-top: 30px;
+    margin:80px 0px 0px 0px;
 
     .recent__text {
       font-size: 1.2rem;
@@ -170,12 +171,16 @@ export const SaleAnalyticsWrapper= styled.div`
             display:flex;
             align-items:center;
             gap:12px;
+            h5{
+             white-space:nowrap;
+            }
         }
 
         
         .percent__decrease{
           color:#F76241;
           font-weight:500;
+          white-space:nowrap;
 
           svg{
             fill:#F76241;
@@ -186,6 +191,7 @@ export const SaleAnalyticsWrapper= styled.div`
         .percent__increase{
           color:#89B46D;
           font-weight:500;
+          white-space:nowrap;
 
           svg{
             fill:#89B46D;
@@ -195,6 +201,7 @@ export const SaleAnalyticsWrapper= styled.div`
 
         .neutral{
           color:#999999;
+          white-space:nowrap;
         }
     }
     .item__box1{
@@ -205,11 +212,12 @@ export const SaleAnalyticsWrapper= styled.div`
        margin-left:20px;
     }
 
-    @media (max-width: 550px) {
+    @media (max-width: 660px) {
     .summary__wrapper {
       flex-direction: column;
       gap: 15px;
       margin-top: 10px;
+      align-items:start;
 
       .single__summary__box {
         padding: 12px;
@@ -236,5 +244,57 @@ export const SaleAnalyticsWrapper= styled.div`
         }
       }
     }
+
+    .table__section {
+      margin:40px 0px 0px 0px;
+    }
+
+    .top__recent__box{
+      padding:0px 20px 20px 20px;
+    }
+
+    .item__box{
+      width:100%;
+    }
+    .item__box2{
+       margin-left:0px;
+    }
+
+    .recent__sale__wrapper{
+      padding:0px 20px;
+    }
+
+    .recent__sale__wrapper{
+      img{
+        width:50px;
+        height:50px;
+      }
+
+      h5{
+        font-size:12px;
+      }
+    }
+
+    .chart__box{
+      padding:30px 0px 50px 0px;
+    }
+
+    .btn__group{
+      gap:5px;
+      width:100%;
+      justify-content:start;
+      margin-top:9px;
+    }
+    .product__report{
+      padding-bottom:0px;
+    }
+
+     .multi__select__box{
+       padding: 0px 5px 20px 5px;
+     }
+
+     .multi__select{
+      width:100%;
+     }
 }
 `

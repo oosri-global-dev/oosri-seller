@@ -1,5 +1,4 @@
 import DashboardLayout from '@/components/layouts/DashboardLayout/dashboard-layout'
-import React from 'react'
 import { OrderWrapper } from './orders.styles'
 import { FlexibleDiv } from '@/components/lib/Box/styles'
 import CustomMultiSearchBar  from '@/components/lib/MultiSearchBar'
@@ -13,20 +12,23 @@ export default function OrderScreen(){
     ]
 
   return (
-    <DashboardLayout title="Order">
+    <DashboardLayout  title={"Order"}>
         <OrderWrapper>
+          <FlexibleDiv className="flex justify-between mb-4"></FlexibleDiv>
             <FlexibleDiv className='top__section' justifyContent="space-between">
                 <CustomMultiSearchBar width="max-content" onChange={(e)=>console.log(e.target.value)} placeholder="Search by product name" />
                 <Select  options={options} defaultValue="This Year"/>
             </FlexibleDiv>
-            <Table 
-            className='table__class'
-             rowSelection={{
-                type: "checkbox",
-              }}
-              dataSource={orderTableData}
-              columns={orderTableColumns}
-            />
+            <div style={{overflow:"auto"}}>
+              <Table 
+              className='table__class'
+              rowSelection={{
+                  type: "checkbox",
+                }}
+                dataSource={orderTableData}
+                columns={orderTableColumns}
+              />
+            </div>
         </OrderWrapper>
     </DashboardLayout>
   )

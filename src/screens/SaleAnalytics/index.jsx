@@ -72,12 +72,13 @@ export default function SaleAnalytics(){
                <SalesChart />
              </FlexibleDiv>
              {/*Purchasing Reports */}
-             <FlexibleDiv className="table__section" justifyContent="space-around" margin="80px 0px 0px 0px">
+             <FlexibleDiv className="table__section" justifyContent="space-around">
               <FlexibleDiv
                 flexDir="row"
                 width="100%"
                 justifyContent="space-between"
                 padding="0 30px"
+                gap="12px"
                 className="top__recent__box"
               >
                 <div>
@@ -87,13 +88,13 @@ export default function SaleAnalytics(){
                   <Select  options={options} defaultValue="This Year"/>
               </FlexibleDiv>
               <FlexibleDiv flexDir="row" 
-              flexWrap="noWrap"
-              padding="0 30px"
-              alignItems="start"
-              className="recent__sale__wrapper" >
-                <FlexibleDiv justifyContent="start" flexDir="column"  alignItems="start" className="item__box1 item__box" >
+                padding="0 30px"
+                alignItems="start"
+                justifyContent="start"
+                className="recent__sale__wrapper" >
+                <FlexibleDiv justifyContent="start" flexDir="column"  alignItems="start" width="fit-content" className="item__box1 item__box" >
                   <h2>Top SELLING PRODUCT</h2>
-                  <FlexibleDiv padding="50px 50px 80px 0px" justifyContent="start" flexWrap="noWrap" flexDir="row">
+                  <FlexibleDiv className="chart__box" padding="50px 50px 80px 0px" justifyContent="start" flexWrap="noWrap" gap="24px" flexDir="row">
                     <FlexibleDiv className="image__text" justifyContent="column" flexWrap="noWrap" flexDir="row">
                       <img className="product__image" src={TopSellingProduct.src}/>
                       <FlexibleDiv flexDir="column" justifyContent="start" alignItems="start">
@@ -102,7 +103,7 @@ export default function SaleAnalytics(){
                       </FlexibleDiv>
                     </FlexibleDiv>
                     {/* Chart */}
-                    <FlexibleDiv width="300px" >
+                    <FlexibleDiv width="50%" >
                       <PurchasingChart increasing={true} />
                       <FlexibleDiv flexWrap="noWrap" margin="6px 0px" gap="2px">
                         <span className="percent__increase"> <FaArrowUp /> </span>
@@ -113,9 +114,9 @@ export default function SaleAnalytics(){
                   </FlexibleDiv>
                 </FlexibleDiv>
                 {/*  */}
-                <FlexibleDiv justifyContent="start" flexDir="column"  alignItems="start" className="item__box2 item__box">
+                <FlexibleDiv justifyContent="start" flexDir="column"  alignItems="start" width="fit-content" className="item__box2 item__box">
                   <h2>LEAST PURCHASED</h2>
-                  <FlexibleDiv padding="50px 50px 80px 0px" flexWrap="noWrap">
+                  <FlexibleDiv className="chart__box" padding="50px 50px 80px 0px" flexWrap="noWrap">
                     <FlexibleDiv flexDir="row" flexWrap="noWrap" justifyContent="start" className="image__text">
                       <img className="product__image" src={LeastSellingProduct.src} />
                       <FlexibleDiv flexDir="column" justifyContent="start" alignItems="start">
@@ -124,7 +125,7 @@ export default function SaleAnalytics(){
                       </FlexibleDiv>
                     </FlexibleDiv>
                     {/* Chart */}
-                    <FlexibleDiv width="300px" >
+                    <FlexibleDiv width="50%" >
                       <PurchasingChart />
                       <FlexibleDiv flexWrap="noWrap" margin="6px 0px" gap="2px">
                         <span className="percent__decrease"> <FaArrowDown /> </span>
@@ -143,19 +144,19 @@ export default function SaleAnalytics(){
                </div>
              <FlexibleDiv className="table__section" justifyContent="space-around">
               <FlexibleDiv
-                flexWrap="noWrap"
                 width="100%"
                 justifyContent="space-between"
                 padding="0 30px"
-                className="top__recent__box"
+                className="top__recent__box multi__select__box"
               >
-                <FlexibleDiv width="50%">
+                <FlexibleDiv className="multi__select" width="50%">
                   <CustomMultiSearchBar Multi={true} placeholder="search by product name"/>
                 </FlexibleDiv>
                   <FlexibleDiv
                      gap="15px"
                      justifyContent="end"
-                     width="100%">
+                     className="btn__group"
+                     width="fit-content">
                     {filters.map((sgn, idx) => (
                       <Button
                         backgroundColor={
