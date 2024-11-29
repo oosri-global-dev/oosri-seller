@@ -63,9 +63,9 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       },
     },
     {
-      key: "/payments",
+      key: "/messages",
       icon: <PaymentIcon />,
-      label: "Payments",
+      label: "Messages",
       onClick: ({ item, key }) => {},
     },
     {

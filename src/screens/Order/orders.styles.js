@@ -91,5 +91,9 @@ export const OrderWrapper=styled.div`
         }
      }
 
+     .table__class{
+      width:100%;
+     }
+
     }
 `

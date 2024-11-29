@@ -20,6 +20,7 @@ export default function OrderScreen(){
                 <Select  options={options} defaultValue="This Year"/>
             </FlexibleDiv>
             <Table 
+            className='table__class'
              rowSelection={{
                 type: "checkbox",
               }}

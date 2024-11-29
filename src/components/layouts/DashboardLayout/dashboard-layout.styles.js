@@ -100,7 +100,7 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
   }
 
-  @media (max-width: 550px) {
+  @media (max-width: 660px) {
     .layout__box {
       .menu__wrapper {
         border: none;

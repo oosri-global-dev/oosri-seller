@@ -92,4 +92,38 @@ export const OrderDetailsWrapper= styled.div`
     }
   }
 
-`
+  @media screen and (max-width:660px){
+    .profile__section{   
+     img{
+        width:55px;
+        height:50px;
+     }
+
+      h5{
+        font-size:14px;
+      }
+        
+      p{
+        color:#777777;
+        font-size:12px;
+      }
+    }
+
+    .item__info{
+      margin-top:20px;
+
+      .absolute__item{
+       padding:10px 35px 10px 10px;
+       p{
+        font-size:12px;
+       }
+      }
+       h2{
+        font-size:19px;
+       }
+
+       h5{
+        font-size:24px;
+       }
+    }
+}`

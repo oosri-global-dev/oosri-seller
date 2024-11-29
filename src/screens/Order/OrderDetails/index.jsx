@@ -33,7 +33,7 @@ export const OrderDetails = () => {
             </FlexibleDiv>
             <h5>₦50,000</h5>
           </FlexibleDiv>
-          <FlexibleDiv justifyContent="start" gap="50px">
+          <FlexibleDiv justifyContent="start" style={{columnGap:"50px"}}>
             {/* Delivery item 1 */}
             <FlexibleDiv className='delivery__item' gap="12px" alignItems="start" width="fit-content">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

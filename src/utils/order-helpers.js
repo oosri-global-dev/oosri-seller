@@ -1,6 +1,7 @@
 import { Space } from "antd";
 import { FaEllipsis } from "react-icons/fa6";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
+import Link from "next/link";
 
 const SortSVG=()=>(
     <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -48,7 +49,7 @@ export const orderTableColumns = [
     },
     {
       title: ()=>(
-        <FlexibleDiv flexWrap="noWrap" gap="5px" className="sort__icons" justifyContent="start">
+        <FlexibleDiv width="100%" gap="5px" className="sort__icons" justifyContent="start">
             <p>Amount</p>
             <SortSVG />
         </FlexibleDiv>
@@ -129,13 +130,13 @@ export const orderTableColumns = [
                 <p className={_.toLowerCase()==="paid"?"paid":"delivery_pay"}>{_}</p>
                 <div className="details__container">
                 <FaEllipsis onClick={togglePopup} />
-                <div className="details__popup invinsible" id={obj.orderId}
+                <Link href={`/order/${obj.orderId.slice(1)}`} className="details__popup invinsible" id={obj.orderId}
                 //  onClick={()=>push(`order/${obj.orderId}`)}
                  >
                     <div>
                      <p>View Details</p>    
                     </div>
-                </div>
+                </Link>
 
                 </div>
             </FlexibleDiv>
