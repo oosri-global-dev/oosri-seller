@@ -10,7 +10,7 @@ import { HiOutlineUsers as UserIcon } from "react-icons/hi2";
 import { HiOutlineShoppingBag as ProductIcon } from "react-icons/hi2";
 import { MdPayments as PaymentIcon } from "react-icons/md";
 import { VscGraph as GraphIcon } from "react-icons/vsc";
-import { IoSettingsOutline as SettingsIcon } from "react-icons/io5";
+import { BsPeopleFill } from "react-icons/bs";
 import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import Button from "@/components/lib/Button";
@@ -23,7 +23,7 @@ import { isEmpty, isNull } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
 
-export default function DashboardLayout({ children, title, showBackBtn }) {
+export default function DashboardLayout({ children, title, showBackBtn,titleSubText }) {
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -55,27 +55,34 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       },
     },
     {
-      key: "/order-history",
+      key: "/order",
       icon: <ProductIcon />,
-      label: "Order History",
-      onClick: ({ item, key }) => {},
+      label: "Order",
+      onClick: () => {
+        push("/order");
+      },
     },
     {
-      key: "/payments",
+      key: "/messages",
       icon: <PaymentIcon />,
-      label: "Payments",
+      label: "Messages",
       onClick: ({ item, key }) => {},
     },
     {
-      key: "/sellers-analytics-page",
+      key: "/sales-analytics",
       icon: <GraphIcon />,
       label: "Sales Analytics",
-      onClick: ({ item, key }) => {},
-  },
+      onClick: () => {
+        push("/sales-analytics");
+      },
+    },
     {
-      key: "/setings",
-      icon: <SettingsIcon />,
-      label: "Settings",
+      key: "/profile",
+      icon: <BsPeopleFill />,
+      label: "Profile",
+      onClick: ({ item, key }) => {
+        push("/sellers-profile-page")
+      },
     },
   ];
 
@@ -149,6 +156,7 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                   <p className="dashboard__text">{title || "Dashboard"}</p>
                   <p className="sub__text">
                     {!title && `Welcome, ${user?.firstName} ${user?.lastName}!`}
+                    {titleSubText}
                   </p>
                 </FlexibleDiv>
               </FlexibleDiv>

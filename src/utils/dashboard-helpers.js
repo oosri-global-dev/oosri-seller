@@ -34,6 +34,18 @@ export const summaryBoxes = [
     label: "Profit",
   },
 ];
+export const salesBoxes = [
+  {
+    icon: <StackIcon size={22} color="#FB5183" />,
+    value: "N50,30.098",
+    label: "Total Sale",
+  },
+  {
+    icon: <BagIcon size={22} color="#FB5183" />,
+    value: "N10,560.098",
+    label: "Total Order",
+  }
+];
 
 export const summaryBoxes2 = [
   {
