@@ -44,7 +44,7 @@ export default function PersonalBusiness() {
     try {
       const res = await handleCreatePersonalBusiness(formData);
 
-      push("/dashboard");
+        window.location.href = "/dashboard";
     } catch (err) {
       setIsLoading(false);
       if (err?.response?.status === 500) {
