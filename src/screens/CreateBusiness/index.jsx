@@ -16,36 +16,40 @@ export default function CreateBusiness() {
   const { push } = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (
-      user?.businessType === "Personal" ||
-      user?.businessType === "Corporate"
-    ) {
-      if (
-        user?.businessType === "Corporate" &&
-        isEmpty(user?.corporateBusinessAccount)
-      ) {
+useEffect(() => {
+  if (!user?._id) {
+    push("/");
+    return;
+  }
+
+  // Only proceed if user has a valid business type
+  if (user?.businessType === "Personal" || user?.businessType === "Corporate") {
+    if (user.businessType === "Corporate") {
+      if (isEmpty(user?.corporateBusinessAccount)) {
         setUserBusinessType("Corporate");
         setIsLoading(false);
         return;
-      } else {
-        push("/dashboard");
       }
+      push("/dashboard");
+      return;
+    }
 
-      if (
-        user?.businessType === "Personal" &&
-        isEmpty(user?.personalBusinessAccount)
-      ) {
+    // Handle Personal business type
+    if (user.businessType === "Personal") {
+      if (isEmpty(user?.personalBusinessAccount)) {
         setUserBusinessType("Personal");
         setIsLoading(false);
         return;
-      } else {
-        push("/dashboard");
       }
+      push("/dashboard");
+      return;
     }
-  }, [user]);
+  }
 
-  console.log("userx", user);
+  setIsLoading(false);
+}, [user, push]);
+
+
   return (
     <CreateBusinessWrapper>
       {isLoading ? (

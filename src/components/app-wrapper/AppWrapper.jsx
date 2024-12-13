@@ -8,7 +8,14 @@ import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 
 // Array of paths that should be excluded from redirection
-const excludedPaths = ["/otp", "/register", "/login", "/forgot-password", "/check-email"];
+const excludedPaths = [
+  "/otp",
+  "/register",
+  "/login",
+  "/forgot-password",
+  "/check-email",
+  "/create-business",
+];
 
 const AppWrapper = ({ children }) => {
   const {
@@ -21,7 +28,11 @@ const AppWrapper = ({ children }) => {
   useEffect(() => {
     const userToken = getDataInCookie("access_token__seller");
 
-    if (!userToken) {
+    if (
+      !userToken &&
+      !excludedPaths.some((path) => pathname.startsWith(path))
+    ) {
+      push("/");
       setIsPageLoading(false);
       return;
     }
@@ -39,16 +50,19 @@ const AppWrapper = ({ children }) => {
           pathname.startsWith(path)
         );
 
-        // if (pathname === "/" && !isExcludedPath) {
-        //   push("/dashboard").then(() => {
-        //     setIsPageLoading(false);
-        //   });
-        //   return;
-        // }
+        if (pathname === "/" && !isExcludedPath) {
+          push("/dashboard").then(() => {
+            setIsPageLoading(false);
+          });
+          return;
+        }
         setIsPageLoading(false);
       } catch (err) {
         // Only redirect to home if not on an excluded path
-        if (!excludedPaths.some((path) => pathname.startsWith(path))) {
+        if (
+          !excludedPaths.some((path) => pathname.startsWith(path)) &&
+          pathname !== "/"
+        ) {
           window.location.href = "/";
         } else {
           setIsPageLoading(false);
@@ -78,7 +92,7 @@ const AppWrapper = ({ children }) => {
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, [user]); // Empty dependency array means this effect runs once on mount and cleans up on unmount
+  }, [user]);
 
   if (pageLoading) {
     return <CustomLoader />;
