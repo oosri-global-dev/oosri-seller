@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { CustomUploaderWrapper } from "./index.styles";
 import { IoMdAdd } from "react-icons/io";
 
-export function CustomUpload({ setFile, initialImage,editable }){
+export function CustomUpload({ setFile, initialImage,editable, title }){
   const [error, setError] = useState(null);
   const [imageSrc, setImageSrc] = useState(initialImage || null);
   const [isImageVisible, setIsImageVisible] = useState(!!initialImage);
@@ -60,6 +60,7 @@ export function CustomUpload({ setFile, initialImage,editable }){
 
   return (
     <CustomUploaderWrapper>
+        <p className="upload__title">{title}</p>
       <div className="upload__container"
        style={
         {backgroundColor:editable?"rgba(0, 0, 0, 0.5)":"transparent",borderStyle:editable?"solid":"dashed"}}

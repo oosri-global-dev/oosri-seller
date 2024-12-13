@@ -1,6 +1,10 @@
 import styled from "styled-components";
 
 export const CustomUploaderWrapper=styled.div`
+.upload__title {
+font-weight:600;
+margin-bottom: 10px;
+}
 .upload__container {
   width: 100%;
   height: 200px;
@@ -9,7 +13,7 @@ export const CustomUploaderWrapper=styled.div`
   align-items: center;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #55443c;
+  border: 1px solid #BBBBBB ;
   background-color: rgba(0, 0, 0, 0.5);
   position: relative;
   padding:12px 0px;

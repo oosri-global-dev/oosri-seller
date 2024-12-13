@@ -55,7 +55,7 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
     }
   }
 
-  .profile__details__section{
+  .profile__details__section, .business__details__section{
   padding:20px 0;
   border:1px solid red;
   border-radius: 12px;
@@ -70,20 +70,25 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
   width:40%;
   }
 
-  .info_cont {
+  .info_cont, .business__info__wrapper {
   padding: 20px 30px;
+
   }
 
-  .info__inner_cont1,.info__inner_cont3,info__inner_cont3,info__inner_cont4 {
+  .info__inner_cont1,.info__inner_cont2, .info__inner_cont3,.info__inner_cont4 {
   padding-bottom:40px;
+  display: flex;
+  gap:5px;
+  justify-content: space-between;
+
   }
   .info__inner_cont3 {
   align-items:flex-start;
-  padding-top:40px;
+  // padding-top:40px;
   }
 
   .info1, .info2 {
-  width:50%;
+  width:45%;
   gap:5px;
   flex-direction:column;
   align-items:flex-start;
@@ -96,4 +101,98 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
  .info1 p:nth-child(2), .info2 > p:nth-child(2) {
       color:var(--oosriFadedWhite)
   }
+
+
+  // Business details styling
+
+  .business__details__section {
+  display: flex;
+  justify-content: space-around;
+  }
+
+  .business__info__wrapper {
+  width:50%;
+}
+
+  .business__details__form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    gap: 25px;
+  }
+
+  .single__row label {
+  font-weight: 600
+  }
+
+  .single__row p {
+  color: #777777;
+  font-size: 0.98rem}
+
+  .edit__details__cont {
+  width:50%;
+  height: 900px;
+  display: flex;
+  justifyContent: center;
+  align-items: flex-start;
+  }
+
+  // Bank details styling 
+
+  .business__info__wrapper {
+  width:50%;
+  }
+
+  .edit__bank__details__cont {
+  width: 50%;
+  height:370px;
+  display: flex;
+  }
+
+  @media (max-width: 768px) {
+
+  // Personal details styling
+
+    .info1, .info2 {
+      width:45%;
+  }
+
+    .profile__details__section {
+      display: flex;
+      flex-direction: column;
+  }
+    .profile__info__wrapper {
+      width:100%;
+  }
+
+  .profile__image__wrapper {
+    width:100%;
+  }
+
+  // Business details styling
+
+  .business__details__section {
+    flex-direction: column;
+  }
+
+  .business__info__wrapper {
+        width:100%;
+}
+
+.edit__details__cont {
+  height: 100%;
+  }
+
+  // Bank details styling
+  .business__info__wrapper {
+  width:100%;
+  }
+
+  .edit__bank__details__cont {
+  height:100%;
+  width: 100%;
+  }
+
+}
 `;
