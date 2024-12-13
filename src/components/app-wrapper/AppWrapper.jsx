@@ -8,7 +8,14 @@ import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 
 // Array of paths that should be excluded from redirection
-const excludedPaths = ["/otp", "/register", "/login", "/forgot-password", "/check-email"];
+const excludedPaths = [
+  "/otp",
+  "/register",
+  "/login",
+  "/forgot-password",
+  "/check-email",
+  "/create-business",
+];
 
 const AppWrapper = ({ children }) => {
   const {
