@@ -49,53 +49,7 @@ export default function Product() {
           </FlexibleDiv>
         </FlexibleDiv>
         
-        {/* Not mine */}
-        {/* <FlexibleDiv
-          className="right__section"
-          flexDir="column"
-          justifyContent="flex-start"
-          alignItems="flex-start"
-          gap="35px"
-        >
-          <HeaderTextAndSub title={"Product ID"} content={"1234567890"} />
-          <FlexibleDiv
-            className="image__sections"
-            flexDir="row"
-            justifyContent="space-between"
-            flexWrap="nowrap"
-            // gap="10px"
-          >
-            <img
-              src={ProductImage.src}
-              className="product__image"
-              alt="product"
-            />
-            <img
-              src={ProductImage.src}
-              className="product__image"
-              alt="product"
-            />
-            <img
-              src={ProductImage.src}
-              className="product__image"
-              alt="product"
-            />
-          </FlexibleDiv>
-          <HeaderTextAndSub
-            title={"SIM Type"}
-            content={"Infinix Smart 5 Pro"}
-          />
-          <HeaderTextAndSub title={"Operating System"} content={"iOS 15"} />
-          <HeaderTextAndSub title={"Price"} content={"$799.5"} />
-          <HeaderTextAndSub title={"Discount"} content={"$600"} />
-          <HeaderTextAndSub title={"Storage Capacity"} content={"128 GB"} />
-          <HeaderTextAndSub
-            title={"Product Description"}
-            content={
-              "MobileMaster is your trusted destination for all things mobile technology. With years of experience in the industry, we are dedicated to delivering top-notch products and services to meet your mobile needs.e offer a wide range of the latest smartphones, from top brands to budget-friendly options. Our knowledgeable staff can help you find the perfect phone to suit your needs."
-            }
-          />
-        </FlexibleDiv> */}
+
       </ProductWrapper>
     </DashboardLayout>
   );
