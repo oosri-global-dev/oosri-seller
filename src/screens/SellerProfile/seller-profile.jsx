@@ -9,7 +9,7 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import  SellerImage from "@/assets/images/sellerimage.png";
 import Button from "@/components/lib/Button";
 import useNotification from "@/hooks/useNotification";
-import CustomLoader from "@/components/lib/CustomLoader";
+import { countries } from "@/data-helpers/auth-helpers";
 import { CustomUpload } from "@/components/lib/CustomUpload";
 
 export default function SellerProfile() {
@@ -225,11 +225,29 @@ export default function SellerProfile() {
                             <FlexibleDiv className="info1"> 
                                 <p>Country</p>
                                 {isEditMode ? (
-                                    <TextField
-                                        name="regNum"
-                                        placeholder="Enter registration number"
-                                        defaultValue={profileData.country}
-                                    />
+                                    <Select
+                                    name="country"
+                                    required
+                                    bgColor="#FAFAFA"
+                                    height="40px"
+                                    showSearch
+                                    className="country__select"
+                                  >
+                                    {countries.map((cty, idx) => (
+                                      <Select.Option
+                                        key={idx}
+                                        value={cty.name}
+                                        className="select__public__content"
+                                      >
+                                        <img
+                                          className="small__drop__down__img"
+                                          src={`https://flagsapi.com/${cty?.code}/flat/64.png`}
+                                          alt={`${cty?.name?.toLowerCase()}-icon`}
+                                        />
+                                        <p>{cty.name}</p>
+                                      </Select.Option>
+                                    ))}
+                                  </Select>
                                 ) : (
                                 <p>{profileData.country}</p>
                                 )}
@@ -253,9 +271,7 @@ export default function SellerProfile() {
                     </FlexibleDiv>
 
                     <FlexibleDiv className="profile__image__wrapper" flexDir="column" gap="29px">
-                        <img src={SellerImage.src} style={{
-                            width:"200px", borderRadius:"10px"
-                        }} alt="Seller Image" />
+                    <CustomUpload setFile={setFile} editable={isEditMode} />
                         
                         <Button
                             onClick={isEditMode ? handleSaveDetails : toggleEditMode}
@@ -271,6 +287,7 @@ export default function SellerProfile() {
                     </FlexibleDiv>
                 </FlexibleDiv>
             )}
+
             {/* business details Content */}
             {activeTab === "business-details" && (
                 <FlexibleDiv 
@@ -292,13 +309,14 @@ export default function SellerProfile() {
                     className="business__details__form"
                     >
                         {/* Business Name and type */}
-                        <FlexibleDiv
-            style={{
-                display: "flex",
-                justifyContent: "space-between"
-            }}>
-                {/* Business name */}
-            <FlexibleDiv
+                      <FlexibleDiv
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between"
+                      }}
+                      className="input__container">
+                          {/* Business name */}
+                          <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
             width="40%"
@@ -315,10 +333,10 @@ export default function SellerProfile() {
                     ) : (
                       <p>{businessData.name}</p>
                     )}
-          </FlexibleDiv>
+                          </FlexibleDiv>
 
-          {/* Business Type */}
-          <FlexibleDiv
+                          {/* Business Type */}
+                          <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
             width="40%"
@@ -336,34 +354,36 @@ export default function SellerProfile() {
                     ) : (
                       <p>{businessData.type}</p>
                     )}
-          </FlexibleDiv>
-                        </FlexibleDiv>
+                          </FlexibleDiv>
+                      </FlexibleDiv>
 
+                      <FlexibleDiv
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between"
+                        }}
+                        className="input__container"
+                      >
+                        {/* reg num and business address */}
                         <FlexibleDiv
-            style={{
-                display: "flex",
-                justifyContent: "space-between"
-            }}>
-                {/* reg num and business address */}
-          <FlexibleDiv
-            flexDir="column"
-            alignItems="flex-start"
-            width="40%"
-            gap="5px"
-            className="single__row"
-          >
-          {/* Registration Number */}
-            <label>Business Registration Number</label>
-            {isEditMode ? (
-                    <TextField
-                      name="regNum"
-                      placeholder="Enter registration number"
-                      defaultValue={businessData.regNum}
-                    />
-                  ) : (
-                    <p>{businessData.regNum}</p>
-                  )}
-          </FlexibleDiv>
+                          flexDir="column"
+                          alignItems="flex-start"
+                          width="40%"
+                          gap="5px"
+                          className="single__row"
+                        >
+                          {/* Registration Number */}
+                            <label>Business Registration Number</label>
+                            {isEditMode ? (
+                                    <TextField
+                                      name="regNum"
+                                      placeholder="Enter registration number"
+                                      defaultValue={businessData.regNum}
+                            />
+                            ) : (
+                          <p>{businessData.regNum}</p>
+                            )}
+                        </FlexibleDiv>
 
           {/* Business Desc */}
           <FlexibleDiv
@@ -444,6 +464,7 @@ export default function SellerProfile() {
                     </FlexibleDiv>
                 </FlexibleDiv>
             )}
+
             {/* bank information Content */}
             {activeTab === "bank-details" && (
                 <FlexibleDiv 
@@ -480,8 +501,9 @@ export default function SellerProfile() {
             style={{
                 display: "flex",
                 justifyContent: "space-between"
-            }}>
-                {/* Business name */}
+            }}
+            className="input__container">
+                {/* Account name */}
             <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
@@ -501,7 +523,7 @@ export default function SellerProfile() {
                     )}
           </FlexibleDiv>
 
-          {/* Business Type */}
+          {/* Bank name */}
           <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
@@ -526,8 +548,9 @@ export default function SellerProfile() {
             style={{
                 display: "flex",
                 justifyContent: "space-between"
-            }}>
-                {/* reg num and business address */}
+            }}
+            className="input__container">
+                {/* acc no and nin no */}
           <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"
@@ -535,7 +558,7 @@ export default function SellerProfile() {
             gap="5px"
             className="single__row"
           >
-          {/* Registration Number */}
+          {/* Acc Number */}
             <label>Account Number</label>
             {isEditMode ? (
                     <TextField
@@ -548,7 +571,7 @@ export default function SellerProfile() {
                   )}
           </FlexibleDiv>
 
-          {/* Business Desc */}
+          {/* nin no */}
           <FlexibleDiv
             flexDir="column"
             alignItems="flex-start"

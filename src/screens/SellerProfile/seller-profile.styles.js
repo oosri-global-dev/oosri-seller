@@ -15,6 +15,9 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
     }
   }
 
+  .country__select {
+  width: 100%;}
+
   .products__table__section {
     border: 1px solid rgba(224, 224, 224, 0.6);
     border-radius: 8px;
@@ -150,12 +153,21 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
   display: flex;
   }
 
+
+  // ********Media queries********
+
   @media (max-width: 768px) {
 
   // Personal details styling
 
+    .info__inner_cont1,.info__inner_cont2, .info__inner_cont3,.info__inner_cont4 {
+      flex-direction: column;
+      gap: 20px; 
+}
+
     .info1, .info2 {
-      width:45%;
+      width:100%;
+      
   }
 
     .profile__details__section {
@@ -171,6 +183,19 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
   }
 
   // Business details styling
+
+  .input__container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  }
+
+  .single__row {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    }
 
   .business__details__section {
     flex-direction: column;
