@@ -35,4 +35,30 @@ button{
     background-color:var(--oosriPrimary);
     color:var(--oosriWhite);
 }
+    
+.img__upload{
+  gap:24px;
+  .upload__container{
+   background-color:transparent !important;
+   border-style:dashed !important;
+   padding:12px 20px;
+   height:150px !important;
+   
+   
+   .main__text{
+    color:#777777 !important;
+    font-size:12px !important;
+    }
+    svg{
+      width:12px !important;
+      height:12px !important;
+      fill:#777777 !important;
+      }
+    }
+}
+      .column_item{
+       .upload__container{
+         height:50% !important;
+       }
+      }
 `

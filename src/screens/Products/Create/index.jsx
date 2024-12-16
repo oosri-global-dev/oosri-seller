@@ -55,7 +55,7 @@ export default function CreateProductPage(){
             else if (e === "2") setActiveTab("business-details");
             else setActiveTab("bank-details");
         }} />
-        <FlexibleDiv className="container_wrapper">
+        <FlexibleDiv className="container_wrapper" alignItems="start">
             {/* Left section */}
           <FlexibleDiv className="50%" flexDir="column" alignItems="start" gap="24px">
             <FlexibleDiv justifyContent="start">
@@ -113,11 +113,13 @@ export default function CreateProductPage(){
           </FlexibleDiv>
           {/* right section */}
           <FlexibleDiv flexDir="column" gap="24px" alignItems="start" width="100%">
-            <FlexibleDiv>
+            <FlexibleDiv className="img__upload" justifyContent="start">
               <CustomUpload editable setFile={setImg1} />
               <CustomUpload editable setFile={setImg1} />
-              <CustomUpload editable setFile={setImg1} />
-              <CustomUpload editable setFile={setImg1} />
+              <FlexibleDiv flexDir="column" className="column_item" width="fit-content">
+                <CustomUpload editable setFile={setImg1} />
+                <CustomUpload editable setFile={setImg1} />
+              </FlexibleDiv>
             </FlexibleDiv>
             {/* Sim Type */}
             <div className="product__item">
