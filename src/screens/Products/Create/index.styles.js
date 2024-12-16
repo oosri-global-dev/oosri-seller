@@ -56,9 +56,11 @@ button{
       }
     }
 }
-      .column_item{
-       .upload__container{
-         height:50% !important;
-       }
+    .column_item{
+      .upload__container{
+        height:50% !important;
       }
+    }
+
+
 `
