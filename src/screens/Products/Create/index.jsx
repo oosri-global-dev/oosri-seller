@@ -55,6 +55,7 @@ export default function CreateProductPage(){
             else if (e === "2") setActiveTab("business-details");
             else setActiveTab("bank-details");
         }} />
+        {activeTab === "mobile"?
         <FlexibleDiv className="container_wrapper" alignItems="start">
             {/* Left section */}
           <FlexibleDiv className="50%" flexDir="column" alignItems="start" gap="24px">
@@ -152,7 +153,9 @@ export default function CreateProductPage(){
                 <TextArea placeholder="Minimum of 1000 words"/>
             </div>
           </FlexibleDiv>
-        </FlexibleDiv>
+        </FlexibleDiv>:
+        activeTab=="watches"
+        }
 
       {/* Add Button */}
       <FlexibleDiv justifyContent="end">

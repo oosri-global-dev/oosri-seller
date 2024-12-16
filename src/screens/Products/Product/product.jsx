@@ -17,7 +17,7 @@ export default function Product() {
         </FlexibleDiv>
         {/* Product Name Section */}
         <FlexibleDiv width="100%" alignItems="start" justifyContent="start" className="image_text_holder" gap="48px">
-          <FlexibleDiv flexDir="column" alignItems="start" gap="10%" width="40%" justifyContent="start">
+          <FlexibleDiv flexDir="column" alignItems="start" gap="24px" width="40%" justifyContent="start">
             {/* Name and color */}
             <FlexibleDiv alignItems="start" justifyContent="start" gap="30%" flexWrap="nowrap" className="text__item">
               <HeaderTextAndSub title={"Product Name"} content={"Inifinx Smart 5 Pro"}/>

@@ -30,7 +30,9 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
   const [current, setCurrent] = useState(
-    pathname === "/" || pathname === "" ? "/dashboard" : pathname
+    pathname === "/" || pathname === "" ? "/dashboard" : 
+    pathname.includes("/product")?"/products":
+    pathname.includes("/order")?"/order":pathname
   );
   const {
     dispatch,
