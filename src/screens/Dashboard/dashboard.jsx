@@ -3,7 +3,7 @@ import { DashboardWrapper } from "./dashboard.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { summaryBoxes } from "@/utils/dashboard-helpers";
 import Button from "@/components/lib/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "chartkick/chart.js";
 import { AreaChart } from "react-chartkick";
 import { Table } from "antd";
@@ -12,6 +12,7 @@ import {
   dashboardTableData,
 } from "@/utils/dashboard-helpers";
 import Link from "next/link";
+import { getDashboardSummary } from "@/network/dashboard";
 
 export default function DashboardScreen() {
   const [filters, setFilters] = useState([
@@ -21,6 +22,15 @@ export default function DashboardScreen() {
     "Yearly",
   ]);
   const [selectedFilter, setSelectedFilter] = useState("Daily");
+
+
+  useEffect(()=>{
+    const fetchSummaryData = async()=>{
+      const data= await getDashboardSummary()
+       return data
+    }
+    fetchSummaryData()
+  },[])
 
   const graphOptions = {
     Jan: 2,

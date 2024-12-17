@@ -4,18 +4,32 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import HeaderTextAndSub from "./simple-components/simple-components";
 import ProductImage from "@/assets/images/profile.jpg";
 import Button from "@/components/lib/Button";
+import { useState } from "react";
+import EditProduct from "../Edit/edit-product";
 
 export default function Product() {
+  const [edit,setEdit]=useState(false)
   return (
     <DashboardLayout title={"Product Detail"} showBackBtn>
-      <ProductWrapper>
+        {edit?
+        <div>
+          <EditProduct />   
+        <ProductWrapper>
+          <FlexibleDiv justifyContent="end" alignItems="start">
+              <Button className="edit__button" onClick={()=>{setEdit(true)}}>
+                Save Changes
+              </Button>
+          </FlexibleDiv>
+        </ProductWrapper>
+        </div>:
+        <ProductWrapper>
+        {/* Product Name Section */}
         <FlexibleDiv justifyContent="space-between" alignItems="start">
             <HeaderTextAndSub title={"Product ID"} content={"1234567890"} />
-            <Button className="edit__button">
+            <Button className="edit__button" onClick={()=>{setEdit(true)}}>
               Edit
             </Button>
         </FlexibleDiv>
-        {/* Product Name Section */}
         <FlexibleDiv width="100%" alignItems="start" justifyContent="start" className="image_text_holder" gap="48px">
           <FlexibleDiv flexDir="column" alignItems="start" gap="24px" width="40%" justifyContent="start">
             {/* Name and color */}
@@ -48,9 +62,8 @@ export default function Product() {
             <HeaderTextAndSub title={"Product Description"} content={"MobileMaster is your trusted destination for all things mobile technology. With years of experience in the industry, we are dedicated to delivering top-notch products and services to meet your mobile needs.e offer a wide range of the latest smartphones, from top brands to budget-friendly options. Our knowledgeable staff can help you find the perfect phone to suit your needs."} />            
           </FlexibleDiv>
         </FlexibleDiv>
-        
-
       </ProductWrapper>
+        }
     </DashboardLayout>
   );
 }

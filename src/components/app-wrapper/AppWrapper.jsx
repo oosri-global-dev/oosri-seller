@@ -25,78 +25,78 @@ const AppWrapper = ({ children }) => {
   const [pageLoading, setIsPageLoading] = useState(true);
   const { pathname, push } = useRouter();
 
-  // useEffect(() => {
-  //   const userToken = getDataInCookie("access_token__seller");
+  useEffect(() => {
+    const userToken = getDataInCookie("access_token__seller");
 
-  //   if (
-  //     !userToken &&
-  //     !excludedPaths.some((path) => pathname.startsWith(path))
-  //   ) {
-  //     push("/");
-  //     setIsPageLoading(false);
-  //     return;
-  //   }
+    if (
+      !userToken &&
+      !excludedPaths.some((path) => pathname.startsWith(path))
+    ) {
+      push("/");
+      setIsPageLoading(false);
+      return;
+    }
 
-  //   const fetchUser = async () => {
-  //     try {
-  //       const res = await handleFetchUser();
-  //       dispatch({
-  //         type: CURRENT_USER,
-  //         payload: res?.data?.data,
-  //       });
+    const fetchUser = async () => {
+      try {
+        const res = await handleFetchUser();
+        dispatch({
+          type: CURRENT_USER,
+          payload: res?.data?.data,
+        });
 
-  //       // Check if the current path is in the excluded list
-  //       const isExcludedPath = excludedPaths.some((path) =>
-  //         pathname.startsWith(path)
-  //       );
+        // Check if the current path is in the excluded list
+        const isExcludedPath = excludedPaths.some((path) =>
+          pathname.startsWith(path)
+        );
 
-  //       if (pathname === "/" && !isExcludedPath) {
-  //         push("/dashboard").then(() => {
-  //           setIsPageLoading(false);
-  //         });
-  //         return;
-  //       }
-  //       setIsPageLoading(false);
-  //     } catch (err) {
-  //       // Only redirect to home if not on an excluded path
-  //       if (
-  //         !excludedPaths.some((path) => pathname.startsWith(path)) &&
-  //         pathname !== "/"
-  //       ) {
-  //         window.location.href = "/";
-  //       } else {
-  //         setIsPageLoading(false);
-  //       }
-  //     }
-  //   };
+        if (pathname === "/" && !isExcludedPath) {
+          push("/dashboard").then(() => {
+            setIsPageLoading(false);
+          });
+          return;
+        }
+        setIsPageLoading(false);
+      } catch (err) {
+        // Only redirect to home if not on an excluded path
+        if (
+          !excludedPaths.some((path) => pathname.startsWith(path)) &&
+          pathname !== "/"
+        ) {
+          window.location.href = "/";
+        } else {
+          setIsPageLoading(false);
+        }
+      }
+    };
 
-  //   fetchUser();
-  // }, [dispatch, pathname]);
+    fetchUser();
+  }, [dispatch, pathname]);
 
-  // useEffect(() => {
-  //   // Function to check business status
-  //   const checkBusinessStatus = () => {
-  //     if (!isBusinessActive(user)) {
-  //       dispatch({
-  //         type: NO_BUSINESS_MODAL,
-  //         payload: true,
-  //       });
-  //     }
-  //   };
+  useEffect(() => {
+    // Function to check business status
+    const checkBusinessStatus = () => {
+      if (!isBusinessActive(user)) {
+        dispatch({
+          type: NO_BUSINESS_MODAL,
+          payload: true,
+        });
+      }
+    };
 
-  //   // Initial check
-  //   checkBusinessStatus();
+    // Initial check
+    checkBusinessStatus();
 
-  //   // Set up interval to check every 5 minutes
-  //   const intervalId = setInterval(checkBusinessStatus, 5 * 60 * 1000);
+    // Set up interval to check every 5 minutes
+    const intervalId = setInterval(checkBusinessStatus, 5 * 60 * 1000);
 
-  //   // Clean up interval on component unmount
-  //   return () => clearInterval(intervalId);
-  // }, [user]);
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [user]);
 
-  // if (pageLoading) {
-  //   return <CustomLoader />;
-  // }
+  if (pageLoading) {
+    return <CustomLoader />;
+  }
 
   return children;
 };
