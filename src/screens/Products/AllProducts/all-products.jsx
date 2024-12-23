@@ -10,14 +10,16 @@ import Button from "@/components/lib/Button";
 import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import TextField from "@/components/lib/TextField";
 import { LuArrowUpDown as FilterArrow } from "react-icons/lu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 import { NO_BUSINESS_MODAL } from "@/context/types";
+import { getAllProducts } from "@/network/product";
 
 export default function AllProductsScreen() {
   const [activeTab, setActiveTab] = useState("products");
+  const [loading, setLoading] = useState(true);
   const { push } = useRouter();
   const {
     dispatch,
@@ -33,6 +35,15 @@ export default function AllProductsScreen() {
       label: "Pending Products",
     },
   ];
+
+  useEffect(()=>{
+    const fetchAllProducts=async()=>{
+      const data = await getAllProducts()
+      setLoading(false)
+      console.log(data.data.data)
+    }
+    fetchAllProducts()
+  },[])
 
   return (
     <DashboardLayout title={"Products"}>
