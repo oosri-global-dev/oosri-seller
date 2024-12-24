@@ -1,5 +1,4 @@
 import { instance } from "./axios";
-import { publicInstance } from "./axios";
 
 
 export const getAllProducts=async()=>{

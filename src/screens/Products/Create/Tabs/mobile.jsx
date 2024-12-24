@@ -1,10 +1,10 @@
-import { FlexibleDiv } from "@/components/lib/Box/styles"
-import { CustomUpload } from "@/components/lib/CustomUpload"
-import Select from "@/components/lib/Select"
+import { FlexibleDiv } from "../../../../components/lib/Box/styles"
+import Select from "../../../../components/lib/Select"
 import { Input } from "antd"
 import TextArea from "antd/es/input/TextArea"
 import HeaderTextAndSub from "../../Product/simple-components/simple-components"
 import { useState } from "react"
+import { CustomUpload } from "../../../../components/lib/CustomUpload"
 
 export const MobileTab=()=>{
     const [img1,setImg1]=useState()

@@ -25,7 +25,7 @@ export default function DashboardScreen() {
     "Yearly",
   ]);
   const [selectedFilter, setSelectedFilter] = useState("Daily");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [data,setData]=useState({
       averageOrderValue:0,
       payout:0,
