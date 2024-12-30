@@ -6,7 +6,7 @@ font-weight:600;
 margin-bottom: 10px;
 }
 .upload__container {
-  width: 100%;
+  width: 200px;
   height: 200px;
   display: flex;
   justify-content: center;
