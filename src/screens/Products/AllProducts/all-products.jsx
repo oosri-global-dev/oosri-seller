@@ -84,6 +84,7 @@ export default function AllProductsScreen() {
         setLoading(false)
         setAllProducts(data.data.data)
       }catch(error){
+        setLoading(false)
         console.log(error)
       }
     }

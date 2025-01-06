@@ -1,4 +1,4 @@
-import { DBWrapper } from "./dashboard-layout.styles";
+import { DBWrapper, LogoutButton } from "./dashboard-layout.styles";
 import React, { useContext, useEffect, useState } from "react";
 import { Layout, Menu, theme } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
@@ -22,6 +22,7 @@ import { MainContext } from "@/context";
 import { isEmpty, isNull } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
+import { AiOutlineLogout } from "react-icons/ai";
 
 export default function DashboardLayout({ children, title, showBackBtn,titleSubText }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -100,6 +101,10 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
     }
   };
 
+  const handleLogout=()=>{
+    console.log('logout')
+  }
+
   return (
     <DBWrapper openMenu={collapsed}>
       <BlockerModal
@@ -133,6 +138,12 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
             onClick={(e) => setCurrent(e.key)}
             selectedKeys={[current]}
           />
+          <LogoutButton onClick={handleLogout} className="logo_wrapper" gap="10px" width="100%" >
+            <AiOutlineLogout />
+            <p>
+              Logout
+            </p>
+          </LogoutButton>
         </Sider>
         <Layout className="content__layout__wrapper">
           <Header className="header__box">

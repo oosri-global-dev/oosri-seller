@@ -4,7 +4,7 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import ProductImage from "@/assets/images/profile.jpg";
 import Button from "@/components/lib/Button";
 import HeaderTextAndSub from "../Product/simple-components/simple-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input, Modal, Tabs } from "antd";
 import Select from "@/components/lib/Select";
 import { CustomUpload } from "@/components/lib/CustomUpload";
@@ -13,6 +13,7 @@ import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { MobileTab } from "./Tabs/mobile";
 import { TabletTab } from "./Tabs/tablet";
 import { WatchesTab } from "./Tabs/watches";
+import { createProduct, getCategories } from "@/network/product";
 
 export default function CreateProductPage(){
   const [activeTab,setActiveTab]=useState("mobile")
@@ -21,6 +22,25 @@ export default function CreateProductPage(){
   const [img2,setImg2]=useState()
   const [img3,setImg3]=useState()
   const [img4,setImg4]=useState()
+  const[categories,setCategories]=useState([
+    // {id:1,name:'textile',subCategories:[]}
+  ]) 
+  useEffect(()=>{
+    const fetchAllProducts= async()=>{
+      try{
+        const data= await getCategories()
+        const newCategories = categories;
+
+        for (let index = 0; index < data.data.data.length; index++) {
+          newCategories.push(data.data.data[index]);     
+        }
+        setCategories(newCategories);
+      }catch(errors){
+        console.log(errors)
+      }
+    }
+    fetchAllProducts()
+  },[])
 
   const items = [
     {
@@ -50,6 +70,16 @@ export default function CreateProductPage(){
 
   const handleModalOpen=()=>{
     setOpenModal(true)
+  }
+
+  const handleCreateProduct=async ()=>{
+    try{
+      const response=await createProduct()
+      console.log(response)
+      handleModalOpen()
+    }catch(errors){
+      console.log(errors)
+    }
   }
 
   return (
@@ -154,7 +184,7 @@ export default function CreateProductPage(){
 
       {/* Add Button */}
       <FlexibleDiv justifyContent="end">
-        <Button onClick={handleModalOpen}>
+        <Button onClick={handleCreateProduct}>
           Add Product
         </Button>
       </FlexibleDiv>

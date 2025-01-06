@@ -2,7 +2,7 @@ import { instance } from "./axios";
 
 
 export const getAllProducts=async()=>{
-    const data= await instance.get("/products/seller/")
+    const data= await instance.get("/products/seller/products")
     return data
 }
 
