@@ -84,8 +84,11 @@ export default function AllProductsScreen() {
         setLoading(false)
         setAllProducts(data.data.data)
       }catch(error){
-        setLoading(false)
-        console.log(error)
+        if(error.message == "Request failed with status code 404"){
+          push("product/create")
+        }else{
+          setLoading(false)
+        }
       }
     }
     fetchAllProducts()

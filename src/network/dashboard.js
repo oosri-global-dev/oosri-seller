@@ -4,7 +4,7 @@ export const getDashboardSummary=async()=>{
     const data = await instance.get("/seller/dashboard/summary")
     return data
 }
-export const getDashboardOverview=async()=>{
-    const data = await instance.get("/seller/dashboard/sales-overview")
+export const getDashboardOverview=async(params)=>{
+    const data = await instance.get(`/seller/dashboard/sales-overview?period=${params}`)
     return data
 }

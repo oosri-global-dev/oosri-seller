@@ -11,7 +11,7 @@ import {
   dashboardTableData,
 } from "@/utils/dashboard-helpers";
 import Link from "next/link";
-import { getDashboardSummary } from "@/network/dashboard";
+import { getDashboardOverview, getDashboardSummary } from "@/network/dashboard";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { GoStack as StackIcon } from "react-icons/go";
 import { IoBagOutline as BagIcon } from "react-icons/io5";
@@ -32,7 +32,64 @@ export default function DashboardScreen() {
       totalOrders:0,
       totalProducts:0,
       totalSales:0})
+  const [graphOptions,setGraphOptions]=useState( {
+    Jan: 2,
+    Feb: 5,
+    Mar: 3,
+    Apr: 5,
+    May: 8,
+    Jun: 9,
+    Aug: 8,
+    Sep: 10,
+    Oct: 6,
+    Nov: 8,
+    Dec: 2,
+  })
 
+const fetchSalesOverview=async()=>{
+  const graphOptions={}
+  try{
+    const data=await getDashboardOverview(selectedFilter.toLocaleLowerCase())
+    console.log(data.data.data)
+    
+    for (let index = 0; index < data.data.data.length; index++) {
+      const date = new Date(data.data.data[index].period);
+      if(selectedFilter === "Daily"){
+        const options = { weekday: 'short' };
+        const dayOfWeek = date.toLocaleDateString('en-US', options);
+        graphOptions[dayOfWeek]=data.data.data[index].totalSales
+      }else if(selectedFilter === "Weekly"){
+        // const getWeekNumber = (d) => {
+        //   const dateCopy = new Date(d.getTime());
+        //   dateCopy.setHours(0, 0, 0, 0);
+        //   dateCopy.setDate(dateCopy.getDate() + 3 - (dateCopy.getDay() + 6) % 7); 
+        //   const week1 = new Date(dateCopy.getFullYear(), 0, 4);
+        //   const diff = dateCopy - week1;
+        //   const oneDay = 1000 * 60 * 60 * 24;
+        //   const weekNumber = Math.ceil(diff / oneDay / 7);
+        //   return weekNumber;
+        // };
+      
+        // const weekNumber = getWeekNumber(date);
+        // console.log(weekNumber)
+        // graphOptions[`Week ${weekNumber}`]=data.data.data[index].totalSales
+        const options = { weekday: 'short' };
+        const dayOfWeek = date.toLocaleDateString('en-US', options);
+        graphOptions[dayOfWeek]=data.data.data[index].totalSales
+      }else if (selectedFilter === "Monthly") {
+        const options = { month: 'short' };
+        const dayOfWeek = date.toLocaleDateString('en-US', options);
+        graphOptions[dayOfWeek]=data.data.data[index].totalSales
+      }else if (selectedFilter === "Yearly") {
+        const dayOfWeek = date.getFullYear()
+        graphOptions[dayOfWeek]=data.data.data[index].totalSales
+      }
+    }
+    setGraphOptions(graphOptions)
+  }catch(errors){
+    console.log(errors)
+  }
+} 
 
   useEffect(()=>{
     const fetchSummaryData = async()=>{
@@ -47,6 +104,10 @@ export default function DashboardScreen() {
     }
     fetchSummaryData()
   },[])
+  
+  useEffect(()=>{
+    fetchSalesOverview()
+  },[selectedFilter])
 
 const summaryBoxes = [
     {
@@ -65,20 +126,6 @@ const summaryBoxes = [
       label: "Profit",
     },
   ];
-
-  const graphOptions = {
-    Jan: 2,
-    Feb: 5,
-    Mar: 3,
-    Apr: 5,
-    May: 8,
-    Jun: 9,
-    Aug: 8,
-    Sep: 10,
-    Oct: 6,
-    Nov: 8,
-    Dec: 2,
-  };
 
   return (
     <>

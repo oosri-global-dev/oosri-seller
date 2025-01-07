@@ -1,5 +1,5 @@
 import { DBWrapper, LogoutButton } from "./dashboard-layout.styles";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { Layout, Menu, theme } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
