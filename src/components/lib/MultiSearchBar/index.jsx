@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { MultiSearchBarWrapper, SearchItemWrapper } from './index.styles'
-import Input from 'antd/es/input/Input'
+import { Input } from "antd";
 import { FiSearch } from "react-icons/fi";
 import { IoCloseOutline } from "react-icons/io5";
 import { FlexibleDiv } from '../Box/styles';

@@ -8,13 +8,12 @@ import Select from '@/components/lib/Select'
 import { Table } from 'antd'
 import { orderTableColumns, orderTableData } from '@/utils/order-helpers'
 
-export default function OrderScreen(){
+export default function OrderScreen (){
     const options=[
         { value: "This Year", label: "This Year" },
     ]
 
   return (
-    <>
      <DashboardLayout  title={"Order"}>
          <OrderWrapper>
           <FlexibleDiv className="flex justify-between mb-4"></FlexibleDiv>
@@ -34,6 +33,5 @@ export default function OrderScreen(){
             </div>
         </OrderWrapper> 
      </DashboardLayout>
-    </>
   );
 }

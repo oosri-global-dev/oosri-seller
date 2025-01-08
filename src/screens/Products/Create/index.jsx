@@ -1,21 +1,13 @@
-"use client";
-
 import { CreateProductPageWrapper } from "./index.styles";
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import Button from "@/components/lib/Button";
-import HeaderTextAndSub from "../Product/simple-components/simple-components";
 import { useEffect, useState } from "react";
-import { Input, Tabs } from "antd";
-import Select from "@/components/lib/Select";
-import { CustomUpload } from "@/components/lib/CustomUpload";
+import {  Tabs } from "antd";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { MobileTab } from "./Tabs/mobile";
-import { TabletTab } from "./Tabs/tablet";
-import { WatchesTab } from "./Tabs/watches";
 import { createProduct, getCategories } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
-const { TextArea } = Input;
 
 export default function CreateProductPage(){
   const [activeTab,setActiveTab]=useState("mobile")

@@ -1,6 +1,8 @@
+"use client"
+
 import DashboardLayout from '@/components/layouts/DashboardLayout/dashboard-layout'
 import { Space } from 'antd'
-import { OrderDetailsWrapper } from './index.style'
+import { OrderDetailsWrapper } from './index.styles'
 import { FlexibleDiv } from '@/components/lib/Box/styles'
 import Picture from "@/assets/images/profile.jpg";
 import LeastPhoto from "@/assets/images/leastSellingProduct.png";
