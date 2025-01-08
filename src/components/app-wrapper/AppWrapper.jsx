@@ -40,6 +40,11 @@ const AppWrapper = ({ children }) => {
     const fetchUser = async () => {
       try {
         const res = await handleFetchUser();
+
+        if (typeof res === "undefined") {
+          throw new Error();
+        }
+
         dispatch({
           type: CURRENT_USER,
           payload: res?.data?.data,
@@ -58,6 +63,8 @@ const AppWrapper = ({ children }) => {
         }
         setIsPageLoading(false);
       } catch (err) {
+        console.clear();
+        console.log(err, "err");
         // Only redirect to home if not on an excluded path
         if (
           !excludedPaths.some((path) => pathname.startsWith(path)) &&
