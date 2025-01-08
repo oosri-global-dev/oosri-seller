@@ -1,14 +1,16 @@
+"use client"
+
 import DashboardLayout from '@/components/layouts/DashboardLayout/dashboard-layout'
-import { Avatar, Space } from 'antd'
-import React, { useState } from 'react'
-import { OrderDetailsWrapper } from './index.style'
+import { Space } from 'antd'
+import { OrderDetailsWrapper } from './index.styles'
 import { FlexibleDiv } from '@/components/lib/Box/styles'
 import Picture from "@/assets/images/profile.jpg";
 import LeastPhoto from "@/assets/images/leastSellingProduct.png";
 
-export const OrderDetails = () => {
+
+export default function OrderDetails (){
   return (
-    <DashboardLayout title="Order Details">
+    <DashboardLayout title={"Order Details"}>
         <OrderDetailsWrapper>
           <FlexibleDiv gap="14px" flexWrap="noWrap" justifyContent="start" className='profile__section'>
             <img src={Picture.src} alt='profile-picture' />

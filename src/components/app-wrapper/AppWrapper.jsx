@@ -55,7 +55,7 @@ const AppWrapper = ({ children }) => {
           pathname.startsWith(path)
         );
 
-        if (pathname === "/" && !isExcludedPath) {
+        if (res&&pathname === "/" && !isExcludedPath) {
           push("/dashboard").then(() => {
             setIsPageLoading(false);
           });

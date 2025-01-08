@@ -1,4 +1,4 @@
-import { OrderDetails } from "@/screens/Order/OrderDetails";
+import OrderDetails from "@/screens/Order/OrderDetails";
 
 export default function OrderDetailsPage() {
   return <OrderDetails />;
