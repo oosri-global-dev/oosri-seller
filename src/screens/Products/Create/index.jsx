@@ -20,6 +20,8 @@ export default function CreateProductPage(){
   const [img2,setImg2]=useState()
   const [img3,setImg3]=useState()
   const [img4,setImg4]=useState()
+
+  
   useEffect(()=>{
     const fetchAllProducts= async()=>{
       try{

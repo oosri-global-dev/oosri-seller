@@ -1,5 +1,5 @@
-import { DBWrapper, LogoutButton } from "./dashboard-layout.styles";
-import React, { useContext, useState } from "react";
+import { DBWrapper } from "./dashboard-layout.styles";
+import React, { useContext, useEffect, useState } from "react";
 import { Layout, Menu, theme } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
@@ -22,7 +22,6 @@ import { MainContext } from "@/context";
 import { isEmpty, isNull } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { AiOutlineLogout } from "react-icons/ai";
 
 export default function DashboardLayout({
   children,
@@ -36,9 +35,7 @@ export default function DashboardLayout({
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
   const [current, setCurrent] = useState(
-    pathname === "/" || pathname === "" ? "/dashboard" : 
-    pathname.includes("/product")?"/products":
-    pathname.includes("/order")?"/order":pathname
+    pathname === "/" || pathname === "" ? "/dashboard" : pathname
   );
   const {
     dispatch,
@@ -114,10 +111,6 @@ export default function DashboardLayout({
     }
   };
 
-  const handleLogout=()=>{
-    console.log('logout')
-  }
-
   return (
     <DBWrapper openMenu={collapsed}>
       <BlockerModal
@@ -151,12 +144,6 @@ export default function DashboardLayout({
             onClick={(e) => setCurrent(e.key)}
             selectedKeys={[current]}
           />
-          <LogoutButton onClick={handleLogout} className="logo_wrapper" gap="10px" width="100%" >
-            <AiOutlineLogout />
-            <p>
-              Logout
-            </p>
-          </LogoutButton>
         </Sider>
         <Layout className="content__layout__wrapper">
           <Header className="header__box">
