@@ -2,46 +2,30 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import styled from "styled-components";
 
 export const ProductWrapper = styled(FlexibleDiv)`
-  flex-direction: row;
+  flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
   gap: 5%;
 
-  .left__section {
-    width: 25%;
-
-    .product__image {
-      width: 100%;
-      object-fit: cover;
-      max-height: 280px;
-      border-radius: 15px;
-      margin-bottom: 10px;
-    }
+  img{
+    width:200px;
+    height:300px;
+    object-fit:cover;
   }
 
-  .right__section {
-    width: 68%;
-    height: 100%;
-
-    .image__sections {
-      img {
-        width: 32%;
-        object-fit: cover;
-        max-height: 280px;
-        border-radius: 15px;
-        margin-bottom: 10px;
-      }
-    }
+  .image_text_holder{
+   flex-wrap:nowrap;
+   margin-top:24px;
+   gap:24px;
   }
 
-  @media (max-width: 550px) {
-    flex-direction: column-reverse;
-    margin: 25px 0;
-    gap: 30px;
+  .text__item{
+   white-space:nowrap;
+  }
 
-    .left__section,
-    .right__section {
-      width: 100%;
-    }
+  .edit__button{
+     color:var(--oosriWhite);
+     background-color:var(--oosriPrimary);
+     padding:0px 50px;
   }
 `;

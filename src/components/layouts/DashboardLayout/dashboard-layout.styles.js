@@ -100,6 +100,18 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
   }
 
+  .logo_wrapper{
+   margin-top:120px;
+   cursor:pointer;
+    svg{
+     path{
+      fill:#F45059;
+     }
+    }
+
+    color:#F45059;
+  }
+
   @media (max-width: 660px) {
     .layout__box {
       .menu__wrapper {
@@ -173,3 +185,24 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
   }
 `;
+
+export const LogoutButton=styled.button`
+  display:flex;
+  align-items:center;
+  margin-top:120px;
+  cursor:pointer;
+  padding:0px 30px ;
+  color:#F45059;
+  gap:10px;
+  background-color:transparent;
+  border:none;
+  font-size:14px;
+  width:100%;
+
+    svg{
+     path{
+      fill:#F45059;
+     }
+    }
+
+`
