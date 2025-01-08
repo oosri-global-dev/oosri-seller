@@ -6,7 +6,7 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { CiSearch as SearchIcon } from "react-icons/ci";
 import { HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
 import ProfileImage from "@/assets/images/profile.jpg";
-import { HiOutlineUsers as UserIcon } from "react-icons/hi2";
+import { IoMdLogOut as LogoutIcon } from "react-icons/io";
 import { HiOutlineShoppingBag as ProductIcon } from "react-icons/hi2";
 import { MdPayments as PaymentIcon } from "react-icons/md";
 import { VscGraph as GraphIcon } from "react-icons/vsc";
@@ -23,7 +23,12 @@ import { isEmpty, isNull } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
 
-export default function DashboardLayout({ children, title, showBackBtn,titleSubText }) {
+export default function DashboardLayout({
+  children,
+  title,
+  showBackBtn,
+  titleSubText,
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -81,7 +86,15 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       icon: <BsPeopleFill />,
       label: "Profile",
       onClick: ({ item, key }) => {
-        push("/sellers-profile-page")
+        push("/sellers-profile-page");
+      },
+    },
+    {
+      key: "/",
+      icon: <LogoutIcon />,
+      label: "Logout",
+      onClick: ({ item, key }) => {
+        push("/");
       },
     },
   ];
