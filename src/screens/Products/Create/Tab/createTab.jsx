@@ -319,7 +319,7 @@ export const MobileTab=({subCategories,category})=>{
           </FlexibleDiv>
         </FlexibleDiv>
           {/* Add Button */}
-          <FlexibleDiv justifyContent="end">
+          <FlexibleDiv justifyContent="end" margin="15px 0px 0px 0px"> 
             <Button onClick={handleCreateProduct}>
               Add Product
             </Button>
