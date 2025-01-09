@@ -17,7 +17,8 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
 
     .menu__wrapper {
-      margin-top: 150px;
+      margin-top: 100px;
+
       .ant-menu-item {
         color: #777;
       }
@@ -100,16 +101,16 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
   }
 
-  .logo_wrapper{
-   margin-top:120px;
-   cursor:pointer;
-    svg{
-     path{
-      fill:#F45059;
-     }
+  .logo_wrapper {
+    margin-top: 120px;
+    cursor: pointer;
+    svg {
+      path {
+        fill: #f45059;
+      }
     }
 
-    color:#F45059;
+    color: #f45059;
   }
 
   @media (max-width: 660px) {

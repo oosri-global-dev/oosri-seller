@@ -1,12 +1,12 @@
-import { DBWrapper, LogoutButton } from "./dashboard-layout.styles";
-import React, { useContext, useState } from "react";
+import { DBWrapper } from "./dashboard-layout.styles";
+import React, { useContext, useEffect, useState } from "react";
 import { Layout, Menu, theme } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { CiSearch as SearchIcon } from "react-icons/ci";
 import { HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
 import ProfileImage from "@/assets/images/profile.jpg";
-import { HiOutlineUsers as UserIcon } from "react-icons/hi2";
+import { IoMdLogOut as LogoutIcon } from "react-icons/io";
 import { HiOutlineShoppingBag as ProductIcon } from "react-icons/hi2";
 import { MdPayments as PaymentIcon } from "react-icons/md";
 import { VscGraph as GraphIcon } from "react-icons/vsc";
@@ -22,18 +22,20 @@ import { MainContext } from "@/context";
 import { isEmpty, isNull } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { AiOutlineLogout } from "react-icons/ai";
 
-export default function DashboardLayout({ children, title, showBackBtn,titleSubText }) {
+export default function DashboardLayout({
+  children,
+  title,
+  showBackBtn,
+  titleSubText,
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
   const [current, setCurrent] = useState(
-    pathname === "/" || pathname === "" ? "/dashboard" : 
-    pathname.includes("/product")?"/products":
-    pathname.includes("/order")?"/order":pathname
+    pathname === "/" || pathname === "" ? "/dashboard" : pathname
   );
   const {
     dispatch,
@@ -84,7 +86,15 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       icon: <BsPeopleFill />,
       label: "Profile",
       onClick: ({ item, key }) => {
-        push("/sellers-profile-page")
+        push("/sellers-profile-page");
+      },
+    },
+    {
+      key: "/",
+      icon: <LogoutIcon />,
+      label: "Logout",
+      onClick: ({ item, key }) => {
+        push("/");
       },
     },
   ];
@@ -100,10 +110,6 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
       }
     }
   };
-
-  const handleLogout=()=>{
-    console.log('logout')
-  }
 
   return (
     <DBWrapper openMenu={collapsed}>
@@ -138,12 +144,6 @@ export default function DashboardLayout({ children, title, showBackBtn,titleSubT
             onClick={(e) => setCurrent(e.key)}
             selectedKeys={[current]}
           />
-          <LogoutButton onClick={handleLogout} className="logo_wrapper" gap="10px" width="100%" >
-            <AiOutlineLogout />
-            <p>
-              Logout
-            </p>
-          </LogoutButton>
         </Sider>
         <Layout className="content__layout__wrapper">
           <Header className="header__box">
