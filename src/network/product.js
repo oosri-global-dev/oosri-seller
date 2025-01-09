@@ -22,7 +22,10 @@ export const deleteProduct=async(params)=>{
 }
 
 export const createProduct=async(payload)=>{
-    const data= await instance.post(`/products/seller/add`,payload)
+    const data= await instance.post(`/products/seller/add`,payload,{
+     headers:{
+        'Content-Type': 'multipart/form-data',
+      }})
     return data
 }
 

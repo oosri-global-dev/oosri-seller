@@ -13,22 +13,30 @@ export const CreateProductPageWrapper=styled.div`
       background: var(--oosriPrimary);
     }
 }   
-
+.tab__item{
+  max-width:1000px;
+}
 .container_wrapper{
  flex-wrap:nowrap;
+ gap:24px;
+
+ @media screen and (max-width:950px){
+  flex-direction:column;
+ }
 }
 
 .product__item{
   display:flex;
   align-items:start;
   flex-direction:column;
-  width:50%;
+  width:70%;
+  gap:6px;
+  flex-basis: fit-content;
 
-  div{
+  p{
+   font-size:12px;
+   color:#BBBBBB;
   }
-    label{
-
-    }
 }
 
 button{
@@ -37,12 +45,13 @@ button{
 }
     
 .img__upload{
-  gap:24px;
+  gap:16px;
   .upload__container{
    background-color:transparent !important;
    border-style:dashed !important;
    padding:12px 20px;
    height:150px !important;
+   width:150px;
    
    
    .main__text{
@@ -57,8 +66,14 @@ button{
     }
 }
     .column_item{
+       height:100%;
+       gap:10px;
       .upload__container{
-        height:50% !important;
+        height:65px !important;
+      }
+
+      .upload__title{
+       display:none !important;
       }
     }
 

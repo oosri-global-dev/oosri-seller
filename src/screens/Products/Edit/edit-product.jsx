@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { CreateProductPageWrapper } from "../Create/index.styles";
-import { MobileTab } from "../Create/Tabs/mobile";
-import { TabletTab } from "../Create/Tabs/tablet";
-import { WatchesTab } from "../Create/Tabs/watches";
+import { MobileTab } from "../Create/Tab/createTab";
+import { TabletTab } from "../Create/Tab/tablet";
+import { WatchesTab } from "../Create/Tab/watches";
 import { Tabs } from "antd";
 
 export default function EditProduct() {

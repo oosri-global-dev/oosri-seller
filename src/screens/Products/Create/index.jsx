@@ -1,25 +1,26 @@
 import { CreateProductPageWrapper } from "./index.styles";
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
-import { FlexibleDiv } from "@/components/lib/Box/styles";
-import Button from "@/components/lib/Button";
-import { useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import {  Tabs } from "antd";
-import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
-import { MobileTab } from "./Tabs/mobile";
-import { createProduct, getCategories } from "@/network/product";
+import { MobileTab } from "./Tab/createTab";
+import { getCategories } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
 
 export default function CreateProductPage(){
-  const [activeTab,setActiveTab]=useState("mobile")
-  const [openModal,setOpenModal]=useState(false)
+  const [activeTab,setActiveTab]=useState("")
   const[categories,setCategories]=useState([]) 
-  const [displayCategories,setDisplayCategories]=useState()
+  const [displayCategories,setDisplayCategories]=useState([])
   const[loading,setLoading]=useState(true)
+  const[subCategories,setSubCategories]=useState([])
 
-  const [img1,setImg1]=useState()
-  const [img2,setImg2]=useState()
-  const [img3,setImg3]=useState()
-  const [img4,setImg4]=useState()
+
+  const handleSubCategories = () => {
+    const selectedCategory = categories.find((category) => category.name === activeTab);
+    if (selectedCategory) {
+      setSubCategories(selectedCategory.subcategories);
+    }
+  };
+
   useEffect(()=>{
     const fetchAllProducts= async()=>{
       try{
@@ -38,33 +39,25 @@ export default function CreateProductPage(){
         }
         setCategories(newCategories);
         setDisplayCategories(items)
+        setActiveTab(items[0].key)
         setLoading(false)
       }catch(errors){
         console.log(errors)
       }
     }
+    handleSubCategories()
     fetchAllProducts()
   },[])
 
-  const colorOptions=[
-    { value: 'red', label: 'Red' },
-    { value: 'lucy', label: 'Lucy' },
-    { value: 'Yiminghe', label: 'yiminghe' },
-    { value: 'disabled', label: 'Disabled', disabled: true },
-  ]
-
-  const handleModalOpen=()=>{
-    setOpenModal(true)
-  }
-
-  const handleCreateProduct=async ()=>{
-    try{
-      const response=await createProduct()
-      console.log(response)
-      handleModalOpen()
-    }catch(errors){
-      console.log(errors)
+  useEffect(() => {
+    if (activeTab && categories.length > 0) {
+      handleSubCategories();
     }
+  }, [activeTab, categories])
+
+
+  const handleTabChange=(e)=>{
+    setActiveTab(e)
   }
 
   return (
@@ -79,24 +72,10 @@ export default function CreateProductPage(){
           className="tabs__custom"
           defaultActiveKey="1"
           items={displayCategories}
-          onChange={(e) => {setActiveTab(e)}} />
-          <MobileTab />
+          onChange={(e) => handleTabChange(e)} />
+          
+          <MobileTab subCategories={subCategories} category={activeTab}/>
 
-        {/* Add Button */}
-        <FlexibleDiv justifyContent="end">
-          <Button onClick={handleCreateProduct}>
-            Add Product
-          </Button>
-        </FlexibleDiv>
-        {/* Modal */}
-          <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null}>
-            <h2 style={{textAlign:"center"}}>Product Submission Received</h2>
-            <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Thank you for adding your product to our platform. Your listing has been received and is now in the review process. Our team will carefully assess your product to ensure it meets our quality standards and guidelines.</p>
-            <FlexibleDiv flexWrap="nowrap" gap="24px">
-              <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>setOpenModal(false)}>Cancel</Button>
-              <Button border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Back to Dashboard</Button>
-            </FlexibleDiv>
-          </StyledModal>
         </CreateProductPageWrapper>
       </DashboardLayout>
     }
