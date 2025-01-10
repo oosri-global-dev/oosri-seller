@@ -16,11 +16,14 @@ import { isBusinessActive } from "@/utils/business-checker";
 import { NO_BUSINESS_MODAL } from "@/context/types";
 import { getAllProducts } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
+import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 
 export default function AllProductsScreen() {
   const [activeTab, setActiveTab] = useState("products");
   const [loading, setLoading] = useState(true);
   const [allProducts,setAllProducts]=useState([])
+  const [openModal,setOpenModal]=useState(false)
+  const [modalError,setModalError]=useState(false)
   const { push } = useRouter();
   const {
     dispatch,
@@ -38,62 +41,46 @@ export default function AllProductsScreen() {
     },
   ];
 
-  const productsTableData = [
-    {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
-    },
-    {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
-    },
-    {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
-    },
-    {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
-    },
-  ];
-
-  useEffect(()=>{
-    const fetchAllProducts=async()=>{
-      try{
-        const data = await getAllProducts()
-        setLoading(false)
-        setAllProducts(data.data.data)
-      }catch(error){
-        if(error.message == "Request failed with status code 404"){
-          // push("product/create")
-          setLoading(false)
-        }else{
-          setLoading(false)
-        }
-      }
+  const fetchAllProducts = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllProducts();
+      setAllProducts(data.data.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
     }
-    fetchAllProducts()
-  },[])
+  };
+
+  const handleHashChange = () => {
+    const currentHash = window.location.hash;
+
+    if (currentHash === "#deleted") {
+      setOpenModal(true);
+      fetchAllProducts();
+    } else if (currentHash === "#delete") {
+      setOpenModal(true);
+      setModalError(true);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch products initially
+    fetchAllProducts();
+
+    // Handle hash changes
+    window.addEventListener("hashchange", handleHashChange);
+
+    // Cleanup listener on component unmount
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  const closeModal=()=>{
+    push("/products")
+    setOpenModal(false)
+    setModalError(false)
+  }
 
   return (
     <>
@@ -175,21 +162,28 @@ export default function AllProductsScreen() {
             </FlexibleDiv>
 
             <FlexibleDiv className="products__table__wrapper">
-              {activeTab === "products" ? (
                 <Table
                   columns={productsTableColumns}
                   dataSource={allProducts}
                   className="table__class"
                 />
-              ) : (
-                <Table
-                  columns={productsTableColumns}
-                  dataSource={productsTableData}
-                  className="table__class"
-                />
-              )}
             </FlexibleDiv>
           </FlexibleDiv>
+
+          <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null}>
+              {
+                    modalError?
+                    <>
+                      <h2 style={{textAlign:"center"}}>Product Update Failed</h2>
+                      <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>We ran into a problem while trying to delete this product please try again</p>
+                    </>:
+                    <>
+                      <h2 style={{textAlign:"center"}}>Product Deleted Succesfully</h2>
+                      <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Your Produt has been deleted Successfully</p>
+                    </>
+                  }
+                  <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
+          </StyledModal>
         </AllProductsWrapper>
       </DashboardLayout>
     }

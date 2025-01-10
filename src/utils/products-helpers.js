@@ -1,9 +1,19 @@
 import { Space, Avatar } from "antd";
-import Picture from "@/assets/images/profile.jpg";
 import { Popover, Switch } from "antd";
 import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
 import Button from "@/components/lib/Button";
+import { deleteProduct } from "@/network/product";
 
+  const handleDelete= async (param)=>{
+    try{
+      const data= deleteProduct(param)
+      console.log(data)
+      window.location.hash="deleted"
+    }catch(errors){
+      window.location.hash="delete"
+      console.log(errors)
+    }
+}
 const content = (obj) => (
   <div className="popover__custom">
     <Button
@@ -13,9 +23,13 @@ const content = (obj) => (
     >
       View More Details
     </Button>
-    <Button height="30px" radius="5px">
-      Unpublish Details
-    </Button>
+    <Popover trigger={"click"} >
+      <Button height="30px" radius="5px"
+      onClick={() => {handleDelete(obj._id)}}
+      >
+        Unpublish Details
+      </Button>
+    </Popover>
   </div>
 )
 

@@ -2,7 +2,7 @@ import { CreateProductPageWrapper } from "./index.styles";
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import {  useEffect, useState } from "react";
 import {  Tabs } from "antd";
-import { MobileTab } from "./Tab/createTab";
+import { CreateTab } from "./Tab/createTab";
 import { getCategories } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
 
@@ -74,7 +74,7 @@ export default function CreateProductPage(){
           items={displayCategories}
           onChange={(e) => handleTabChange(e)} />
           
-          <MobileTab subCategories={subCategories} category={activeTab}/>
+          <CreateTab subCategories={subCategories} category={activeTab}/>
 
         </CreateProductPageWrapper>
       </DashboardLayout>

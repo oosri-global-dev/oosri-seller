@@ -11,7 +11,7 @@ import { CountrySelect } from "@/components/lib/CountrySelect"
 
 const {TextArea}=Input
 
-export const MobileTab=({subCategories,category})=>{
+export const CreateTab=({subCategories,category})=>{
     const [img1,setImg1]=useState()
     const [img2,setImg2]=useState()
     const [img3,setImg3]=useState()
@@ -79,7 +79,7 @@ export const MobileTab=({subCategories,category})=>{
       height: height,
       diameter:diameter,
       clayType: clayType,
-      galze: glaze,
+      glaze: glaze,
     }),
     ...(category === "Textiles/Fabrics" && {
       length: length,
@@ -89,7 +89,7 @@ export const MobileTab=({subCategories,category})=>{
       pattern:pattern,
     }),
   }
-// Sub Categories Management
+  
       useEffect(()=>{
         if(subCategories){
           const item=[]
@@ -196,7 +196,7 @@ export const MobileTab=({subCategories,category})=>{
             {/* Discounts */}
             <div className="product__item">
                 <label htmlFor="Name">Dsicounts</label>
-                <CustomInput placeholder="Specify if there are promotions, discounts" backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}}/>
+                <CustomInput placeholder="Specify if there are promotions, discounts" backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}} type="number"/>
             </div>
             {/*Product Description*/}
             <div className="product__item">
@@ -312,7 +312,7 @@ export const MobileTab=({subCategories,category})=>{
                 {/* Metal type */}
                 <div className="product__item">
                     <label htmlFor="Name">Metal Type</label>
-                    <CustomInput placeholder="Input Metal Type" backgroundColor="#FAFAFA" onChange={((e)=>{setMetalType(e.target.value)})} type="number"/>
+                    <CustomInput placeholder="Input Metal Type" backgroundColor="#FAFAFA" onChange={((e)=>{setMetalType(e.target.value)})} />
                 </div>
               </>
             }
@@ -340,7 +340,7 @@ export const MobileTab=({subCategories,category})=>{
             }
               <FlexibleDiv flexWrap="nowrap" gap="24px">
                 <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>setOpenModal(false)}>Cancel</Button>
-                <Button border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Back to Dashboard</Button>
+                <Button onClick={()=>window.location="/products"} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Go to All Product</Button>
               </FlexibleDiv>
             </StyledModal>
       </>

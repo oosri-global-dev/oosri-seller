@@ -30,6 +30,6 @@ export const createProduct=async(payload)=>{
 }
 
 export const editProduct=async(params,payload)=>{
-    const data= await instance.post(`/products/seller/${params}`,payload)
+    const data= await instance.put(`/products/seller/${params}`,payload)
     return data
 }
