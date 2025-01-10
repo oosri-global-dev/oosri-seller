@@ -12,7 +12,7 @@ import Button from "@/components/lib/Button";
 
 const {TextArea}=Input
 
-export default function EditProduct({data,id,setEdit}) {
+export default function EditProduct({data,id,setEdit, fetchData}) {
     const [category,setCategory]=useState(data?.category)
     const [img1,setImg1]=useState()
     const [img2,setImg2]=useState()
@@ -21,7 +21,6 @@ export default function EditProduct({data,id,setEdit}) {
     const[productName,setProductName]=useState(data?.productName)
     const[productDescription,setProductDescription]=useState(data?.productDescription)
     const[brandArtist,setBrandArtist]=useState(data?.brandArtist)
-    const[color,setColor]=useState("")
     const[discount,setDiscount]=useState(data?.discount)
     const[weight,setWeight]=useState(data?.weight)
     const[country,setCountry]=useState("")
@@ -59,7 +58,6 @@ export default function EditProduct({data,id,setEdit}) {
       regularPrice:regularPrice,
       productType:productType,
       discount:discount,
-      color:color,
       ...(category === "Sculpture" && {
         width: width,
         weight:weight,
@@ -114,6 +112,11 @@ export default function EditProduct({data,id,setEdit}) {
       {value:"simple",label:"Simple"},
       {value:"variable",label:"Variable"}
     ]
+    const conditionItem=[
+      {value:"New",label:"New"},
+      {value:"Used",label:"Used"},
+      {value:"Antique",label:"Antique"}
+    ]
 
     const handleEdit=async ()=>{
       try{
@@ -122,6 +125,11 @@ export default function EditProduct({data,id,setEdit}) {
       }catch(errors){
         console.log(errors)
       }
+    }
+
+    const closeModal= async()=>{
+      await fetchData()
+      setEdit(false)
     }
 
     return(
@@ -137,11 +145,6 @@ export default function EditProduct({data,id,setEdit}) {
                       <CustomInput width={"100%"} placeholder="Input product name" backgroundColor="#FAFAFA" value={productName} onChange={(e)=>{setProductName(e.target.value)}}/>
                       <p>Do not exceed 40 characters while entering name</p>
                   </div>
-                  {/* Color */}
-                  <FlexibleDiv flexDir="column" width="fit-content" alignItems="start" gap="6px">
-                    <label htmlFor="Color">Color</label>
-                    <CustomInput placeholder="Select color" backgroundColor="#FAFAFA" onChange={(e)=>{setColor(e.target.value)}}/>
-                  </FlexibleDiv>
                 </FlexibleDiv>
                 {/* Category */}
                 <div className="product__item">
@@ -281,7 +284,7 @@ export default function EditProduct({data,id,setEdit}) {
                       {/* Condition */}
                       <div className="product__item">
                           <label htmlFor="Name">Condition</label>
-                          <CustomInput placeholder="Input Painting Condition" backgroundColor="#FAFAFA" onChange={((e)=>{setCondition(e.target.value)})} value={condition}/>
+                          <Select placeholder="Input Painting Condition" backgroundColor="#FAFAFA" options={conditionItem} value={condition} onChange={(e)=>{setCondition(e)}}/>
                       </div>
                       {/* Size */}
                       <div className="product__item">
@@ -336,8 +339,7 @@ export default function EditProduct({data,id,setEdit}) {
                     <h2 style={{textAlign:"center"}}>Product Updated Succesfully</h2>
                     <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Your Produt Data has been updated Successfully</p>
                   <FlexibleDiv flexWrap="nowrap" gap="24px">
-                    <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>{setOpenModal(false);setEdit(false)}}>Cancel</Button>
-                    <Button onClick={()=>{push("/products")}} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Back to Products</Button>
+                    <Button onClick={()=>{closeModal()}} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
                   </FlexibleDiv>
                   </>
                 }

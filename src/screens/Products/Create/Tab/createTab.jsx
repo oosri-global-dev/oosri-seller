@@ -19,7 +19,6 @@ export const CreateTab=({subCategories,category})=>{
     const[productName,setProductName]=useState("")
     const[productDescription,setProductDescription]=useState("")
     const[brandArtist,setBrandArtist]=useState("")
-    const[color,setColor]=useState("")
     const[discount,setDiscount]=useState("")
     const[weight,setWeight]=useState("")
     const[country,setCountry]=useState("")
@@ -57,7 +56,6 @@ export const CreateTab=({subCategories,category})=>{
     regularPrice:regularPrice,
     productType:productType,
     discount:discount,
-    color:color,
     ...(category === "Sculpture" && {
       width: width,
       weight:weight,
@@ -111,6 +109,12 @@ export const CreateTab=({subCategories,category})=>{
         {value:"variable",label:"Variable"}
       ]
 
+      const conditionItem=[
+        {value:"New",label:"New"},
+        {value:"Used",label:"Used"},
+        {value:"Antique",label:"Antique"}
+      ]
+
       const handleCreateProduct=async ()=>{
         try{
           const response=await createProduct(payload)
@@ -141,11 +145,6 @@ export const CreateTab=({subCategories,category})=>{
                   <CustomInput width={"100%"} placeholder="Input product name" backgroundColor="#FAFAFA" value={productName} onChange={(e)=>{setProductName(e.target.value)}}/>
                   <p>Do not exceed 40 characters while entering name</p>
               </div>
-              {/* Color */}
-              <FlexibleDiv flexDir="column" width="fit-content" alignItems="start" gap="6px">
-                <label htmlFor="Color">Color</label>
-                <CustomInput placeholder="Select color" backgroundColor="#FAFAFA" onChange={(e)=>{setColor(e.target.value)}}/>
-              </FlexibleDiv>
             </FlexibleDiv>
             {/* Category */}
             <div className="product__item">
@@ -285,7 +284,7 @@ export const CreateTab=({subCategories,category})=>{
                   {/* Condition */}
                   <div className="product__item">
                       <label htmlFor="Name">Condition</label>
-                      <CustomInput placeholder="Input Painting Condition" backgroundColor="#FAFAFA" onChange={((e)=>{setCondition(e.target.value)})}/>
+                       <Select placeholder="Input Painting Condition" backgroundColor="#FAFAFA" options={conditionItem} value={condition} onChange={(e)=>{setCondition(e)}}/>
                   </div>
                   {/* Size */}
                   <div className="product__item">

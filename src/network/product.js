@@ -30,6 +30,9 @@ export const createProduct=async(payload)=>{
 }
 
 export const editProduct=async(params,payload)=>{
-    const data= await instance.put(`/products/seller/${params}`,payload)
+    const data= await instance.put(`/products/seller/${params}`,payload,{
+        headers:{
+            'Content-Type': 'multipart/form-data',
+          }})
     return data
 }

@@ -16,28 +16,29 @@ export default function Product() {
   const[productData,setProductData]=useState()
   const [id,setId]=useState()
 
-  useEffect(()=>{
-    const fetchProductData=async ()=>{
-      let id = window.location.pathname
-      let regex = /\/product\/([a-f0-9]{24})/;
-      let match = id.match(regex);
-      try{
-        if (match) {
-          id = match[1].trim();
-          console.log("Extracted ID:",id);
-        } else {
-          console.log("No ID found.");
-        }
-        const data= await getProduct(id)
-        setProductData(data.data.data)
-        setId(id)
-        setLoading(false)
-      }catch(error){
-        console.log(error)
+  const fetchProductData=async ()=>{
+    let id = window.location.pathname
+    let regex = /\/product\/([a-f0-9]{24})/;
+    let match = id.match(regex);
+    try{
+      if (match) {
+        id = match[1].trim();
+        console.log("Extracted ID:",id);
+      } else {
+        console.log("No ID found.");
       }
+      const data= await getProduct(id)
+      setProductData(data.data.data)
+      setId(id)
+      setLoading(false)
+    }catch(error){
+      console.log(error)
     }
+  }
+  useEffect(()=>{
     fetchProductData()
   },[])
+  
   return (
     <>
     {
@@ -47,11 +48,11 @@ export default function Product() {
     <DashboardLayout title={"Product Detail"} showBackBtn>
         {edit?
         <div>
-          <EditProduct data={productData} id={id} setEdit={setEdit} />   
+          <EditProduct data={productData} id={id} setEdit={setEdit} fetchData={fetchProductData}/>   
         </div>
         :
         <ProductWrapper>
-          <ProductDetails data={productData}/>
+          <ProductDetails data={productData} setEdit={setEdit} />
         </ProductWrapper>
         }
     </DashboardLayout>

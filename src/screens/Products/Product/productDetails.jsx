@@ -1,21 +1,17 @@
 import { useState } from "react"
 import { CreateProductPageWrapper } from "../Create/index.styles"
 import { FlexibleDiv } from "@/components/lib/Box/styles"
+import Button from "@/components/lib/Button"
+
 
 export const ProductDetails=({data,setEdit})=>{
     const [category,setCategory]=useState(data?.category)
-    const [img1,setImg1]=useState()
-    const [img2,setImg2]=useState()
-    const [img3,setImg3]=useState()
-    const [img4,setImg4]=useState()
     const[productName,setProductName]=useState(data?.productName)
     const[productDescription,setProductDescription]=useState(data?.productDescription)
     const[brandArtist,setBrandArtist]=useState(data?.brandArtist)
-    const[color,setColor]=useState("")
     const[discount,setDiscount]=useState(data?.discount)
     const[weight,setWeight]=useState(data?.weight)
     const[country,setCountry]=useState("")
-    const [openModal,setOpenModal]=useState(false)
     const [categoryItem,setCategoryItem]=useState([])
     const[subCategory,setSubCategory]=useState(data.subcategory)
     const [productType,setProductType]=useState(data.productType)
@@ -48,11 +44,6 @@ export const ProductDetails=({data,setEdit})=>{
                     <label htmlFor="Name">Product Name</label>
                         <h5 width={"100%"}>{productName}</h5>
                     </div>
-                    {/* Color */}
-                    <FlexibleDiv flexDir="column" width="fit-content" alignItems="start" gap="6px">
-                    <label htmlFor="Color">Color</label>
-                    <h5>{color}</h5>
-                    </FlexibleDiv>
                 </FlexibleDiv>
                 {/* Category */}
                 <div className="product__item">
@@ -87,7 +78,7 @@ export const ProductDetails=({data,setEdit})=>{
                 </FlexibleDiv>
                 {/* right section */}
                 <FlexibleDiv flexDir="column" gap="24px" alignItems="start" width="100%">
-                    <FlexibleDiv className=" " justifyContent="start">
+                    <FlexibleDiv gap="16px" justifyContent="start">
                         {
                             data.images.map((item)=>{
                                 return(
@@ -222,6 +213,11 @@ export const ProductDetails=({data,setEdit})=>{
                 </FlexibleDiv>
               </FlexibleDiv>
             </FlexibleDiv>
+              <FlexibleDiv justifyContent="end" alignItems="start">
+                  <Button className="edit__button" onClick={()=>{setEdit(true)}}>
+                   Edit
+                  </Button>
+              </FlexibleDiv>
         </CreateProductPageWrapper>
     )
 }
