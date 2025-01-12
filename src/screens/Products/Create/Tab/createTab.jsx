@@ -43,6 +43,7 @@ export const CreateTab=({subCategories,category})=>{
     const [condition,setCondition]=useState("")
     const [size,setSize]=useState("")
     const[modalError,setModalError]=useState(false)
+    const[errorText,setErrorText]=useState(" ")
 
   const payload={
     category:category,
@@ -125,6 +126,7 @@ export const CreateTab=({subCategories,category})=>{
           setModalError(true)
           handleModalOpen()
           console.log(errors)
+          setErrorText(errors.response.data.error)
         }
       }
 
@@ -284,7 +286,7 @@ export const CreateTab=({subCategories,category})=>{
                   {/* Condition */}
                   <div className="product__item">
                       <label htmlFor="Name">Condition</label>
-                       <Select placeholder="Input Painting Condition" backgroundColor="#FAFAFA" options={conditionItem} value={condition} onChange={(e)=>{setCondition(e)}}/>
+                       <Select width="100%" placeholder="Input Painting Condition" backgroundColor="#FAFAFA" options={conditionItem} value={condition} onChange={(e)=>{setCondition(e)}} />
                   </div>
                   {/* Size */}
                   <div className="product__item">
@@ -330,7 +332,7 @@ export const CreateTab=({subCategories,category})=>{
               modalError?
               <>
                 <h2 style={{textAlign:"center"}}>Product Submission Failed</h2>
-                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Thank you for adding your product to our platform. Your listing has been received and is now in the review process. Our team will carefully assess your product to ensure it meets our quality standards and guidelines.</p>
+                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>{errorText}</p>
               </>:
               <>
                 <h2 style={{textAlign:"center"}}>Product Submission Received</h2>
