@@ -1,10 +1,7 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { AllProductsWrapper, TopMenuWrapper } from "./all-products.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { Table, Tabs } from "antd";
-import {
-  productsTableColumns,
-} from "@/utils/products-helpers";
+import { Table,Space, Avatar,Popover, Switch } from "antd";
 import Button from "@/components/lib/Button";
 import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import TextField from "@/components/lib/TextField";
@@ -14,16 +11,19 @@ import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { getAllProducts } from "@/network/product";
+import { deleteProduct, filterAllProducts, getAllProducts } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
+import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
+
 
 export default function AllProductsScreen() {
   const [activeTab, setActiveTab] = useState("products");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [allProducts,setAllProducts]=useState([])
   const [openModal,setOpenModal]=useState(false)
   const [modalError,setModalError]=useState(false)
+  const [tableLoading,setTableLoading]=useState(false)
   const { push } = useRouter();
   const {
     dispatch,
@@ -41,52 +41,144 @@ export default function AllProductsScreen() {
     },
   ];
 
+  const handleDelete= async (param)=>{
+    try{
+      const data= deleteProduct(param)
+      console.log(data)
+      setModalError(false)
+      setOpenModal(true)
+    }catch(errors){
+      console.log(errors)
+      setModalError(true)
+      setOpenModal(true)
+    }
+}
+  
+  const content = (obj) => (
+    <div className="popover__custom">
+      <Button
+        height="30px"
+        radius="5px"
+        onClick={() => {window.location= `product/${obj._id}`}}
+      >
+        View More Details
+      </Button>
+        <Button height="30px" radius="5px"
+        onClick={() => {handleDelete(obj._id)}}
+        >
+          Unpublish Details
+        </Button>
+    </div>
+  )
+  
+  const productsTableColumns = [
+    {
+      title: "Seller Name",
+      dataIndex: "brandArtist",
+      key: "brandArtist",
+      render: (_,obj) => (
+        <Space>
+          {/* item image */}
+          <Avatar size={45} src={obj.images[0]} />
+          <Space direction="vertical" size={1}>
+            <p>{_}</p>
+          </Space>
+        </Space>
+      ),
+    },
+    {
+      title: "Product Name",
+      dataIndex: "productName",
+      key: "productName",
+    },
+    {
+      title: "Product ID",
+      dataIndex: "_id",
+      key: "_id",
+    },
+    {
+      title: "Price",
+      dataIndex: "regularPrice",
+      key: "regularPrice",
+      render: (_) => (
+        <Space>
+          <p>{_}</p>
+        </Space>
+      ),
+    },
+    {
+      title: "In stock",
+      dataIndex: "instock",
+      key: "instock",
+    },
+    {
+      title: "Visibility",
+      dataIndex: "isApproved",
+      key: "isApproved",
+      render: () => (
+        <div>
+          <Switch defaultChecked disabled />
+        </div>
+      ),
+    },
+    {
+      title: "",
+      dataIndex: "action",
+      key: "action",
+      render: (_,obj) => (
+       <Popover content={content(obj)} trigger="click">
+          <EllipsisIcon style={{ cursor: "pointer" }} />
+       </Popover>
+      ),
+    },
+  ];
+  
+
   const fetchAllProducts = async () => {
-    setLoading(true);
+    setTableLoading(true);
     try {
       const data = await getAllProducts();
       setAllProducts(data.data.data);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleHashChange = () => {
-    const currentHash = window.location.hash;
-
-    if (currentHash === "#deleted") {
-      setOpenModal(true);
-      fetchAllProducts();
-    } else if (currentHash === "#delete") {
-      setOpenModal(true);
-      setModalError(true);
+      setTableLoading(false);
     }
   };
 
   useEffect(() => {
     // Fetch products initially
     fetchAllProducts();
-
-    // Handle hash changes
-    window.addEventListener("hashchange", handleHashChange);
-
-    // Cleanup listener on component unmount
-    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  const closeModal=()=>{
-    push("/products")
-    setOpenModal(false)
-    setModalError(false)
+  const closeModal=async()=>{
+    setTableLoading(true)
+    try{
+      await fetchAllProducts()
+    }catch(errors){
+      console.log(errors)
+    }finally{
+      setTableLoading(false)
+      setOpenModal(false)
+      setModalError(false)
+    }
   }
 
+  const filterProducts=async(e)=>{
+    const filterParams=`productName=${e}&sortBy=newest`
+    setTableLoading(true)
+    try{
+      const data=await filterAllProducts(filterParams)
+      setAllProducts(data.data.data);
+      setTableLoading(false)
+    }catch(errors){
+      console.log(errors)
+    }
+  }
+
+
+
   return (
-    <>
-    {loading?
-    <CustomLoader />  
-    :
       <DashboardLayout title={"Products"}>
         <FlexibleDiv
           width="100%"
@@ -111,7 +203,7 @@ export default function AllProductsScreen() {
           </Button>
         </FlexibleDiv>
 
-        <TopMenuWrapper>
+        {/* <TopMenuWrapper>
           <Tabs
             className="tabs__custom"
             defaultActiveKey="1"
@@ -120,7 +212,7 @@ export default function AllProductsScreen() {
               e === 1 ? setActiveTab("products") : setActiveTab("pendingProducts")
             }
           />
-        </TopMenuWrapper>
+        </TopMenuWrapper> */}
         <AllProductsWrapper>
           <FlexibleDiv
             flexDir="column"
@@ -145,6 +237,7 @@ export default function AllProductsScreen() {
                   placeholder="Search by products name"
                   autoComplete="new-password"
                   type="text"
+                  onChange={(e)=>{filterProducts(e.target.value)}}
                 />
               </FlexibleDiv>
               <Button
@@ -166,6 +259,8 @@ export default function AllProductsScreen() {
                   columns={productsTableColumns}
                   dataSource={allProducts}
                   className="table__class"
+                  loading={tableLoading}
+                  
                 />
             </FlexibleDiv>
           </FlexibleDiv>
@@ -186,7 +281,5 @@ export default function AllProductsScreen() {
           </StyledModal>
         </AllProductsWrapper>
       </DashboardLayout>
-    }
-    </>
-  );
+  )
 }

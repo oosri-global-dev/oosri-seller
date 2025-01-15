@@ -6,7 +6,7 @@ import ProductImage from "@/assets/images/profile.jpg";
 import Button from "@/components/lib/Button";
 import { useEffect, useState } from "react";
 import EditProduct from "../Edit/edit-product";
-import { getProduct } from "@/network/product";
+import { getCategories, getProduct } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { ProductDetails } from "./productDetails";
 
@@ -15,6 +15,7 @@ export default function Product() {
   const [loading,setLoading]=useState(true)
   const[productData,setProductData]=useState()
   const [id,setId]=useState()
+  const[subCategories,setSubCategories]=useState()
 
   const fetchProductData=async ()=>{
     let id = window.location.pathname
@@ -35,10 +36,36 @@ export default function Product() {
       console.log(error)
     }
   }
+
   useEffect(()=>{
     fetchProductData()
   },[])
   
+  useEffect(()=>{
+    const fetchCategories=async()=>{
+      try{
+        const data = await getCategories()
+        const categories=data.data.data
+        const selectedCategory = categories.find((category) => category.name === productData?.category);
+        if (selectedCategory) {
+          setSubCategories(selectedCategory.subcategories);
+          const items=[]
+          for (let index = 0; index < subCategories.length; index++) {    
+            items.push(
+              {
+                key:subCategories[index].name,
+                label:subCategories[index].name,
+              }
+            ) 
+          }
+          setSubCategories(items)
+        }
+      }catch(errors){
+        console.log(errors)
+      }
+    }
+    fetchCategories()
+  },[])
   return (
     <>
     {
@@ -48,7 +75,7 @@ export default function Product() {
     <DashboardLayout title={"Product Detail"} showBackBtn>
         {edit?
         <div>
-          <EditProduct data={productData} id={id} setEdit={setEdit} fetchData={fetchProductData}/>   
+          <EditProduct data={productData} id={id} setEdit={setEdit} fetchData={fetchProductData} subCategories={subCategories}/>   
         </div>
         :
         <ProductWrapper>

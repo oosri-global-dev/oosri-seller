@@ -5,15 +5,16 @@ import { Input } from "antd"
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles"
 import { CustomInput } from "@/components/lib/CustomInput/index.styles"
 import { CustomUpload } from "@/components/lib/CustomUpload";
-import { CountrySelect } from "@/components/lib/CountrySelect"
-import { useEffect ,useState} from "react";
+import { useState} from "react";
 import { editProduct } from "@/network/product";
 import Button from "@/components/lib/Button";
+import CustomLoader from "@/components/lib/CustomLoader";
 
 const {TextArea}=Input
 
-export default function EditProduct({data,id,setEdit, fetchData}) {
+export default function EditProduct({data,id,setEdit, fetchData,subCategories}) {
     const [category,setCategory]=useState(data?.category)
+    const [images,setImages]=useState(data?.images)
     const [img1,setImg1]=useState()
     const [img2,setImg2]=useState()
     const [img3,setImg3]=useState()
@@ -23,9 +24,8 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
     const[brandArtist,setBrandArtist]=useState(data?.brandArtist)
     const[discount,setDiscount]=useState(data?.discount)
     const[weight,setWeight]=useState(data?.weight)
-    const[country,setCountry]=useState("")
+    const[country,setCountry]=useState(data?.country)
     const [openModal,setOpenModal]=useState(false)
-    const [categoryItem,setCategoryItem]=useState([])
     const[subCategory,setSubCategory]=useState(data.subcategory)
     const [productType,setProductType]=useState(data.productType)
     const [regularPrice,setRegularPrice]=useState(data?.regularPrice)
@@ -33,25 +33,26 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
     const [width,setWidth]=useState(data?.width)
     const [height,setHeight]=useState(data.height)
     const [technique,setTechnique]=useState(data?.technique)
-    const [length,setLength]=useState("")
-    const [fabricType,setFabricType]=useState("")
-    const [clayType,setClayType]=useState("")
-    const [glaze,setGlaze]=useState("")
-    const [diameter,setDiameter]=useState("")
-    const [pattern,setPattern]=useState("")
-    const [stoneType,setStoneType]=useState("")
-    const [metalType,setMetalType]=useState("")
-    const [medium,setMedium]=useState("")
-    const [condition,setCondition]=useState("")
-    const [size,setSize]=useState("")
+    const [length,setLength]=useState(data?.length)
+    const [fabricType,setFabricType]=useState(data?.fabricType)
+    const [clayType,setClayType]=useState(data?.clayType)
+    const [glaze,setGlaze]=useState(data?.glaze)
+    const [diameter,setDiameter]=useState(data?.diameter)
+    const [pattern,setPattern]=useState(data?.pattern)
+    const [stoneType,setStoneType]=useState(data?.stoneType)
+    const [metalType,setMetalType]=useState(data?.metalType)
+    const [medium,setMedium]=useState(data?.medium)
+    const [condition,setCondition]=useState(data?.condition)
+    const [size,setSize]=useState(data?.size)
     const[modalError,setModalError]=useState(false)
+    const[loading,setLoading]=useState(false)
 
     const payload={
       category:category,
       productName:productName,
       productDescription:productDescription,
       brandArtist:brandArtist,
-      images:[img1,img2,img3,img4],
+      images:[img1,img2,img3,img4].filter(Boolean),
       country:country,
       subcategory:subCategory?.value,
       salesPrice:salesPrice,
@@ -90,24 +91,6 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
       }),
     }
 
-    useEffect(()=>{
-      if(data.images){
-        setImg1(data.images[0])
-        setImg2(data.images[1])
-        setImg3(data.images[2])
-        setImg4(data.images[3])
-      }
-       const fetchAllProducts= async()=>{
-            try{
-              const data= await getCategories()
-              setCategoryItem()
-            }catch(errors){
-              console.log(errors)
-            }
-      }
-        fetchAllProducts()
-    },[])
-
     const productTypeItem=[
       {value:"simple",label:"Simple"},
       {value:"variable",label:"Variable"}
@@ -119,8 +102,10 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
     ]
 
     const handleEdit=async ()=>{
+      setLoading(true)
       try{
         const data = await editProduct(id,payload)
+        setLoading(false)
         setOpenModal(true)
       }catch(errors){
         console.log(errors)
@@ -133,6 +118,11 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
     }
 
     return(
+      <>
+      {
+        loading?
+        <CustomLoader />
+        :
         <CreateProductPageWrapper>
           <FlexibleDiv className="tab__item">
               <FlexibleDiv className="container_wrapper" alignItems="start">
@@ -149,17 +139,12 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
                 {/* Category */}
                 <div className="product__item">
                     <label htmlFor="Name">Product Category</label>
-                    <Select options={categoryItem} value={subCategory} onChange={(e)=>{setSubCategory(e)}} backgroundColor="#FAFAFA" width="100%"/>
+                    <Select options={subCategories} value={subCategory} onChange={(e)=>{setSubCategory(e)}} backgroundColor="#FAFAFA" width="100%"/>
                 </div>
                 {/* Brand */}
                 <div className="product__item">
                     <label htmlFor="Name">Brand</label>
                     <CustomInput placeholder="Select product brand" backgroundColor="#FAFAFA" onChange={(e)=>{setBrandArtist(e.target.value)}} value={brandArtist}/>
-                </div>
-                {/* Country */}
-                <div className="product__item">
-                    <label htmlFor="Name">Country</label>
-                    <CountrySelect  placeholder="Input country" onChange={(e)=>{setCountry(e)}} value={country}/>
                 </div>
                 {/* Quantity available */}
                 <div className="product__item">
@@ -185,11 +170,11 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
               {/* right section */}
               <FlexibleDiv flexDir="column" gap="24px" alignItems="start" width="100%">
                 <FlexibleDiv className="img__upload" justifyContent="start">
-                  <CustomUpload editable setFile={setImg1} initialImage={img1} />
-                  <CustomUpload editable initialImage={img2} setFile={setImg2} />
+                  <CustomUpload editable setFile={setImg1} initialImage={images[0]} />
+                  <CustomUpload editable initialImage={images[1]} setFile={setImg2} />
                   <FlexibleDiv flexDir="column" className="column_item" width="fit-content">
-                    <CustomUpload initialImage={img3} editable setFile={setImg3} />
-                    <CustomUpload initialImage={img4} editable setFile={setImg4} />
+                    <CustomUpload initialImage={images[2]} editable setFile={setImg3} />
+                    <CustomUpload initialImage={images[3]} editable setFile={setImg4} />
                   </FlexibleDiv>
                 </FlexibleDiv>
                 {/* Discounts */}
@@ -324,7 +309,7 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
               </Button>
           </FlexibleDiv>
 
-           <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null}>
+           <StyledModal maskClosable={true}  open={openModal} centered closeIcon={null} className="modal" footer={null}>
                 {
                   modalError?
                   <>
@@ -345,4 +330,6 @@ export default function EditProduct({data,id,setEdit, fetchData}) {
                 }
             </StyledModal>
         </CreateProductPageWrapper>
+      }
+      </>
 )}

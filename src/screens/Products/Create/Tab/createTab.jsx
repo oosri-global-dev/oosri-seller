@@ -7,7 +7,6 @@ import { createProduct } from "@/network/product"
 import Button from "@/components/lib/Button"
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles"
 import { CustomInput } from "@/components/lib/CustomInput/index.styles"
-import { CountrySelect } from "@/components/lib/CountrySelect"
 
 const {TextArea}=Input
 
@@ -21,7 +20,6 @@ export const CreateTab=({subCategories,category})=>{
     const[brandArtist,setBrandArtist]=useState("")
     const[discount,setDiscount]=useState("")
     const[weight,setWeight]=useState("")
-    const[country,setCountry]=useState("")
     const [openModal,setOpenModal]=useState(false)
     const [categoryItem,setCategoryItem]=useState([])
     const[subCategory,setSubCategory]=useState("")
@@ -51,7 +49,6 @@ export const CreateTab=({subCategories,category})=>{
     productDescription:productDescription,
     brandArtist:brandArtist,
     images:[img1,img2,img3,img4],
-    country:country,
     subcategory:subCategory?.value,
     salesPrice:salesPrice,
     regularPrice:regularPrice,
@@ -157,11 +154,6 @@ export const CreateTab=({subCategories,category})=>{
             <div className="product__item">
                 <label htmlFor="Name">Brand</label>
                 <CustomInput placeholder="Select product brand" backgroundColor="#FAFAFA" onChange={(e)=>{setBrandArtist(e.target.value)}}/>
-            </div>
-            {/* Country */}
-            <div className="product__item">
-                <label htmlFor="Name">Country</label>
-                <CountrySelect  placeholder="Input country" onChange={(e)=>{setCountry(e)}}/>
             </div>
             {/* Quantity available */}
             <div className="product__item">

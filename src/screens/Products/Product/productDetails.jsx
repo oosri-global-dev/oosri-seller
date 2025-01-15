@@ -11,7 +11,6 @@ export const ProductDetails=({data,setEdit})=>{
     const[brandArtist,setBrandArtist]=useState(data?.brandArtist)
     const[discount,setDiscount]=useState(data?.discount)
     const[weight,setWeight]=useState(data?.weight)
-    const[country,setCountry]=useState("")
     const [categoryItem,setCategoryItem]=useState([])
     const[subCategory,setSubCategory]=useState(data.subcategory)
     const [productType,setProductType]=useState(data.productType)
@@ -20,17 +19,17 @@ export const ProductDetails=({data,setEdit})=>{
     const [width,setWidth]=useState(data?.width)
     const [height,setHeight]=useState(data.height)
     const [technique,setTechnique]=useState(data?.technique)
-    const [length,setLength]=useState("")
-    const [fabricType,setFabricType]=useState("")
-    const [clayType,setClayType]=useState("")
-    const [glaze,setGlaze]=useState("")
-    const [diameter,setDiameter]=useState("")
-    const [pattern,setPattern]=useState("")
-    const [stoneType,setStoneType]=useState("")
-    const [metalType,setMetalType]=useState("")
-    const [medium,setMedium]=useState("")
-    const [condition,setCondition]=useState("")
-    const [size,setSize]=useState("")
+    const [length,setLength]=useState(data?.length)
+    const [fabricType,setFabricType]=useState(data?.fabricType)
+    const [clayType,setClayType]=useState(data?.clayType)
+    const [glaze,setGlaze]=useState(data?.glaze)
+    const [diameter,setDiameter]=useState(data?.diameter)
+    const [pattern,setPattern]=useState(data?.pattern)
+    const [stoneType,setStoneType]=useState(data?.stoneType)
+    const [metalType,setMetalType]=useState(data?.metalType)
+    const [medium,setMedium]=useState(data?.medium)
+    const [condition,setCondition]=useState(data?.condition)
+    const [size,setSize]=useState(data?.size)
 
     return(
         <CreateProductPageWrapper style={{width:"100%"}}>
@@ -54,11 +53,6 @@ export const ProductDetails=({data,setEdit})=>{
                 <div className="product__item">
                     <label htmlFor="Name">Brand</label>
                     <h5>{brandArtist}</h5>
-                </div>
-                {/* Country */}
-                <div className="product__item">
-                    <label htmlFor="Name">Country</label>
-                    <h5>{country}</h5>
                 </div>
                 {/* Product Type */}
                 <div className="product__item">

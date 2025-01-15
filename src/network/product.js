@@ -6,6 +6,10 @@ export const getAllProducts=async()=>{
     return data
 }
 
+export const filterAllProducts=async(params)=>{
+    const data= await instance.get(`products/seller/filter?${params}`)
+    return data
+}
 export const getProduct=async(params)=>{
     const data= await instance.get(`/products/seller/${params}`)
     return data
@@ -30,9 +34,11 @@ export const createProduct=async(payload)=>{
 }
 
 export const editProduct=async(params,payload)=>{
+
     const data= await instance.put(`/products/seller/${params}`,payload,{
         headers:{
             'Content-Type': 'multipart/form-data',
-          }})
+          }
+    })
     return data
 }
