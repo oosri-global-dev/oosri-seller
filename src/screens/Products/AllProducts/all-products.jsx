@@ -23,7 +23,9 @@ export default function AllProductsScreen() {
   const [allProducts,setAllProducts]=useState([])
   const [openModal,setOpenModal]=useState(false)
   const [modalError,setModalError]=useState(false)
+  const [editModal,setEditModal]=useState(true)
   const [tableLoading,setTableLoading]=useState(false)
+  const [deleteId,setDeleteId]=useState("")
   const { push } = useRouter();
   const {
     dispatch,
@@ -43,16 +45,19 @@ export default function AllProductsScreen() {
 
   const handleDelete= async (param)=>{
     try{
-      const data= deleteProduct(param)
-      console.log(data)
+      const data = await deleteProduct(param)
       setModalError(false)
-      setOpenModal(true)
+      setEditModal(false)
     }catch(errors){
       console.log(errors)
       setModalError(true)
-      setOpenModal(true)
     }
 }
+
+  const openDeleteModal=(params)=>{
+    setOpenModal(true)
+    setDeleteId(params)
+  } 
   
   const content = (obj) => (
     <div className="popover__custom">
@@ -63,8 +68,7 @@ export default function AllProductsScreen() {
       >
         View More Details
       </Button>
-        <Button height="30px" radius="5px"
-        onClick={() => {handleDelete(obj._id)}}
+        <Button height="30px" radius="5px" onClick={() => {openDeleteModal(obj)}}
         >
           Unpublish Details
         </Button>
@@ -158,6 +162,7 @@ export default function AllProductsScreen() {
     }catch(errors){
       console.log(errors)
     }finally{
+      setEditModal(true)
       setTableLoading(false)
       setOpenModal(false)
       setModalError(false)
@@ -265,21 +270,33 @@ export default function AllProductsScreen() {
             </FlexibleDiv>
           </FlexibleDiv>
 
-          <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null}>
-              {
-                    modalError?
-                    <>
-                      <h2 style={{textAlign:"center"}}>Product Update Failed</h2>
-                      <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>We ran into a problem while trying to delete this product please try again</p>
-                    </>:
-                    <>
-                      <h2 style={{textAlign:"center"}}>Product Deleted Succesfully</h2>
-                      <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Your Produt has been deleted Successfully</p>
-                    </>
-                  }
-                  <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
-          </StyledModal>
+        <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null} >
+          {
+            editModal?
+            <>
+              <h2 style={{textAlign:"center"}}>Delete Product</h2>
+              <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Are you sure you want to delete this product {deleteId.productName}?</p>
+              <FlexibleDiv flexWrap="nowrap" gap="24px">
+                <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>{setOpenModal(false)}}>No</Button>
+                <Button onClick={() => handleDelete(deleteId?._id)} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Yes</Button>
+
+              </FlexibleDiv>
+            </>
+            :modalError?
+              <>
+                <h2 style={{textAlign:"center"}}>Product Update Failed</h2>
+                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>We ran into a problem while trying to delete this product please try again</p>
+                <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
+              </>:
+              <>
+                <h2 style={{textAlign:"center"}}>Product Deleted Succesfully</h2>
+                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Your Produt has been deleted Successfully</p>
+                <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
+              </>
+            }
+        </StyledModal>
         </AllProductsWrapper>
       </DashboardLayout>
   )
 }
+ 

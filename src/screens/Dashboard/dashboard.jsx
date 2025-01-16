@@ -32,19 +32,7 @@ export default function DashboardScreen() {
       totalOrders:0,
       totalProducts:0,
       totalSales:0})
-  const [graphOptions,setGraphOptions]=useState( {
-    Jan: 2,
-    Feb: 5,
-    Mar: 3,
-    Apr: 5,
-    May: 8,
-    Jun: 9,
-    Aug: 8,
-    Sep: 10,
-    Oct: 6,
-    Nov: 8,
-    Dec: 2,
-  })
+  const [graphOptions,setGraphOptions]=useState({})
 
 const fetchSalesOverview=async()=>{
   const graphOptions={}
@@ -192,7 +180,7 @@ const summaryBoxes = [
               </FlexibleDiv>
             </FlexibleDiv>
             <FlexibleDiv width="100%" className="graph__box">
-              <AreaChart data={graphOptions} />
+              <AreaChart data={graphOptions} empty={"loading..."} />
             </FlexibleDiv>
           </FlexibleDiv>
           {/* Table Section */}
