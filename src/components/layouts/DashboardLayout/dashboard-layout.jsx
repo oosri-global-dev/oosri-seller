@@ -35,7 +35,9 @@ export default function DashboardLayout({
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
   const [current, setCurrent] = useState(
-    pathname === "/" || pathname === "" ? "/dashboard" : pathname
+    pathname === "/" || pathname === "" ? "/dashboard" : 
+    pathname.includes("/product")?"/products":
+    pathname.includes("/order")?"/order":pathname
   );
   const {
     dispatch,
@@ -164,7 +166,7 @@ export default function DashboardLayout({
                 width="fit-content"
                 gap="15px"
               >
-                {showBackBtn && <LeftArrow size={24} onClick={() => back()} />}
+                {showBackBtn && <LeftArrow size={24} onClick={() => back()} style={{cursor:"pointer"}} />}
                 <FlexibleDiv flexDir="column" className="welcome__box">
                   <p className="dashboard__text">{title || "Dashboard"}</p>
                   <p className="sub__text">

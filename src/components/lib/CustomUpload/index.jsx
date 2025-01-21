@@ -2,17 +2,19 @@ import { useState, useEffect } from "react";
 import { CustomUploaderWrapper } from "./index.styles";
 import { IoMdAdd } from "react-icons/io";
 
-export function CustomUpload({ setFile, initialImage,editable, title }){
+export function CustomUpload({ setFile, initialImage, editable, title }){
   const [error, setError] = useState(null);
   const [imageSrc, setImageSrc] = useState(initialImage || null);
   const [isImageVisible, setIsImageVisible] = useState(!!initialImage);
 
   // Effect to handle displaying initial image if available
   useEffect(() => {
-    setImageSrc(initialImage || null);
-    setIsImageVisible(!!initialImage);
+    if (initialImage && !imageSrc) {
+      setImageSrc(initialImage);
+      setIsImageVisible(true);
+    }
   }, [initialImage]);
-
+  
   // Handler for file input change
   const handleFileChange = (event) => {
     const target = event.target;
@@ -60,7 +62,10 @@ export function CustomUpload({ setFile, initialImage,editable, title }){
 
   return (
     <CustomUploaderWrapper>
+      {
+        title &&
         <p className="upload__title">{title}</p>
+      }
       <div className="upload__container"
        style={
         {backgroundColor:editable?"rgba(0, 0, 0, 0.5)":"transparent",borderStyle:editable?"solid":"dashed"}}

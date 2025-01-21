@@ -1,10 +1,7 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { AllProductsWrapper, TopMenuWrapper } from "./all-products.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { Table, Tabs } from "antd";
-import {
-  productsTableColumns,
-} from "@/utils/products-helpers";
+import { Table,Space, Avatar,Popover, Switch } from "antd";
 import Button from "@/components/lib/Button";
 import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import TextField from "@/components/lib/TextField";
@@ -14,13 +11,21 @@ import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { getAllProducts } from "@/network/product";
+import { deleteProduct, filterAllProducts, getAllProducts } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
+import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
+import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
+
 
 export default function AllProductsScreen() {
   const [activeTab, setActiveTab] = useState("products");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [allProducts,setAllProducts]=useState([])
+  const [openModal,setOpenModal]=useState(false)
+  const [modalError,setModalError]=useState(false)
+  const [editModal,setEditModal]=useState(true)
+  const [tableLoading,setTableLoading]=useState(false)
+  const [deleteId,setDeleteId]=useState("")
   const { push } = useRouter();
   const {
     dispatch,
@@ -38,67 +43,151 @@ export default function AllProductsScreen() {
     },
   ];
 
-  const productsTableData = [
+  const handleDelete= async (param)=>{
+    try{
+      const data = await deleteProduct(param)
+      setModalError(false)
+      setEditModal(false)
+    }catch(errors){
+      console.log(errors)
+      setModalError(true)
+    }
+}
+
+  const openDeleteModal=(params)=>{
+    setOpenModal(true)
+    setDeleteId(params)
+  } 
+  
+  const content = (obj) => (
+    <div className="popover__custom">
+      <Button
+        height="30px"
+        radius="5px"
+        onClick={() => {window.location= `product/${obj._id}`}}
+      >
+        View More Details
+      </Button>
+        <Button height="30px" radius="5px" onClick={() => {openDeleteModal(obj)}}
+        >
+          Unpublish Details
+        </Button>
+    </div>
+  )
+  
+  const productsTableColumns = [
     {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
+      title: "Seller Name",
+      dataIndex: "brandArtist",
+      key: "brandArtist",
+      render: (_,obj) => (
+        <Space>
+          {/* item image */}
+          <Avatar size={45} src={obj.images[0]} />
+          <Space direction="vertical" size={1}>
+            <p>{_}</p>
+          </Space>
+        </Space>
+      ),
     },
     {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
+      title: "Product Name",
+      dataIndex: "productName",
+      key: "productName",
     },
     {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
+      title: "Product ID",
+      dataIndex: "_id",
+      key: "_id",
     },
     {
-      key: "orderId",
-      sellerName: "Henry Collins",
-      productName: "Nokia A23",
-      productId: "P12345",
-      price: "$100",
-      country: "Nigeria",
-      instock: "50",
+      title: "Price",
+      dataIndex: "regularPrice",
+      key: "regularPrice",
+      render: (_) => (
+        <Space>
+          <p>{_}</p>
+        </Space>
+      ),
+    },
+    {
+      title: "In stock",
+      dataIndex: "instock",
+      key: "instock",
+    },
+    {
+      title: "Visibility",
+      dataIndex: "isApproved",
+      key: "isApproved",
+      render: () => (
+        <div>
+          <Switch defaultChecked disabled />
+        </div>
+      ),
+    },
+    {
+      title: "",
+      dataIndex: "action",
+      key: "action",
+      render: (_,obj) => (
+       <Popover content={content(obj)} trigger="click">
+          <EllipsisIcon style={{ cursor: "pointer" }} />
+       </Popover>
+      ),
     },
   ];
+  
 
-  useEffect(()=>{
-    const fetchAllProducts=async()=>{
-      try{
-        const data = await getAllProducts()
-        setLoading(false)
-        setAllProducts(data.data.data)
-      }catch(error){
-        if(error.message == "Request failed with status code 404"){
-          push("product/create")
-        }else{
-          setLoading(false)
-        }
-      }
+  const fetchAllProducts = async () => {
+    setTableLoading(true);
+    try {
+      const data = await getAllProducts();
+      setAllProducts(data.data.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setTableLoading(false);
     }
-    fetchAllProducts()
-  },[])
+  };
+
+  useEffect(() => {
+    // Fetch products initially
+    fetchAllProducts();
+  }, []);
+
+  const closeModal=async()=>{
+    setTableLoading(true)
+    try{
+      await fetchAllProducts()
+    }catch(errors){
+      console.log(errors)
+    }finally{
+      setEditModal(true)
+      setTableLoading(false)
+      setOpenModal(false)
+      setModalError(false)
+    }
+  }
+
+  const filterProducts=async(e)=>{
+    const filterParams=`productName=${e}&sortBy=newest`
+    setTableLoading(true)
+    const payload={
+      pageNo: 1,
+      pageSize: 1
+    }
+    try{
+      const data=await filterAllProducts(filterParams)
+      setAllProducts(data.data.data);
+      setTableLoading(false)
+    }catch(errors){
+      console.log(errors)
+    }
+  }
+
+
 
   return (
-    <>
-    {loading?
-    <CustomLoader />  
-    :
       <DashboardLayout title={"Products"}>
         <FlexibleDiv
           width="100%"
@@ -123,7 +212,7 @@ export default function AllProductsScreen() {
           </Button>
         </FlexibleDiv>
 
-        <TopMenuWrapper>
+        {/* <TopMenuWrapper>
           <Tabs
             className="tabs__custom"
             defaultActiveKey="1"
@@ -132,7 +221,7 @@ export default function AllProductsScreen() {
               e === 1 ? setActiveTab("products") : setActiveTab("pendingProducts")
             }
           />
-        </TopMenuWrapper>
+        </TopMenuWrapper> */}
         <AllProductsWrapper>
           <FlexibleDiv
             flexDir="column"
@@ -157,6 +246,7 @@ export default function AllProductsScreen() {
                   placeholder="Search by products name"
                   autoComplete="new-password"
                   type="text"
+                  onChange={(e)=>{filterProducts(e.target.value)}}
                 />
               </FlexibleDiv>
               <Button
@@ -174,24 +264,43 @@ export default function AllProductsScreen() {
             </FlexibleDiv>
 
             <FlexibleDiv className="products__table__wrapper">
-              {activeTab === "products" ? (
                 <Table
                   columns={productsTableColumns}
                   dataSource={allProducts}
                   className="table__class"
+                  loading={tableLoading}
+                  
                 />
-              ) : (
-                <Table
-                  columns={productsTableColumns}
-                  dataSource={productsTableData}
-                  className="table__class"
-                />
-              )}
             </FlexibleDiv>
           </FlexibleDiv>
+
+        <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null} >
+          {
+            editModal?
+            <>
+              <h2 style={{textAlign:"center"}}>Delete Product</h2>
+              <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Are you sure you want to delete this product {deleteId.productName}?</p>
+              <FlexibleDiv flexWrap="nowrap" gap="24px">
+                <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>{setOpenModal(false)}}>No</Button>
+                <Button onClick={() => handleDelete(deleteId?._id)} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Yes</Button>
+
+              </FlexibleDiv>
+            </>
+            :modalError?
+              <>
+                <h2 style={{textAlign:"center"}}>Product Update Failed</h2>
+                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>We ran into a problem while trying to delete this product please try again</p>
+                <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
+              </>:
+              <>
+                <h2 style={{textAlign:"center"}}>Product Deleted Succesfully</h2>
+                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Your Produt has been deleted Successfully</p>
+                <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
+              </>
+            }
+        </StyledModal>
         </AllProductsWrapper>
       </DashboardLayout>
-    }
-    </>
-  );
+  )
 }
+ 
