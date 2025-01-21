@@ -86,6 +86,36 @@ export const CreateTab=({subCategories,category})=>{
     }),
   }
   
+  const handleModalClose=()=>{
+   setImg1(undefined)     
+   setImg2(undefined)     
+   setImg3(undefined)     
+   setImg4(undefined)   
+   setProductName("")
+   setProductDescription("")  
+   setBrandArtist("")
+   setDiscount()
+   setWeight("")
+   setProductType("")
+   setRegularPrice("")
+   setSalesPrice()
+   setWidth("")
+   setHeight()
+   setTechnique()
+   setLength()
+   setFabricType()
+   setGlaze()
+   setClayType()
+   setDiameter()
+   setPattern()
+   setStoneType()
+   setMetalType()
+   setMedium()
+   setCondition()
+   setSize()
+   setOpenModal(false)
+   setModalError(false)
+  }
       useEffect(()=>{
         if(subCategories){
           const item=[]
@@ -153,27 +183,27 @@ export const CreateTab=({subCategories,category})=>{
             {/* Brand */}
             <div className="product__item">
                 <label htmlFor="Name">Brand</label>
-                <CustomInput placeholder="Select product brand" backgroundColor="#FAFAFA" onChange={(e)=>{setBrandArtist(e.target.value)}}/>
+                <CustomInput placeholder="Select product brand" backgroundColor="#FAFAFA" onChange={(e)=>{setBrandArtist(e.target.value)}} value={brandArtist}/>
             </div>
             {/* Quantity available */}
             <div className="product__item">
                 <label htmlFor="Name">Quantity Available (Stock)</label>
-                <CustomInput placeholder="Input quantity available" backgroundColor="#FAFAFA"/>
+                <CustomInput placeholder="Input quantity available" backgroundColor="#FAFAFA" />
             </div>
             {/* Product Type */}
             <div className="product__item">
                 <label htmlFor="Name">Product Type</label>
-                <Select placeholder="Input product display type" backgroundColor="#FAFAFA" options={productTypeItem} onChange={(e)=>{setProductType(e)}} width="100%"/>
+                <Select placeholder="Input product display type" backgroundColor="#FAFAFA" value={productType} options={productTypeItem} onChange={(e)=>{setProductType(e)}} width="100%"/>
             </div>
             {/* Regular Price */}
             <div className="product__item">
                 <label htmlFor="Name">Regular Price(NGN)</label>
-                <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" type="number" onChange={(e)=>{setSalesPrice(e.target.value)}} />
+                <CustomInput placeholder="Input Product Price" value={regularPrice} backgroundColor="#FAFAFA" type="number" onChange={(e)=>{setRegularPrice(e.target.value)}} />
             </div>
             {/* Sales Price */}
             <div className="product__item">
                 <label htmlFor="Name">Sales Price(NGN)</label>
-                <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setRegularPrice(e.target.value)})} type="number"/>
+                <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" onChange={((e)=>{setSalesPrice(e.target.value)})} type="number"/>
             </div>
           </FlexibleDiv>
           {/* right section */}
@@ -189,7 +219,7 @@ export const CreateTab=({subCategories,category})=>{
             {/* Discounts */}
             <div className="product__item">
                 <label htmlFor="Name">Dsicounts</label>
-                <CustomInput placeholder="Specify if there are promotions, discounts" backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}} type="number"/>
+                <CustomInput placeholder="Specify if there are promotions, discounts" value={discount} backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}} type="number"/>
             </div>
             {/*Product Description*/}
             <div className="product__item">
@@ -202,110 +232,110 @@ export const CreateTab=({subCategories,category})=>{
               {/* Weight */}
               <div className="product__item">
                   <label htmlFor="Name">Weight</label>
-                  <CustomInput placeholder="Input Product Weight" backgroundColor="#FAFAFA" onChange={((e)=>{setWeight(e.target.value)})} type="number"/>
+                  <CustomInput value={weight} placeholder="Input Product Weight" backgroundColor="#FAFAFA" onChange={((e)=>{setWeight(e.target.value)})} type="number"/>
               </div>
               {/* Width */}
               <div className="product__item">
                   <label htmlFor="Name">Width</label>
-                  <CustomInput placeholder="Input Product Width" backgroundColor="#FAFAFA" onChange={((e)=>{setWidth(e.target.value)})} type="number"/>
+                  <CustomInput value={width} placeholder="Input Product Width" backgroundColor="#FAFAFA" onChange={((e)=>{setWidth(e.target.value)})} type="number"/>
               </div>
               {/* Height */}
               <div className="product__item">
                   <label htmlFor="Name">Height</label>
-                  <CustomInput placeholder="Input Product Height" backgroundColor="#FAFAFA" onChange={((e)=>{setHeight(e.target.value)})} type="number"/>
+                  <CustomInput value={height} placeholder="Input Product Height" backgroundColor="#FAFAFA" onChange={((e)=>{setHeight(e.target.value)})} type="number"/>
               </div>
               {/* Technique */}
               <div className="product__item">
                   <label htmlFor="Name">Technique</label>
-                  <CustomInput placeholder="Input Product Technique" backgroundColor="#FAFAFA" onChange={((e)=>{setTechnique(e.target.value)})}/>
+                  <CustomInput value={technique} placeholder="Input Product Technique" backgroundColor="#FAFAFA" onChange={((e)=>{setTechnique(e.target.value)})}/>
               </div>
               </>:category==="Textiles/Fabrics"?
               <>
               {/* Weight */}
               <div className="product__item">
                   <label htmlFor="Name">Weight</label>
-                  <CustomInput placeholder="Input Product Weight" backgroundColor="#FAFAFA" onChange={((e)=>{setWeight(e.target.value)})} type="number"/>
+                  <CustomInput value={weight} placeholder="Input Product Weight" backgroundColor="#FAFAFA" onChange={((e)=>{setWeight(e.target.value)})} type="number"/>
               </div>
               {/* Width */}
               <div className="product__item">
                   <label htmlFor="Name">Width</label>
-                  <CustomInput placeholder="Input Product Width" backgroundColor="#FAFAFA" onChange={((e)=>{setWidth(e.target.value)})} type="number"/>
+                  <CustomInput value={width} placeholder="Input Product Width" backgroundColor="#FAFAFA" onChange={((e)=>{setWidth(e.target.value)})} type="number"/>
               </div>
               {/* length */}
               <div className="product__item">
                   <label htmlFor="Name">Length</label>
-                  <CustomInput placeholder="Input Product Length" backgroundColor="#FAFAFA" onChange={((e)=>{setLength(e.target.value)})} type="number"/>
+                  <CustomInput value={length} placeholder="Input Product Length" backgroundColor="#FAFAFA" onChange={((e)=>{setLength(e.target.value)})} type="number"/>
               </div>
               {/* Pattern */}
               <div className="product__item">
                   <label htmlFor="Name">Pattern</label>
-                  <CustomInput placeholder="Input Product Pattern" backgroundColor="#FAFAFA" onChange={((e)=>{setPattern(e.target.value)})}/>
+                  <CustomInput value={pattern} placeholder="Input Product Pattern" backgroundColor="#FAFAFA" onChange={((e)=>{setPattern(e.target.value)})}/>
               </div>
               {/* FabricType */}
               <div className="product__item">
                   <label htmlFor="Name">Fabric Type</label>
-                  <CustomInput placeholder="Input Product Fabric Type" backgroundColor="#FAFAFA" onChange={((e)=>{setFabricType(e.target.value)})}/>
+                  <CustomInput value={fabricType} placeholder="Input Product Fabric Type" backgroundColor="#FAFAFA" onChange={((e)=>{setFabricType(e.target.value)})}/>
               </div>
               </>:category==="Pottery"?
               <>
                   {/* Diameter */}
                   <div className="product__item">
                   <label htmlFor="Name">Diameter</label>
-                  <CustomInput placeholder="Input Product Diameter" backgroundColor="#FAFAFA" onChange={((e)=>{setDiameter(e.target.value)})} type="number"/>
+                  <CustomInput value={diameter} placeholder="Input Product Diameter" backgroundColor="#FAFAFA" onChange={((e)=>{setDiameter(e.target.value)})} type="number"/>
                    </div>
                   {/* ClayType */}
                   <div className="product__item">
                       <label htmlFor="Name">Clay Type</label>
-                      <CustomInput placeholder="Input Clay Type" backgroundColor="#FAFAFA" onChange={((e)=>{setClayType(e.target.value)})}/>
+                      <CustomInput value={clayType} placeholder="Input Clay Type" backgroundColor="#FAFAFA" onChange={((e)=>{setClayType(e.target.value)})}/>
                   </div>
                   {/* Height */}
                   <div className="product__item">
                       <label htmlFor="Name">Height</label>
-                      <CustomInput placeholder="Input Product Height" backgroundColor="#FAFAFA" onChange={((e)=>{setHeight(e.target.value)})} type="number"/>
+                      <CustomInput value={height} placeholder="Input Product Height" backgroundColor="#FAFAFA" onChange={((e)=>{setHeight(e.target.value)})} type="number"/>
                   </div>
                   {/* Glaze */}
                   <div className="product__item">
                       <label htmlFor="Name">Glaze</label>
-                      <CustomInput placeholder="Input Product Glaze" backgroundColor="#FAFAFA" onChange={((e)=>{setGlaze(e.target.value)})}/>
+                      <CustomInput value={glaze} placeholder="Input Product Glaze" backgroundColor="#FAFAFA" onChange={((e)=>{setGlaze(e.target.value)})}/>
                   </div>
               </>:category==="Paintings"?
               <>
                   {/* Medium */}
                   <div className="product__item">
                   <label htmlFor="Name">Medium</label>
-                  <CustomInput placeholder="Input Painting Medium" backgroundColor="#FAFAFA" onChange={((e)=>{setMedium(e.target.value)})}/>
+                  <CustomInput value={medium} placeholder="Input Painting Medium" backgroundColor="#FAFAFA" onChange={((e)=>{setMedium(e.target.value)})}/>
                    </div>
                   {/* Condition */}
                   <div className="product__item">
                       <label htmlFor="Name">Condition</label>
-                       <Select width="100%" placeholder="Input Painting Condition" backgroundColor="#FAFAFA" options={conditionItem} value={condition} onChange={(e)=>{setCondition(e)}} />
+                       <Select value={condition} width="100%" placeholder="Input Painting Condition" backgroundColor="#FAFAFA" options={conditionItem} onChange={(e)=>{setCondition(e)}} />
                   </div>
                   {/* Size */}
                   <div className="product__item">
                       <label htmlFor="Name">Size</label>
-                      <CustomInput placeholder="Input Painting Size" backgroundColor="#FAFAFA" onChange={((e)=>{setSize(e.target.value)})} type="number"/>
+                      <CustomInput value={size} placeholder="Input Painting Size" backgroundColor="#FAFAFA" onChange={((e)=>{setSize(e.target.value)})} type="number"/>
                   </div>
               </>:category==="Jewelry"&&
               <>
                 {/* length */}
                 <div className="product__item">
                     <label htmlFor="Name">Length</label>
-                    <CustomInput placeholder="Input Product Length" backgroundColor="#FAFAFA" onChange={((e)=>{setLength(e.target.value)})} type="number"/>
+                    <CustomInput value={length} placeholder="Input Product Length" backgroundColor="#FAFAFA" onChange={((e)=>{setLength(e.target.value)})} type="number"/>
                 </div>
                 {/* Diameter */}
                 <div className="product__item">
                     <label htmlFor="Name">Diameter</label>
-                    <CustomInput placeholder="Input Product Diameter" backgroundColor="#FAFAFA" onChange={((e)=>{setDiameter(e.target.value)})} type="number"/>
+                    <CustomInput value={diameter} placeholder="Input Product Diameter" backgroundColor="#FAFAFA" onChange={((e)=>{setDiameter(e.target.value)})} type="number"/>
                 </div>
                 {/* stoneType */}
                 <div className="product__item">
                     <label htmlFor="Name">Stone Type</label>
-                    <CustomInput placeholder="Input Stone Type" backgroundColor="#FAFAFA" onChange={((e)=>{setStoneType(e.target.value)})} />
+                    <CustomInput value={stoneType} placeholder="Input Stone Type" backgroundColor="#FAFAFA" onChange={((e)=>{setStoneType(e.target.value)})} />
                 </div>
                 {/* Metal type */}
                 <div className="product__item">
                     <label htmlFor="Name">Metal Type</label>
-                    <CustomInput placeholder="Input Metal Type" backgroundColor="#FAFAFA" onChange={((e)=>{setMetalType(e.target.value)})} />
+                    <CustomInput value={metalType} placeholder="Input Metal Type" backgroundColor="#FAFAFA" onChange={((e)=>{setMetalType(e.target.value)})} />
                 </div>
               </>
             }
@@ -332,7 +362,7 @@ export const CreateTab=({subCategories,category})=>{
               </>
             }
               <FlexibleDiv flexWrap="nowrap" gap="24px">
-                <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>setOpenModal(false)}>Cancel</Button>
+                <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>{modalError?setOpenModal(false):handleModalClose()}}>Cancel</Button>
                 <Button onClick={()=>window.location="/products"} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Go to All Product</Button>
               </FlexibleDiv>
             </StyledModal>

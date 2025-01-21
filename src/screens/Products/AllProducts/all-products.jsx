@@ -172,6 +172,10 @@ export default function AllProductsScreen() {
   const filterProducts=async(e)=>{
     const filterParams=`productName=${e}&sortBy=newest`
     setTableLoading(true)
+    const payload={
+      pageNo: 1,
+      pageSize: 1
+    }
     try{
       const data=await filterAllProducts(filterParams)
       setAllProducts(data.data.data);
