@@ -109,6 +109,8 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
         setOpenModal(true)
       }catch(errors){
         console.log(errors)
+      }finally{
+      setLoading(false)
       }
     }
 

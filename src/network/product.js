@@ -1,4 +1,4 @@
-import { instance } from "./axios";
+import { formInstance, instance } from "./axios";
 
 
 export const getAllProducts=async()=>{
@@ -26,10 +26,7 @@ export const deleteProduct=async(params)=>{
 }
 
 export const createProduct=async(payload)=>{
-    const data= await instance.post(`/products/seller/add`,payload,{
-     headers:{
-        'Content-Type': 'multipart/form-data',
-      }})
+    const data = await formInstance.post(`/products/seller/add`,payload)
     return data
 }
 
