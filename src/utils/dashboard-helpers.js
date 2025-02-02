@@ -25,13 +25,38 @@ export const summaryBoxes = [
   },
   {
     icon: <BagIcon size={22} color="#FB5183" />,
-    value: "760",
-    label: "Total Orders",
+    value: "20",
+    label: "Total Order",
   },
   {
     icon: <CardIcon size={22} color="#FB5183" />,
     value: "N10,580",
-    label: "New Customers",
+    label: "Profit",
+  },
+];
+export const salesBoxes = [
+  {
+    icon: <StackIcon size={22} color="#FB5183" />,
+    value: "N50,30.098",
+    label: "Total Sale",
+  },
+  {
+    icon: <BagIcon size={22} color="#FB5183" />,
+    value: "N10,560.098",
+    label: "Total Order",
+  }
+];
+
+export const summaryBoxes2 = [
+  {
+    icon: <StackIcon size={22} color="#FB5183" />,
+    value: "N50,300.98",
+    label: "Total Sales",
+  },
+  {
+    icon: <BagIcon size={22} color="#FB5183" />,
+    value: "N10,560.98",
+    label: "Total Orders",
   },
 ];
 

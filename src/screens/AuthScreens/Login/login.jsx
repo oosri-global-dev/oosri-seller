@@ -40,7 +40,7 @@ export default function LoginPage() {
         });
 
         //store in cookie
-        storeDataInCookie("access_token", res?.data?.token, 30);
+        storeDataInCookie("access_token__seller", res?.data?.token, 30);
 
         setTimeout(() => {
           window.location.href = "/dashboard";

@@ -17,7 +17,8 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
 
     .menu__wrapper {
-      margin-top: 150px;
+      margin-top: 100px;
+
       .ant-menu-item {
         color: #777;
       }
@@ -100,7 +101,19 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
   }
 
-  @media (max-width: 550px) {
+  .logo_wrapper {
+    margin-top: 120px;
+    cursor: pointer;
+    svg {
+      path {
+        fill: #f45059;
+      }
+    }
+
+    color: #f45059;
+  }
+
+  @media (max-width: 660px) {
     .layout__box {
       .menu__wrapper {
         border: none;
@@ -173,3 +186,24 @@ export const DBWrapper = styled(FlexibleDiv)`
     }
   }
 `;
+
+export const LogoutButton=styled.button`
+  display:flex;
+  align-items:center;
+  margin-top:120px;
+  cursor:pointer;
+  padding:0px 30px ;
+  color:#F45059;
+  gap:10px;
+  background-color:transparent;
+  border:none;
+  font-size:14px;
+  width:100%;
+
+    svg{
+     path{
+      fill:#F45059;
+     }
+    }
+
+`

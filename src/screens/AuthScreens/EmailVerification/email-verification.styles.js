@@ -29,7 +29,7 @@ export const CheckEmailWrapper = styled(FlexibleDiv)`
     }
 
     .otp__wrapper {
-      gap: 8px;
+      gap: 15px;
       margin: 27px 0;
 
       input {

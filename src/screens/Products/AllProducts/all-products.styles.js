@@ -46,12 +46,17 @@ export const AllProductsWrapper = styled(FlexibleDiv)`
 
     .table__class {
       width: 100%;
-    }
-
-    .popover__custom {
-      padding: 0px;
+      }
+      
+      .popover__custom {
+        padding: 0px;
     }
   }
+
+    .ant-table{
+        overflow-x: auto !important;
+        width:100% !important;
+    }
 
   @media (max-width: 550px) {
     .products__table__section {
@@ -64,6 +69,7 @@ export const AllProductsWrapper = styled(FlexibleDiv)`
 
       .products__table__wrapper {
         overflow-x: auto;
+        width:100%;
       }
     }
   }

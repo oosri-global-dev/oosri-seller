@@ -16,7 +16,7 @@ import { handleRegistration } from "@/network/user";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { countries } from "@/data-helpers/auth-helpers";
 import { storeDataInCookie } from "@/data-helpers/auth-session";
-import SignupAvatar from "@/components/lib/SignupAvatar";
+import AvatarsModal from "@/components/lib/AvatarsModal";
 
 export default function RegisterPage() {
   const [form] = Form.useForm();
@@ -25,6 +25,8 @@ export default function RegisterPage() {
   const [success, error, info] = useNotification();
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [avatarIndex, setAvatarIndex] = useState();
   const [selectedImageGender, setSelectedImageGender] = useState({
     type: "",
     url: "",
@@ -61,9 +63,9 @@ export default function RegisterPage() {
     setImageObjectURL(URL.createObjectURL(event.target.files[0]));
   };
 
-  const handleSubmitLogin = async (values) => {
+  const handleSubmitRegistration = async (values) => {
     setIsLoading(true);
-    if (!imageObjectURL && !selectedImageGender.type) {
+    if (!imageObjectURL && !avatarIndex) {
       info("Please upload a profile picture to continue");
       setIsLoading(false);
       return;
@@ -91,8 +93,8 @@ export default function RegisterPage() {
     formData.append("businessType", values?.business_type);
     formData.append("country", values?.country);
 
-    if (selectedImageGender.type) {
-      formData.append("profilePicture", selectedImageGender.type);
+    if (avatarIndex) {
+      formData.append("profilePicture", `Avatar${avatarIndex}`);
     } else {
       formData.append("profilePicture", imageFile);
     }
@@ -103,13 +105,14 @@ export default function RegisterPage() {
       success(`${res?.data?.message}, redirecting you to the OTP page`);
 
       setPageLoading(true);
+      storeDataInCookie(
+        "access_token__seller",
+        res?.data?.data?.token || res?.data?.token,
+        6
+      );
+
       setTimeout(() => {
         //Store the tokens in cookie
-        storeDataInCookie(
-          "access_token",
-          res?.data?.data?.authorization?.token,
-          1
-        );
         window.location.href = `/check-email?email=${encodeURIComponent(
           values?.email
         )}`;
@@ -123,13 +126,18 @@ export default function RegisterPage() {
     }
   };
 
-
   return (
     <AuthLayout
       heroText="Join Our Marketplace as a Seller"
       subText="Unlock New Opportunities, Reach More Customers, and Grow Your Business with Us!"
     >
       {pageLoading && <CustomLoader />}
+      <AvatarsModal
+        open={openModal}
+        setOpen={setOpenModal}
+        setAvatarIndex={setAvatarIndex}
+        avatarIndex={avatarIndex}
+      />
       <RegisterWrapper>
         <FlexibleDiv
           justifyContent="flex-start"
@@ -149,7 +157,7 @@ export default function RegisterPage() {
         >
           <Form
             form={form}
-            onFinish={handleSubmitLogin}
+            onFinish={handleSubmitRegistration}
             className="login__form"
           >
             <FlexibleDiv
@@ -323,7 +331,7 @@ export default function RegisterPage() {
                 width="50%"
                 className="half__box"
               >
-                {imageObjectURL || selectedImageGender.url ? (
+                {imageObjectURL || avatarIndex ? (
                   <FlexibleDiv
                     className="profile__picture"
                     flexDir="column"
@@ -332,7 +340,12 @@ export default function RegisterPage() {
                     <img
                       className="h-84"
                       id="blah"
-                      src={selectedImageGender.url || imageObjectURL || ""}
+                      src={
+                        (avatarIndex &&
+                          `https://oosri.com/profile_pictures/Avatar${avatarIndex}.jpg`) ||
+                        imageObjectURL ||
+                        ""
+                      }
                     />
                     <CancelIcon
                       size={22}
@@ -341,7 +354,7 @@ export default function RegisterPage() {
                       onClick={() => {
                         setImageFile("");
                         setImageObjectURL("");
-                        setSelectedImageGender({ type: "", url: "" });
+                        setAvatarIndex(null);
                       }}
                     />
                   </FlexibleDiv>
@@ -377,22 +390,12 @@ export default function RegisterPage() {
                       flexDir="column"
                       gap="4px"
                     >
-                      <label>You can choose any of the avatars below</label>
-                      <FlexibleDiv
-                        flexDir="row"
-                        justifyContent="flex-start"
-                        alignItems="flex-start"
-                        gap="8px"
+                      <label
+                        className="choose__avts"
+                        onClick={() => setOpenModal(true)}
                       >
-                        <SignupAvatar
-                          gender="male"
-                          setSelectedObject={setSelectedImageGender}
-                        />
-                        <SignupAvatar
-                          gender="female"
-                          setSelectedObject={setSelectedImageGender}
-                        />
-                      </FlexibleDiv>
+                        Click here to choose from existing avatars
+                      </label>
                     </FlexibleDiv>
                   </FlexibleDiv>
                 )}

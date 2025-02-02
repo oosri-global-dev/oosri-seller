@@ -7,15 +7,32 @@ import { getDataInCookie } from "@/data-helpers/auth-session";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 
+// Array of paths that should be excluded from redirection
+const excludedPaths = [
+  "/otp",
+  "/register",
+  "/login",
+  "/forgot-password",
+  "/check-email",
+  "/create-business",
+];
+
 const AppWrapper = ({ children }) => {
-  const { dispatch } = useContext(MainContext);
+  const {
+    dispatch,
+    state: { user },
+  } = useContext(MainContext);
   const [pageLoading, setIsPageLoading] = useState(true);
   const { pathname, push } = useRouter();
 
   useEffect(() => {
-    const userToken = getDataInCookie("access_token");
+    const userToken = getDataInCookie("access_token__seller");
 
-    if (!userToken) {
+    if (
+      !userToken &&
+      !excludedPaths.some((path) => pathname.startsWith(path))
+    ) {
+      push("/");
       setIsPageLoading(false);
       return;
     }
@@ -23,11 +40,22 @@ const AppWrapper = ({ children }) => {
     const fetchUser = async () => {
       try {
         const res = await handleFetchUser();
+
+        if (typeof res === "undefined") {
+          throw new Error();
+        }
+
         dispatch({
           type: CURRENT_USER,
           payload: res?.data?.data,
         });
-        if (pathname === "/") {
+
+        // Check if the current path is in the excluded list
+        const isExcludedPath = excludedPaths.some((path) =>
+          pathname.startsWith(path)
+        );
+
+        if (res&&pathname === "/" && !isExcludedPath) {
           push("/dashboard").then(() => {
             setIsPageLoading(false);
           });
@@ -35,17 +63,27 @@ const AppWrapper = ({ children }) => {
         }
         setIsPageLoading(false);
       } catch (err) {
-        window.location.href = "/";
+        console.clear();
+        console.log(err, "err");
+        // Only redirect to home if not on an excluded path
+        if (
+          !excludedPaths.some((path) => pathname.startsWith(path)) &&
+          pathname !== "/"
+        ) {
+          window.location.href = "/";
+        } else {
+          setIsPageLoading(false);
+        }
       }
     };
 
     fetchUser();
-  }, [dispatch]);
+  }, [dispatch, pathname]);
 
   useEffect(() => {
     // Function to check business status
     const checkBusinessStatus = () => {
-      if (!isBusinessActive()) {
+      if (!isBusinessActive(user)) {
         dispatch({
           type: NO_BUSINESS_MODAL,
           payload: true,
@@ -61,7 +99,7 @@ const AppWrapper = ({ children }) => {
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
+  }, [user]);
 
   if (pageLoading) {
     return <CustomLoader />;

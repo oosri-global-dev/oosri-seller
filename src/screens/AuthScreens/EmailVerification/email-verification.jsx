@@ -21,8 +21,8 @@ export default function EmailVerificationScreen() {
 
   const handleSubmitOTP = async () => {
     setBtnLoading(true);
-    if (otp?.length < 5) {
-      error("OTP cannot be less than 6 characters");
+    if (otp?.length < 4) {
+      error("OTP cannot be less than 4 characters");
       setBtnLoading(false);
       return;
     }
@@ -91,7 +91,7 @@ export default function EmailVerificationScreen() {
             containerStyle="otp__wrapper"
             value={otp}
             onChange={setOtp}
-            numInputs={6}
+            numInputs={4}
             inputType="number"
             renderSeparator={<span> </span>}
             renderInput={(props) => <input {...props} />}

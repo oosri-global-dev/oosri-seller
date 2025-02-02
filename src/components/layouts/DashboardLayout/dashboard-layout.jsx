@@ -6,11 +6,11 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { CiSearch as SearchIcon } from "react-icons/ci";
 import { HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
 import ProfileImage from "@/assets/images/profile.jpg";
-import { HiOutlineUsers as UserIcon } from "react-icons/hi2";
+import { IoMdLogOut as LogoutIcon } from "react-icons/io";
 import { HiOutlineShoppingBag as ProductIcon } from "react-icons/hi2";
 import { MdPayments as PaymentIcon } from "react-icons/md";
 import { VscGraph as GraphIcon } from "react-icons/vsc";
-import { IoSettingsOutline as SettingsIcon } from "react-icons/io5";
+import { BsPeopleFill } from "react-icons/bs";
 import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import Button from "@/components/lib/Button";
@@ -21,15 +21,23 @@ import { BsArrowLeft as LeftArrow } from "react-icons/bs";
 import { MainContext } from "@/context";
 import { isEmpty, isNull } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
+import { NO_BUSINESS_MODAL } from "@/context/types";
 
-export default function DashboardLayout({ children, title, showBackBtn }) {
+export default function DashboardLayout({
+  children,
+  title,
+  showBackBtn,
+  titleSubText,
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
   const [current, setCurrent] = useState(
-    pathname === "/" || pathname === "" ? "/dashboard" : pathname
+    pathname === "/" || pathname === "" ? "/dashboard" : 
+    pathname.includes("/product")?"/products":
+    pathname.includes("/order")?"/order":pathname
   );
   const {
     dispatch,
@@ -54,35 +62,42 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       },
     },
     {
-      key: "/sellers",
-      icon: <UserIcon />,
-      label: "Sellers",
+      key: "/order",
+      icon: <ProductIcon />,
+      label: "Order",
       onClick: () => {
-        push("/sellers");
+        push("/order");
       },
     },
     {
-      key: "/order-history",
-      icon: <ProductIcon />,
-      label: "Order History",
-      onClick: ({ item, key }) => {},
-    },
-    {
-      key: "/payments",
+      key: "/messages",
       icon: <PaymentIcon />,
-      label: "Payments",
+      label: "Messages",
       onClick: ({ item, key }) => {},
     },
     {
       key: "/sales-analytics",
       icon: <GraphIcon />,
       label: "Sales Analytics",
-      onClick: ({ item, key }) => {},
+      onClick: () => {
+        push("/sales-analytics");
+      },
     },
     {
-      key: "/setings",
-      icon: <SettingsIcon />,
-      label: "Settings",
+      key: "/profile",
+      icon: <BsPeopleFill />,
+      label: "Profile",
+      onClick: ({ item, key }) => {
+        push("/sellers-profile-page");
+      },
+    },
+    {
+      key: "/",
+      icon: <LogoutIcon />,
+      label: "Logout",
+      onClick: ({ item, key }) => {
+        push("/");
+      },
     },
   ];
 
@@ -91,20 +106,24 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
       if (isEmpty(user?.personalBusinessAccount)) {
         push("/create-business");
       }
-    } else if (userObj.businessType === "Corporate") {
-      if (isEmpty(userObj.corporateBusinessAccount)) {
+    } else if (user?.businessType === "Corporate") {
+      if (isEmpty(user?.corporateBusinessAccount)) {
         push("/create-business");
       }
     }
   };
-
-  // console.log("user", user);
 
   return (
     <DBWrapper openMenu={collapsed}>
       <BlockerModal
         visible={showNoBusinessModal}
         onCreateProfile={handleUserBusinessCheck}
+        onClose={() => {
+          dispatch({
+            type: NO_BUSINESS_MODAL,
+            payload: false,
+          });
+        }}
       />
       <Layout className="layout__box">
         <Sider
@@ -147,11 +166,12 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                 width="fit-content"
                 gap="15px"
               >
-                {showBackBtn && <LeftArrow size={24} onClick={() => back()} />}
+                {showBackBtn && <LeftArrow size={24} onClick={() => back()} style={{cursor:"pointer"}} />}
                 <FlexibleDiv flexDir="column" className="welcome__box">
                   <p className="dashboard__text">{title || "Dashboard"}</p>
                   <p className="sub__text">
                     {!title && `Welcome, ${user?.firstName} ${user?.lastName}!`}
+                    {titleSubText}
                   </p>
                 </FlexibleDiv>
               </FlexibleDiv>
@@ -170,12 +190,9 @@ export default function DashboardLayout({ children, title, showBackBtn }) {
                     alt="show-img"
                   />
                   <div>
-                    {user?.first_name && (
+                    {user?.firstName && (
                       <h4>
-                        {`${user?.first_name || ""} ${
-                          user?.last_name[0] || ""
-                        }`}
-                        .
+                        {`${user?.firstName || ""} ${user?.lastName[0] || ""}`}.
                       </h4>
                     )}
 

@@ -2,46 +2,18 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import styled from "styled-components";
 
 export const ProductWrapper = styled(FlexibleDiv)`
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 5%;
-
-  .left__section {
-    width: 25%;
-
-    .product__image {
-      width: 100%;
-      object-fit: cover;
-      max-height: 280px;
-      border-radius: 15px;
-      margin-bottom: 10px;
-    }
+  .details__img{
+    max-width:200px;
+    max-height:200px;
   }
 
-  .right__section {
-    width: 68%;
-    height: 100%;
-
-    .image__sections {
-      img {
-        width: 32%;
-        object-fit: cover;
-        max-height: 280px;
-        border-radius: 15px;
-        margin-bottom: 10px;
-      }
-    }
+  h5{
+    font-size: 16px;
+    font-weight: 400;
   }
 
-  @media (max-width: 550px) {
-    flex-direction: column-reverse;
-    margin: 25px 0;
-    gap: 30px;
-
-    .left__section,
-    .right__section {
-      width: 100%;
-    }
+  label{
+    font-size: 20px;
+    font-weight: 500;
   }
 `;
