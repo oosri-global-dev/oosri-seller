@@ -73,7 +73,9 @@ export default function CreateProductPage(){
           defaultActiveKey="1"
           items={displayCategories}
           onChange={(e) => handleTabChange(e)} />
-          
+          {
+            
+          }
           <CreateTab subCategories={subCategories} category={activeTab}/>
 
         </CreateProductPageWrapper>

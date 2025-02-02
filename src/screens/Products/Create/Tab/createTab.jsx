@@ -1,6 +1,6 @@
 import { FlexibleDiv } from "../../../../components/lib/Box/styles"
 import Select from "../../../../components/lib/Select"
-import { Input } from "antd"
+import { Input, Upload } from "antd"
 import { useEffect, useState } from "react"
 import { CustomUpload } from "../../../../components/lib/CustomUpload"
 import { createProduct } from "@/network/product"
@@ -24,8 +24,9 @@ export const CreateTab=({subCategories,category})=>{
     const [categoryItem,setCategoryItem]=useState([])
     const[subCategory,setSubCategory]=useState("")
     const [productType,setProductType]=useState()
-    const [regularPrice,setRegularPrice]=useState("")
-    const [salesPrice,setSalesPrice]=useState("")
+    const [regularPrice,setRegularPrice]=useState(0)
+    const [salesPrice,setSalesPrice]=useState(0)
+    const [salesError,setSalesError]=useState(false)
     const [width,setWidth]=useState("")
     const [height,setHeight]=useState("")
     const [technique,setTechnique]=useState("")
@@ -42,6 +43,7 @@ export const CreateTab=({subCategories,category})=>{
     const [size,setSize]=useState("")
     const[modalError,setModalError]=useState(false)
     const[errorText,setErrorText]=useState(" ")
+    const[clearImage,setClearImg]=useState(false)
 
   const payload={
     category:category,
@@ -85,12 +87,22 @@ export const CreateTab=({subCategories,category})=>{
       pattern:pattern,
     }),
   }
-  
+  // Discount manager
+    useEffect(()=>{
+      const handleDiscount=()=>{
+        if(salesPrice && regularPrice){
+          setDiscount((regularPrice-salesPrice)/regularPrice * 100)
+        }
+      }
+      handleDiscount()
+    },[salesPrice,regularPrice])
+
   const handleModalClose=()=>{
-   setImg1(undefined)     
-   setImg2(undefined)     
-   setImg3(undefined)     
-   setImg4(undefined)   
+   setClearImg(true)
+   setImg1(null)     
+   setImg2(null)     
+   setImg3(null)     
+   setImg4(null)   
    setProductName("")
    setProductDescription("")  
    setBrandArtist("")
@@ -115,6 +127,7 @@ export const CreateTab=({subCategories,category})=>{
    setSize()
    setOpenModal(false)
    setModalError(false)
+  //  window.location.reload()
   }
       useEffect(()=>{
         if(subCategories){
@@ -132,6 +145,9 @@ export const CreateTab=({subCategories,category})=>{
         }
       },[subCategories])
 
+      useEffect(()=>{
+        handleModalClose()
+      },[category])
       const productTypeItem=[
         {value:"simple",label:"Simple"},
         {value:"variable",label:"Variable"}
@@ -160,7 +176,18 @@ export const CreateTab=({subCategories,category})=>{
       const handleModalOpen=()=>{
         setOpenModal(true)
       }
-      
+
+      const handleSalesPrice=(e)=>{
+        if(e.target.value > regularPrice){
+          setSalesError(true)
+        }else{
+          setSalesPrice(e.target.value)
+          setSalesError(false)
+        }
+        console.log("sale", regularPrice)
+        console.log("reg",regularPrice)
+      }
+
     return(
       <>
       <FlexibleDiv className="tab__item">
@@ -185,11 +212,6 @@ export const CreateTab=({subCategories,category})=>{
                 <label htmlFor="Name">Brand</label>
                 <CustomInput placeholder="Select product brand" backgroundColor="#FAFAFA" onChange={(e)=>{setBrandArtist(e.target.value)}} value={brandArtist}/>
             </div>
-            {/* Quantity available */}
-            <div className="product__item">
-                <label htmlFor="Name">Quantity Available (Stock)</label>
-                <CustomInput placeholder="Input quantity available" backgroundColor="#FAFAFA" />
-            </div>
             {/* Product Type */}
             <div className="product__item">
                 <label htmlFor="Name">Product Type</label>
@@ -203,24 +225,28 @@ export const CreateTab=({subCategories,category})=>{
             {/* Sales Price */}
             <div className="product__item">
                 <label htmlFor="Name">Sales Price(NGN)</label>
-                <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" onChange={((e)=>{setSalesPrice(e.target.value)})} type="number"/>
+                <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" onChange={((e)=>{handleSalesPrice(e)})} type="number"/>
+                  {
+                    salesError &&
+                    <p style={{color:"red"}}>Sales price cannot be more than the normal price</p>
+                  }
+            </div>
+            {/* Discounts */}
+            <div className="product__item">
+                <label htmlFor="Name">Dsicounts</label>
+                <CustomInput placeholder="Specify if there are promotions, discounts" value={`${discount}%`} backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}} disabled/>
             </div>
           </FlexibleDiv>
           {/* right section */}
           <FlexibleDiv flexDir="column" gap="24px" alignItems="start" width="100%">
             <FlexibleDiv className="img__upload" justifyContent="start">
-              <CustomUpload editable setFile={setImg1} />
-              <CustomUpload editable setFile={setImg2} />
+              <CustomUpload editable setFile={setImg1} initialImage={img1} clearImage={clearImage} setClearImg={setClearImg}/>
+              <CustomUpload editable setFile={setImg2} initialImage={img2} clearImage={clearImage} setClearImg={setClearImg}/>
               <FlexibleDiv flexDir="column" className="column_item" width="fit-content">
-                <CustomUpload editable setFile={setImg3} />
-                <CustomUpload editable setFile={setImg4} />
+                <CustomUpload editable setFile={setImg3} initialImage={img3} clearImage={clearImage} setClearImg={setClearImg}/>
+                <CustomUpload editable setFile={setImg4} initialImage={img4} clearImage={clearImage} setClearImg={setClearImg}/>
               </FlexibleDiv>
             </FlexibleDiv>
-            {/* Discounts */}
-            <div className="product__item">
-                <label htmlFor="Name">Dsicounts</label>
-                <CustomInput placeholder="Specify if there are promotions, discounts" value={discount} backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}} type="number"/>
-            </div>
             {/*Product Description*/}
             <div className="product__item">
                 <label htmlFor="Name">Product Description</label>
@@ -342,12 +368,12 @@ export const CreateTab=({subCategories,category})=>{
           </FlexibleDiv>
         </FlexibleDiv>
           {/* Add Button */}
-          <FlexibleDiv justifyContent="end" margin="15px 0px 0px 0px"> 
+          <FlexibleDiv justifyContent="end" margin="15px 0px 0px 0px" className="add_btn"> 
             <Button onClick={handleCreateProduct}>
               Add Product
             </Button>
           </FlexibleDiv>
-          </FlexibleDiv>
+      </FlexibleDiv>
             {/* Modal */}
             <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null}>
             {

@@ -1,8 +1,8 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import {DashboardWrapper} from "../Dashboard/dashboard.styles";
 import {SellersProfileWrapper} from "./seller-profile.styles";
-import { Tabs, Form } from "antd";
-import { useState } from "react";
+import { Tabs, Form, DatePicker } from "antd";
+import { useState,useContext } from "react";
 import TextField from "@/components/lib/TextField";
 import Select from "@/components/lib/Select";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
@@ -11,6 +11,9 @@ import Button from "@/components/lib/Button";
 import useNotification from "@/hooks/useNotification";
 import { countries } from "@/data-helpers/auth-helpers";
 import { CustomUpload } from "@/components/lib/CustomUpload";
+import { MainContext } from "@/context";
+import dayjs from "dayjs";
+
 
 export default function SellerProfile() {
 
@@ -20,7 +23,9 @@ export default function SellerProfile() {
     const [form] = Form.useForm();
     const [isLoading, setIsLoading] = useState(false);
     const [success, error] = useNotification();
+    const {state: { user },} = useContext(MainContext);  
 
+    console.log(user)
     const toggleEditMode = () => {
         setIsEditMode(!isEditMode); // Toggle edit mode
       };
@@ -55,12 +60,12 @@ export default function SellerProfile() {
   const profileData = {
     name: "Henry Collins",
     sex: "Male",
-    email: "henrycollins23@gmail.com",
+    email: user?.email,
     phone: "+2347011046109",
-    address: "123 Main Street, Suite 456, Anytown, CA 98765, United States",
-    dob: "14th August 1995",
+    address: user?.personalBusinessAccount?.residentialAddress,
+    dob: user?.personalBusinessAccount?.dateOfBirth,
     country: "United States",
-    regDate: "11th August 2023",
+    regDate: user?.createdAt,
   };  
 
   const businessData = {
@@ -72,11 +77,17 @@ export default function SellerProfile() {
   };  
 
   const bankInformationData = {
-    accountname: "Opeyemi Gadgets",
-    bankname: "Access Bank",
-    accountnumber: "1234567890",
+    accountname: user?.bankDetails?.accountName,
+    bankname: user?.bankDetails?.bank,
+    accountnumber: user?.bankDetails?.accountNumber,
     nin: "49583837293939",
   }
+  // const bankInformationData = {
+  //   accountname: "Opeyemi Gadgets",
+  //   bankname: "Access Bank",
+  //   accountnumber: "1234567890",
+  //   nin: "49583837293939",
+  // }
 
   const businessTypeOptions = [
     { value: "Corporate", label: "Corporate" },
@@ -173,6 +184,7 @@ export default function SellerProfile() {
                                         name="regNum"
                                         placeholder="Enter registration number"
                                         defaultValue={profileData.email}
+                                        disabled
                                     />
                                 ) : (
                                 <p>{profileData.email}</p>
@@ -210,13 +222,15 @@ export default function SellerProfile() {
                             <FlexibleDiv className="info2"> 
                                 <p>Date of Birth</p>
                                 {isEditMode ? (
-                                    <TextField
-                                        name="regNum"
-                                        placeholder="Enter registration number"
-                                        defaultValue={profileData.dob}
-                                    />
+                                    <DatePicker
+                                     name="regNum"
+                                     defaultValue={dayjs(profileData.dob)}
+                                     placeholder="Enter registration number"
+                                     
+                                     />
+                                     
                                 ) : (
-                                <p>{profileData.dob}</p>
+                                <p>{dayjs(profileData.dob).format('DD/MM/YYYY')}</p>
                                 )}
                             </FlexibleDiv>
                         </FlexibleDiv>
@@ -256,13 +270,14 @@ export default function SellerProfile() {
                             <FlexibleDiv className="info2"> 
                                 <p>Registration Date</p>
                                 {isEditMode ? (
-                                    <TextField
+                                    <DatePicker
                                         name="regNum"
                                         placeholder="Enter registration number"
-                                        defaultValue={profileData.regDate}
+                                        defaultValue={dayjs(profileData.regDate)}
+                                        disabled
                                     />
                                 ) : (
-                                <p>{profileData.regDate}</p>
+                                <p>{dayjs(profileData.regDate).format("DD/MM/YYYY")}</p>
                                 )}
                             </FlexibleDiv>
                         </FlexibleDiv>
@@ -271,7 +286,7 @@ export default function SellerProfile() {
                     </FlexibleDiv>
 
                     <FlexibleDiv className="profile__image__wrapper" flexDir="column" gap="29px">
-                    <CustomUpload setFile={setFile} editable={isEditMode} />
+                    <CustomUpload setFile={setFile} editable={isEditMode} initialImage={user?.profilePicture} />
                         
                         <Button
                             onClick={isEditMode ? handleSaveDetails : toggleEditMode}

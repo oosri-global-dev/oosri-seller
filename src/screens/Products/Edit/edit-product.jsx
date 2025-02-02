@@ -15,10 +15,10 @@ const {TextArea}=Input
 export default function EditProduct({data,id,setEdit, fetchData,subCategories}) {
     const [category,setCategory]=useState(data?.category)
     const [images,setImages]=useState(data?.images)
-    const [img1,setImg1]=useState()
-    const [img2,setImg2]=useState()
-    const [img3,setImg3]=useState()
-    const [img4,setImg4]=useState()
+    const [img1,setImg1]=useState(data?.images[0])
+    const [img2,setImg2]=useState(data?.images[1])
+    const [img3,setImg3]=useState(data?.images[2])
+    const [img4,setImg4]=useState(data?.images[3])
     const[productName,setProductName]=useState(data?.productName)
     const[productDescription,setProductDescription]=useState(data?.productDescription)
     const[brandArtist,setBrandArtist]=useState(data?.brandArtist)
@@ -109,6 +109,8 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
         setOpenModal(true)
       }catch(errors){
         console.log(errors)
+      }finally{
+      setLoading(false)
       }
     }
 

@@ -1,58 +1,52 @@
 import { useState, useEffect } from "react";
+import PropTypes, { string } from "prop-types";
 import { CustomUploaderWrapper } from "./index.styles";
 import { IoMdAdd } from "react-icons/io";
 
-export function CustomUpload({ setFile, initialImage, editable, title }){
+export function CustomUpload({ setFile, initialImage, editable, title, clearImage,setClearImg }) {
   const [error, setError] = useState(null);
   const [imageSrc, setImageSrc] = useState(initialImage || null);
-  const [isImageVisible, setIsImageVisible] = useState(!!initialImage);
 
-  // Effect to handle displaying initial image if available
   useEffect(() => {
-    if (initialImage && !imageSrc) {
-      setImageSrc(initialImage);
-      setIsImageVisible(true);
+    if (clearImage) {
+      if (imageSrc) {
+        URL.revokeObjectURL(imageSrc); 
+      }
+      setImageSrc(null);
+      setFile(null); 
+      setClearImg(false);
     }
-  }, [initialImage]);
+  }, [clearImage]);
   
-  // Handler for file input change
   const handleFileChange = (event) => {
-    const target = event.target;
-    const selectedFile = target.files?.[0] || null;
-
+    const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       const fileType = selectedFile.type;
-      if (fileType.startsWith("image/")) {
-        // Validate file type
-        if (!["image/svg+xml", "image/png", "image/jpeg"].includes(fileType)) {
-          setError("Invalid file type. Please select an SVG, PNG, or JPG file.");
+      const fileName = selectedFile.name.toLowerCase();
+      if (["image/svg+xml", "image/png", "image/jpeg"].includes(fileType)) {
+        if (fileName.endsWith(".jfif")) {
+          setError("JFIF files are not supported. Please upload a JPG, JPEG, PNG, or SVG file.");
           setFile(null);
           return;
         }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = function () {
-            if (img.width > 2000 || img.height > 2000) { // Set the limit for the width and height of the image
-              setError("Image dimensions exceed the maximum allowed size of 2000x2000 pixels.");
-              setFile(null);
-              setIsImageVisible(false); // Hide the preview
-            } else {
-              setError(null);
-              setImageSrc(e.target?.result); // Update preview
-              setIsImageVisible(true); // Show the image
-              setFile(selectedFile);
-            }
-          };
-          img.onerror = function () {
-            setError("Error loading image.");
+        const img = new Image();
+        img.onload = function () {
+          if (img.width > 3000 || img.height > 3000) {
+            setError("Image dimensions exceed the maximum allowed size of 3000x3000 pixels.");
             setFile(null);
-            setIsImageVisible(false); // Hide the preview
-          };
-          img.src = URL.createObjectURL(selectedFile);
+            setImageSrc(null);
+          } else {
+            setError(null);
+            setImageSrc(URL.createObjectURL(selectedFile));
+            setFile(selectedFile);
+          }
         };
-        reader.readAsDataURL(selectedFile);
+        img.onerror = function () {
+          setError("Error loading image.");
+          setFile(null);
+          setImageSrc(null);
+        };
+        img.src = URL.createObjectURL(selectedFile);
       } else {
         setError("Invalid file type. Please select an SVG, PNG, or JPG file.");
         setFile(null);
@@ -62,39 +56,47 @@ export function CustomUpload({ setFile, initialImage, editable, title }){
 
   return (
     <CustomUploaderWrapper>
-      {
-        title &&
-        <p className="upload__title">{title}</p>
-      }
-      <div className="upload__container"
-       style={
-        {backgroundColor:editable?"rgba(0, 0, 0, 0.5)":"transparent",borderStyle:editable?"solid":"dashed"}}
+      {title && <p className="upload__title">{title}</p>}
+      <div
+        className="upload__container"
+        style={{
+          backgroundColor: editable ? "rgba(0, 0, 0, 0.5)" : "transparent",
+          borderStyle: editable ? "solid" : "dashed",
+        }}
       >
-        {editable&&(
-            <input
-                type="file"
-                id="fileInput"
-                className="upload__input"
-                accept="image/svg+xml, image/png, image/jpeg"
-                onChange={handleFileChange}
-            />
-        )}
-        {isImageVisible && (
-          <img
-            id="previewImage"
-            className="upload__image"
-            src={imageSrc || ""}
-            alt="Image Preview"
+        {editable && (
+          <input
+            type="file"
+            id="fileInput"
+            className="upload__input"
+            accept="image/svg+xml, image/png, image/jpeg"
+            onChange={handleFileChange}
+            aria-label="Upload image"
           />
         )}
-        {!isImageVisible && (
+        {imageSrc ? (
+          <img id="previewImage" className="upload__image" src={imageSrc} alt="Image Preview" />
+        ) : (
           <div className="placeholder__container">
             <IoMdAdd />
-              <p className="main__text">Upload Image</p>
+            <p className="main__text">Upload Image</p>
           </div>
         )}
       </div>
       {error && <p style={{ color: "red" }}>{error}</p>}
     </CustomUploaderWrapper>
   );
+}
+
+CustomUpload.defaultProps = {
+  editable: false,
+  title: "",
+  initialImage: null,
+};
+
+CustomUpload.propTypes = {
+  setFile: PropTypes.func.isRequired,
+  initialImage: PropTypes.string,
+  editable: PropTypes.bool,
+  title: PropTypes.string,
 };

@@ -77,5 +77,12 @@ button{
       }
     }
 
+    .add_btn{
+      position:fixed;
+      bottom:5px;
+      right:10px;
+      z-index:1000;
+      width:fit-content;
+    }
 
 `
