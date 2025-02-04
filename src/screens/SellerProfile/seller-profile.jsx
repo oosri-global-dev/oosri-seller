@@ -1,5 +1,4 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
-import {DashboardWrapper} from "../Dashboard/dashboard.styles";
 import {SellersProfileWrapper} from "./seller-profile.styles";
 import { Tabs, Form, DatePicker } from "antd";
 import { useState,useContext } from "react";
@@ -13,6 +12,7 @@ import { countries } from "@/data-helpers/auth-helpers";
 import { CustomUpload } from "@/components/lib/CustomUpload";
 import { MainContext } from "@/context";
 import dayjs from "dayjs";
+import { UpdateProfilePicture } from "@/network/profile";
 
 
 export default function SellerProfile() {
@@ -58,13 +58,14 @@ export default function SellerProfile() {
   ];
 
   const profileData = {
-    name: "Henry Collins",
+    lastName: user?.lastName,
+    firstName:  user?.firstName,
     sex: "Male",
     email: user?.email,
     phone: "+2347011046109",
     address: user?.personalBusinessAccount?.residentialAddress,
     dob: user?.personalBusinessAccount?.dateOfBirth,
-    country: "United States",
+    country: user?.country,
     regDate: user?.createdAt,
   };  
 
@@ -82,17 +83,23 @@ export default function SellerProfile() {
     accountnumber: user?.bankDetails?.accountNumber,
     nin: "49583837293939",
   }
-  // const bankInformationData = {
-  //   accountname: "Opeyemi Gadgets",
-  //   bankname: "Access Bank",
-  //   accountnumber: "1234567890",
-  //   nin: "49583837293939",
-  // }
 
   const businessTypeOptions = [
     { value: "Corporate", label: "Corporate" },
     { value: "Personal", label: "Personal" },
   ];
+
+  const handleImageUpload= async ()=>{
+    console.log(file)
+    if(file){
+    try{
+        const data = await UpdateProfilePicture({profilePicture:file},user?._id)
+        console.log(data)
+      }catch(errors){
+        console.log(errors)
+      }
+    }
+  }
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
@@ -155,10 +162,11 @@ export default function SellerProfile() {
                                     <TextField
                                         name="regNum"
                                         placeholder="Enter registration number"
-                                        defaultValue={profileData.name}
+                                        defaultValue={`${profileData.lastName} ${profileData.firstName}`}
+                                        disabled
                                     />
                                 ) : (
-                                <p>{profileData.name}</p>
+                                <p>{profileData.lastName} {profileData.firstName}</p>
                                 )}
                                 </FlexibleDiv>
 
@@ -169,6 +177,7 @@ export default function SellerProfile() {
                                         name="regNum"
                                         placeholder="Enter registration number"
                                         defaultValue={profileData.sex}
+                                        disabled
                                     />
                                 ) : (
                                 <p>{profileData.sex}</p>
@@ -246,6 +255,8 @@ export default function SellerProfile() {
                                     height="40px"
                                     showSearch
                                     className="country__select"
+                                    defaultValue={profileData.country}
+                                    onChange={(e)=>{profileData.country=e}}
                                   >
                                     {countries.map((cty, idx) => (
                                       <Select.Option
@@ -272,7 +283,6 @@ export default function SellerProfile() {
                                 {isEditMode ? (
                                     <DatePicker
                                         name="regNum"
-                                        placeholder="Enter registration number"
                                         defaultValue={dayjs(profileData.regDate)}
                                         disabled
                                     />
@@ -289,7 +299,7 @@ export default function SellerProfile() {
                     <CustomUpload setFile={setFile} editable={isEditMode} initialImage={user?.profilePicture} />
                         
                         <Button
-                            onClick={isEditMode ? handleSaveDetails : toggleEditMode}
+                            onClick={isEditMode ? handleImageUpload : toggleEditMode}
                             width="50%"
                             radius="8px"
                             color="var(--oosriWhite)"
