@@ -26,6 +26,7 @@ export default function AllProductsScreen() {
   const [editModal,setEditModal]=useState(true)
   const [tableLoading,setTableLoading]=useState(false)
   const [deleteId,setDeleteId]=useState("")
+  const [visibility,setVisibility]=useState("")
   const { push } = useRouter();
   const {
     dispatch,
@@ -78,12 +79,13 @@ export default function AllProductsScreen() {
   const productsTableColumns = [
     {
       title: "Seller Name",
-      dataIndex: "brandArtist",
-      key: "brandArtist",
+      dataIndex: "sellerName",
+      key: "sellerName",
       render: (_,obj) => (
         <Space>
           {/* item image */}
-          <Avatar size={45} src={obj.images[0]} />
+          {/* <Avatar size={45} src={obj?.images[0]} /> */}
+          <Avatar size={45} src={"https://placehold.co/600x400"} />
           <Space direction="vertical" size={1}>
             <p>{_}</p>
           </Space>
@@ -97,8 +99,8 @@ export default function AllProductsScreen() {
     },
     {
       title: "Product ID",
-      dataIndex: "_id",
-      key: "_id",
+      dataIndex: "productId",
+      key: "productId",
     },
     {
       title: "Price",
@@ -112,8 +114,8 @@ export default function AllProductsScreen() {
     },
     {
       title: "In stock",
-      dataIndex: "instock",
-      key: "instock",
+      dataIndex: "inStock",
+      key: "inStock",
     },
     {
       title: "Visibility",
@@ -121,7 +123,7 @@ export default function AllProductsScreen() {
       key: "isApproved",
       render: () => (
         <div>
-          <Switch defaultChecked disabled />
+          <Switch defaultChecked onChange={(e)=>{console.log(e)}} />
         </div>
       ),
     },
@@ -151,7 +153,6 @@ export default function AllProductsScreen() {
   };
 
   useEffect(() => {
-    // Fetch products initially
     fetchAllProducts();
   }, []);
 

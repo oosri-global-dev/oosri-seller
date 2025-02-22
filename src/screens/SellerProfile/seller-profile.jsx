@@ -24,8 +24,10 @@ export default function SellerProfile() {
     const [isLoading, setIsLoading] = useState(false);
     const [success, error] = useNotification();
     const {state: { user },} = useContext(MainContext);  
+    const activeBusinessItems= user?.corporateBusinessAccount?.companyName
 
-    console.log(user)
+    const activePersonalItems= user?.personalBusinessAccount?.companyName
+
     const toggleEditMode = () => {
         setIsEditMode(!isEditMode); // Toggle edit mode
       };
@@ -42,20 +44,28 @@ export default function SellerProfile() {
       };
 
 
-  const items = [
+  const businessItemsTab = [
     {
-      key: "1",
-      label: "Personal Details",
-    },
-    {
-      key: "2",
+      key: "business-details",
       label: "Business Details",
     },
     {
-      key: "3",
+      key: "bank-details",
       label: "Bank Details",
     },
   ];
+  
+  const personalItemsTab = [
+    {
+      key: "personal-details",
+      label: "Personal Details",
+    },
+    {
+      key: "bank-details",
+      label: "Bank Details",
+    },
+  ];
+  
 
   const profileData = {
     lastName: user?.lastName,
@@ -70,10 +80,10 @@ export default function SellerProfile() {
   };  
 
   const businessData = {
-    name: "Henry Collins",
+    name: activeBusinessItems,
     type: "partnership",
-    regNum: "+2347011046109",
-    address: "123 Main Street, Suite 456, Anytown, CA 98765, United States",
+    regNum: user?.corporateBusinessAccount?.companyRegNum,
+    address: user?.corporateBusinessAccount?.companyAddress,
     description: "MobileMaster is your trusted destination for all things mobile technology. With years of experience in the industry, we are dedicated to delivering top-notch products and services to meet your mobile needs.e offer a wide range of the latest smartphones, from top brands to budget-friendly options. Our knowledgeable staff can help you find the perfect phone to suit your needs."
   };  
 
@@ -104,10 +114,11 @@ export default function SellerProfile() {
   const handleSubmit = async (values) => {
     setIsLoading(true);
     try {
-      // Replace with your API call or logic
+      await handleImageUpload()
       console.log("Submitted Values:", values);
-      success("Business details saved successfully!");
+      success("Personal details saved successfully!");
       setIsLoading(false);
+      toggleEditMode()
     } catch (err) {
       error("An error occurred while saving your details.");
       setIsLoading(false);
@@ -129,366 +140,358 @@ export default function SellerProfile() {
 
 
 
+
     return (
         <DashboardLayout title="My Profile">
             <SellersProfileWrapper>
             <Tabs
             className="tabs__custom"
             defaultActiveKey="1"
-            items={items}
+            items={activeBusinessItems?businessItemsTab:personalItemsTab}
             onChange={(e) => {
-                if (e === "1") setActiveTab("personal-details");
-                else if (e === "2") setActiveTab("business-details");
-                else setActiveTab("bank-details");
+             setActiveTab(e)
             }}
             />
 
             {/* Profile Content */}
-            {activeTab === "personal-details" && (
-                <FlexibleDiv className="profile__details__section">
-                
-                    <FlexibleDiv className="profile__info__wrapper">
-                        <h2 style={{
-                            justifyContent: "flex-start", textAlign:"left",
-                            width:"100%",
-                            paddingLeft:"30px"
-                        }}>Personal Information</h2>
+            {
+              user?.personalBusinessAccount?.dateOfBirth &&
+                activeTab === "personal-details" && (
+                    <FlexibleDiv className="profile__details__section">
+                    
+                        <FlexibleDiv className="profile__info__wrapper">
+                            <h2 style={{
+                                justifyContent: "flex-start", textAlign:"left",
+                                width:"100%",
+                                paddingLeft:"30px"
+                            }}>Personal Information</h2>
 
-                        <FlexibleDiv className="info_cont">
-                            <FlexibleDiv className="info__inner_cont1" flexDir="row"> 
-                                <FlexibleDiv className="info1" flexDir="column"> 
-                                <p>Full Legal Name</p>
-                                {isEditMode ? (
-                                    <TextField
-                                        name="regNum"
-                                        placeholder="Enter registration number"
-                                        defaultValue={`${profileData.lastName} ${profileData.firstName}`}
-                                        disabled
-                                    />
-                                ) : (
-                                <p>{profileData.lastName} {profileData.firstName}</p>
-                                )}
-                                </FlexibleDiv>
-
-                                <FlexibleDiv className="info2" flexDir="column"> 
-                                <p>Sex</p>
-                                {isEditMode ? (
-                                    <TextField
-                                        name="regNum"
-                                        placeholder="Enter registration number"
-                                        defaultValue={profileData.sex}
-                                        disabled
-                                    />
-                                ) : (
-                                <p>{profileData.sex}</p>
-                                )}
-                                </FlexibleDiv>
-                        </FlexibleDiv>
-
-                        <FlexibleDiv className="info__inner_cont2"> 
-                            <FlexibleDiv className="info1"> 
-                                <p>Email Address</p>
-                                {isEditMode ? (
-                                    <TextField
-                                        name="regNum"
-                                        placeholder="Enter registration number"
-                                        defaultValue={profileData.email}
-                                        disabled
-                                    />
-                                ) : (
-                                <p>{profileData.email}</p>
-                                )}
-                            </FlexibleDiv>
-
-                            <FlexibleDiv className="info2"> 
-                                <p>Phone Number</p>
-                                {isEditMode ? (
-                                    <TextField
-                                        name="regNum"
-                                        placeholder="Enter registration number"
-                                        defaultValue={profileData.phone}
-                                    />
-                                ) : (
-                                <p>{profileData.phone}</p>
-                                )}
-                            </FlexibleDiv>
-                        </FlexibleDiv>
-
-                        <FlexibleDiv className="info__inner_cont3"> 
-                            <FlexibleDiv className="info1"> 
-                                <p>Physical Address</p>
-                                {isEditMode ? (
-                                    <TextField
-                                        name="regNum"
-                                        placeholder="Enter registration number"
-                                        defaultValue={profileData.address}
-                                    />
-                                ) : (
-                                <p>{profileData.address}</p>
-                                )}
-                            </FlexibleDiv>
-
-                            <FlexibleDiv className="info2"> 
-                                <p>Date of Birth</p>
-                                {isEditMode ? (
-                                    <DatePicker
-                                     name="regNum"
-                                     defaultValue={dayjs(profileData.dob)}
-                                     placeholder="Enter registration number"
-                                     
-                                     />
-                                     
-                                ) : (
-                                <p>{dayjs(profileData.dob).format('DD/MM/YYYY')}</p>
-                                )}
-                            </FlexibleDiv>
-                        </FlexibleDiv>
-
-                        <FlexibleDiv className="info__inner_cont4"> 
-                            <FlexibleDiv className="info1"> 
-                                <p>Country</p>
-                                {isEditMode ? (
-                                    <Select
-                                    name="country"
-                                    required
-                                    bgColor="#FAFAFA"
-                                    height="40px"
-                                    showSearch
-                                    className="country__select"
-                                    defaultValue={profileData.country}
-                                    onChange={(e)=>{profileData.country=e}}
-                                  >
-                                    {countries.map((cty, idx) => (
-                                      <Select.Option
-                                        key={idx}
-                                        value={cty.name}
-                                        className="select__public__content"
-                                      >
-                                        <img
-                                          className="small__drop__down__img"
-                                          src={`https://flagsapi.com/${cty?.code}/flat/64.png`}
-                                          alt={`${cty?.name?.toLowerCase()}-icon`}
+                            <FlexibleDiv className="info_cont">
+                                <FlexibleDiv className="info__inner_cont1" flexDir="row"> 
+                                    <FlexibleDiv className="info1" flexDir="column"> 
+                                    <p>Full Legal Name</p>
+                                    {isEditMode ? (
+                                        <TextField
+                                            name="regNum"
+                                            placeholder="Enter registration number"
+                                            defaultValue={`${profileData.lastName} ${profileData.firstName}`}
+                                            disabled
                                         />
-                                        <p>{cty.name}</p>
-                                      </Select.Option>
-                                    ))}
-                                  </Select>
-                                ) : (
-                                <p>{profileData.country}</p>
-                                )}
+                                    ) : (
+                                    <p>{profileData.lastName} {profileData.firstName}</p>
+                                    )}
+                                    </FlexibleDiv>
                             </FlexibleDiv>
 
-                            <FlexibleDiv className="info2"> 
-                                <p>Registration Date</p>
-                                {isEditMode ? (
-                                    <DatePicker
+                            <FlexibleDiv className="info__inner_cont2"> 
+                                <FlexibleDiv className="info1"> 
+                                    <p>Email Address</p>
+                                    {isEditMode ? (
+                                        <TextField
+                                            name="regNum"
+                                            placeholder="Enter registration number"
+                                            defaultValue={profileData.email}
+                                            disabled
+                                        />
+                                    ) : (
+                                    <p>{profileData.email}</p>
+                                    )}
+                                </FlexibleDiv>
+
+                                <FlexibleDiv className="info2"> 
+                                    <p>Phone Number</p>
+                                    {isEditMode ? (
+                                        <TextField
+                                            name="regNum"
+                                            placeholder="Enter registration number"
+                                            defaultValue={profileData.phone}
+                                        />
+                                    ) : (
+                                    <p>{profileData.phone}</p>
+                                    )}
+                                </FlexibleDiv>
+                            </FlexibleDiv>
+
+                            <FlexibleDiv className="info__inner_cont3"> 
+                                <FlexibleDiv className="info1"> 
+                                    <p>Physical Address</p>
+                                    {isEditMode ? (
+                                        <TextField
+                                            name="regNum"
+                                            placeholder="Enter registration number"
+                                            defaultValue={profileData.address}
+                                        />
+                                    ) : (
+                                    <p>{profileData.address}</p>
+                                    )}
+                                </FlexibleDiv>
+
+                                <FlexibleDiv className="info2"> 
+                                    <p>Date of Birth</p>
+                                    {isEditMode ? (
+                                        <DatePicker
                                         name="regNum"
-                                        defaultValue={dayjs(profileData.regDate)}
-                                        disabled
-                                    />
+                                        defaultValue={dayjs(profileData.dob)}
+                                        placeholder="Enter registration number"
+                                        style={{width:"100%"}}
+                                        />
+                                        
+                                    ) : (
+                                    <p>{dayjs(profileData.dob).format('DD/MM/YYYY')}</p>
+                                    )}
+                                </FlexibleDiv>
+                            </FlexibleDiv>
+
+                            <FlexibleDiv className="info__inner_cont4"> 
+                                <FlexibleDiv className="info1"> 
+                                    <p>Country</p>
+                                    {isEditMode ? (
+                                        <Select
+                                        name="country"
+                                        required
+                                        bgColor="#FAFAFA"
+                                        height="40px"
+                                        showSearch
+                                        className="country__select"
+                                        defaultValue={profileData.country}
+                                        onChange={(e)=>{profileData.country=e}}
+                                      >
+                                        {countries.map((cty, idx) => (
+                                          <Select.Option
+                                            key={idx}
+                                            value={cty.name}
+                                            className="select__public__content"
+                                          >
+                                            <img
+                                              className="small__drop__down__img"
+                                              src={`https://flagsapi.com/${cty?.code}/flat/64.png`}
+                                              alt={`${cty?.name?.toLowerCase()}-icon`}
+                                            />
+                                            <p>{cty.name}</p>
+                                          </Select.Option>
+                                        ))}
+                                      </Select>
+                                    ) : (
+                                    <p>{profileData.country}</p>
+                                    )}
+                                </FlexibleDiv>
+
+                                <FlexibleDiv className="info2"> 
+                                    <p>Registration Date</p>
+                                    {isEditMode ? (
+                                        <DatePicker
+                                            name="regNum"
+                                            defaultValue={dayjs(profileData.regDate)}
+                                            disabled
+                                            style={{width:"100%"}}
+                                        />
+                                    ) : (
+                                    <p>{dayjs(profileData.regDate).format("DD/MM/YYYY")}</p>
+                                    )}
+                                </FlexibleDiv>
+                            </FlexibleDiv>
+                            </FlexibleDiv>
+
+                        </FlexibleDiv>
+
+                        <FlexibleDiv className="profile__image__wrapper" flexDir="column" gap="29px">
+                        <CustomUpload setFile={setFile} editable={isEditMode} initialImage={user?.profilePicture} />
+                            
+                            <Button
+                                onClick={isEditMode ? handleSubmit : toggleEditMode}
+                                width="50%"
+                                radius="8px"
+                                color="var(--oosriWhite)"
+                                backgroundColor="var(--oosriPrimary)"
+                                className="submit__btn"
+                                htmlType="submit"
+                            >
+                                {isEditMode ? "Save Details" : "Edit Details"}
+                            </Button>
+                        </FlexibleDiv>
+                    </FlexibleDiv>
+                )
+            }
+
+            {/* business details Content */}
+            {
+              user?.corporateBusinessAccount?.companyName &&
+                activeTab === "business-details" && (
+                    <FlexibleDiv 
+                    className="business__details__section"
+                    >
+                        <FlexibleDiv 
+                        className="business__info__wrapper"
+                        >
+                            <h2 style={{
+                                justifyContent: "flex-start", 
+                                textAlign: "left",
+                                width: "100%", 
+                                paddingBottom: "15px"
+                            }}>Business Details</h2>
+
+                        <Form
+                        form={form}
+                        onFinish={isEditMode ? handleSaveDetails : undefined}
+                        className="business__details__form"
+                        >
+                            {/* Business Name and type */}
+                          <FlexibleDiv
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between"
+                          }}
+                          className="input__container">
+                              {/* Business name */}
+                              <FlexibleDiv
+                flexDir="column"
+                alignItems="flex-start"
+                width="40%"
+                gap="5px"
+                className="single__row"
+              >
+                <label>Business Name</label>
+                {isEditMode ? (
+                          <TextField
+                            name="name"
+                            placeholder="Enter business name"
+                            defaultValue={businessData.name}
+                          />
+                        ) : (
+                          <p>{businessData.name}</p>
+                        )}
+                              </FlexibleDiv>
+
+                              {/* Business Type */}
+                              <FlexibleDiv
+                flexDir="column"
+                alignItems="flex-start"
+                width="40%"
+                gap="5px"
+                className="single__row"
+              >
+                <label>Business Type</label>
+                {isEditMode ? (
+                          <Select
+                            name="type"
+                            placeholder="Select business type"
+                            defaultValue={businessData.type}
+                            options={businessTypeOptions}
+                          />
+                        ) : (
+                          <p>{businessData.type}</p>
+                        )}
+                              </FlexibleDiv>
+                          </FlexibleDiv>
+
+                          <FlexibleDiv
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between"
+                            }}
+                            className="input__container"
+                          >
+                            {/* reg num and business address */}
+                            <FlexibleDiv
+                              flexDir="column"
+                              alignItems="flex-start"
+                              width="40%"
+                              gap="5px"
+                              className="single__row"
+                            >
+                              {/* Registration Number */}
+                                <label>Business Registration Number</label>
+                                {isEditMode ? (
+                                        <TextField
+                                          name="regNum"
+                                          placeholder="Enter registration number"
+                                          defaultValue={businessData.regNum}
+                                />
                                 ) : (
-                                <p>{dayjs(profileData.regDate).format("DD/MM/YYYY")}</p>
+                              <p>{businessData.regNum}</p>
                                 )}
                             </FlexibleDiv>
-                        </FlexibleDiv>
+
+              {/* Business Desc */}
+              <FlexibleDiv
+                flexDir="column"
+                alignItems="flex-start"
+                width="40%"
+                gap="5px"
+                className="single__row"
+              >
+                <label>Business Address</label>
+                {isEditMode ? (
+                        <TextField
+                          name="regNum"
+                          placeholder="Enter registration number"
+                          defaultValue={businessData.address}
+                        />
+                      ) : (
+                        <p>{businessData.address}</p>
+                      )}
+              </FlexibleDiv>
+
+                            </FlexibleDiv>
+
+                            {/* Business Desc */}
+                            <FlexibleDiv
+                flexDir="column"
+                alignItems="flex-start"
+                width="100%"
+                gap="5px"
+                className="single__row"
+              >
+                <label>Business Description</label>
+                {isEditMode ? (
+                        <TextField
+                          name="description"
+                          placeholder="Enter business description"
+                          defaultValue={businessData.description}
+                        />
+                      ) : (
+                        <p>{businessData.description}</p>
+                      )}
+                            </FlexibleDiv>
+
+                            <FlexibleDiv style={{
+                    display:"flex",
+                    flexDirection:"column",
+                    alignItems:"flex-start",
+                    width:""
+                }}>
+                    <CustomUpload setFile={setFile} editable={isEditMode} title="Government Identification"/>
+                            </FlexibleDiv>
+
+                            <FlexibleDiv style={{
+                    display:"flex",
+                    flexDirection:"column",
+                    alignItems:"flex-start",
+                }}>
+                    <CustomUpload setFile={setFile} editable={isEditMode} title="Business Registration Certificate"/>
+                            </FlexibleDiv>
+
+                
+                        </Form>
                         </FlexibleDiv>
 
-                    </FlexibleDiv>
-
-                    <FlexibleDiv className="profile__image__wrapper" flexDir="column" gap="29px">
-                    <CustomUpload setFile={setFile} editable={isEditMode} initialImage={user?.profilePicture} />
-                        
-                        <Button
-                            onClick={isEditMode ? handleImageUpload : toggleEditMode}
-                            width="50%"
+                        <FlexibleDiv 
+                        className="edit__details__cont"
+                        >
+                            <Button
+                            onClick={isEditMode ? handleSaveDetails : toggleEditMode}
+                            type="submit"
                             radius="8px"
                             color="var(--oosriWhite)"
                             backgroundColor="var(--oosriPrimary)"
-                            className="submit__btn"
-                            htmlType="submit"
+                            isLoading={isLoading}
                         >
-                            {isEditMode ? "Save Details" : "Edit Details"}
-                        </Button>
+                                {isEditMode ? "Save Details" : "Edit Details"}
+                            </Button>
+                        </FlexibleDiv>
                     </FlexibleDiv>
-                </FlexibleDiv>
-            )}
-
-            {/* business details Content */}
-            {activeTab === "business-details" && (
-                <FlexibleDiv 
-                className="business__details__section"
-                >
-                    <FlexibleDiv 
-                    className="business__info__wrapper"
-                    >
-                        <h2 style={{
-                            justifyContent: "flex-start", 
-                            textAlign: "left",
-                            width: "100%", 
-                            paddingBottom: "15px"
-                        }}>Business Details</h2>
-
-                    <Form
-                    form={form}
-                    onFinish={isEditMode ? handleSaveDetails : undefined}
-                    className="business__details__form"
-                    >
-                        {/* Business Name and type */}
-                      <FlexibleDiv
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between"
-                      }}
-                      className="input__container">
-                          {/* Business name */}
-                          <FlexibleDiv
-            flexDir="column"
-            alignItems="flex-start"
-            width="40%"
-            gap="5px"
-            className="single__row"
-          >
-            <label>Business Name</label>
-            {isEditMode ? (
-                      <TextField
-                        name="name"
-                        placeholder="Enter business name"
-                        defaultValue={businessData.name}
-                      />
-                    ) : (
-                      <p>{businessData.name}</p>
-                    )}
-                          </FlexibleDiv>
-
-                          {/* Business Type */}
-                          <FlexibleDiv
-            flexDir="column"
-            alignItems="flex-start"
-            width="40%"
-            gap="5px"
-            className="single__row"
-          >
-            <label>Business Type</label>
-            {isEditMode ? (
-                      <Select
-                        name="type"
-                        placeholder="Select business type"
-                        defaultValue={businessData.type}
-                        options={businessTypeOptions}
-                      />
-                    ) : (
-                      <p>{businessData.type}</p>
-                    )}
-                          </FlexibleDiv>
-                      </FlexibleDiv>
-
-                      <FlexibleDiv
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between"
-                        }}
-                        className="input__container"
-                      >
-                        {/* reg num and business address */}
-                        <FlexibleDiv
-                          flexDir="column"
-                          alignItems="flex-start"
-                          width="40%"
-                          gap="5px"
-                          className="single__row"
-                        >
-                          {/* Registration Number */}
-                            <label>Business Registration Number</label>
-                            {isEditMode ? (
-                                    <TextField
-                                      name="regNum"
-                                      placeholder="Enter registration number"
-                                      defaultValue={businessData.regNum}
-                            />
-                            ) : (
-                          <p>{businessData.regNum}</p>
-                            )}
-                        </FlexibleDiv>
-
-          {/* Business Desc */}
-          <FlexibleDiv
-            flexDir="column"
-            alignItems="flex-start"
-            width="40%"
-            gap="5px"
-            className="single__row"
-          >
-            <label>Business Address</label>
-            {isEditMode ? (
-                    <TextField
-                      name="regNum"
-                      placeholder="Enter registration number"
-                      defaultValue={businessData.address}
-                    />
-                  ) : (
-                    <p>{businessData.address}</p>
-                  )}
-          </FlexibleDiv>
-
-                        </FlexibleDiv>
-
-                        {/* Business Desc */}
-                        <FlexibleDiv
-            flexDir="column"
-            alignItems="flex-start"
-            width="100%"
-            gap="5px"
-            className="single__row"
-          >
-            <label>Business Description</label>
-            {isEditMode ? (
-                    <TextField
-                      name="description"
-                      placeholder="Enter business description"
-                      defaultValue={businessData.description}
-                    />
-                  ) : (
-                    <p>{businessData.description}</p>
-                  )}
-                        </FlexibleDiv>
-
-                        <FlexibleDiv style={{
-                display:"flex",
-                flexDirection:"column",
-                alignItems:"flex-start",
-                width:""
-            }}>
-                <CustomUpload setFile={setFile} editable={isEditMode} title="Government Identification"/>
-                        </FlexibleDiv>
-
-                        <FlexibleDiv style={{
-                display:"flex",
-                flexDirection:"column",
-                alignItems:"flex-start",
-            }}>
-                <CustomUpload setFile={setFile} editable={isEditMode} title="Business Registration Certificate"/>
-                        </FlexibleDiv>
-
-            
-                    </Form>
-                    </FlexibleDiv>
-
-                    <FlexibleDiv 
-                    className="edit__details__cont"
-                    >
-                        <Button
-                        onClick={isEditMode ? handleSaveDetails : toggleEditMode}
-                        type="submit"
-                        radius="8px"
-                        color="var(--oosriWhite)"
-                        backgroundColor="var(--oosriPrimary)"
-                        isLoading={isLoading}
-                    >
-                            {isEditMode ? "Save Details" : "Edit Details"}
-                        </Button>
-                    </FlexibleDiv>
-                </FlexibleDiv>
-            )}
+                )
+            }
 
             {/* bank information Content */}
             {activeTab === "bank-details" && (
@@ -595,27 +598,6 @@ export default function SellerProfile() {
                     <p>{bankInformationData.accountnumber}</p>
                   )}
           </FlexibleDiv>
-
-          {/* nin no */}
-          <FlexibleDiv
-            flexDir="column"
-            alignItems="flex-start"
-            width="40%"
-            gap="5px"
-            className="single__row"
-          >
-            <label>National Identification Number</label>
-            {isEditMode ? (
-                    <TextField
-                      name="regNum"
-                      placeholder="Enter registration number"
-                      defaultValue={bankInformationData.nin}
-                    />
-                  ) : (
-                    <p>{bankInformationData.nin}</p>
-                  )}
-          </FlexibleDiv>
-
             </FlexibleDiv>
 
             

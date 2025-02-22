@@ -26,78 +26,83 @@ export default function DashboardScreen() {
   ]);
   const [selectedFilter, setSelectedFilter] = useState("Daily");
   const [loading, setLoading] = useState(false);
-  const [data,setData]=useState({
-      averageOrderValue:0,
-      payout:0,
-      totalOrders:0,
-      totalProducts:0,
-      totalSales:0})
-  const [graphOptions,setGraphOptions]=useState({})
+  const [data, setData] = useState({
+    averageOrderValue: 0,
+    payout: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalSales: 0
+  })
+  const [graphOptions, setGraphOptions] = useState({})
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
 
-const fetchSalesOverview=async()=>{
-  const graphOptions={}
-  try{
-    const data=await getDashboardOverview(selectedFilter.toLocaleLowerCase())
-    console.log(data.data.data)
-    
-    for (let index = 0; index < data.data.data.length; index++) {
-      const date = new Date(data.data.data[index].period);
-      if(selectedFilter === "Daily"){
-        const options = { weekday: 'short' };
-        const dayOfWeek = date.toLocaleDateString('en-US', options);
-        graphOptions[dayOfWeek]=data.data.data[index].totalSales
-      }else if(selectedFilter === "Weekly"){
-        // const getWeekNumber = (d) => {
-        //   const dateCopy = new Date(d.getTime());
-        //   dateCopy.setHours(0, 0, 0, 0);
-        //   dateCopy.setDate(dateCopy.getDate() + 3 - (dateCopy.getDay() + 6) % 7); 
-        //   const week1 = new Date(dateCopy.getFullYear(), 0, 4);
-        //   const diff = dateCopy - week1;
-        //   const oneDay = 1000 * 60 * 60 * 24;
-        //   const weekNumber = Math.ceil(diff / oneDay / 7);
-        //   return weekNumber;
-        // };
-      
-        // const weekNumber = getWeekNumber(date);
-        // console.log(weekNumber)
-        // graphOptions[`Week ${weekNumber}`]=data.data.data[index].totalSales
-        const options = { weekday: 'short' };
-        const dayOfWeek = date.toLocaleDateString('en-US', options);
-        graphOptions[dayOfWeek]=data.data.data[index].totalSales
-      }else if (selectedFilter === "Monthly") {
-        const options = { month: 'short' };
-        const dayOfWeek = date.toLocaleDateString('en-US', options);
-        graphOptions[dayOfWeek]=data.data.data[index].totalSales
-      }else if (selectedFilter === "Yearly") {
-        const dayOfWeek = date.getFullYear()
-        graphOptions[dayOfWeek]=data.data.data[index].totalSales
+  const fetchSalesOverview = async () => {
+    const graphOptions = {}
+    try {
+      const data = await getDashboardOverview(selectedFilter.toLocaleLowerCase())
+      const first = new Date(data.data.data[0].period)
+      const last = new Date(data.data.data[data.data.data.length - 1].period)
+      setStartDate(`${first.getDate("YYYY-MM-DD")}/${first.getUTCMonth("YYYY-MM-DD")}/${first.getFullYear()}`)
+      setEndDate(`${last.getDate("YYYY-MM-DD")}/${first.getUTCMonth("YYYY-MM-DD")}/${first.getFullYear()}`)
+      for (let index = 0; index < data.data.data.length; index++) {
+        const date = new Date(data.data.data[index].period);
+        if (selectedFilter === "Daily") {
+          const options = { weekday: 'short' };
+          const dayOfWeek = date.toLocaleDateString('en-US', options);
+          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+        } else if (selectedFilter === "Weekly") {
+          // const getWeekNumber = (d) => {
+          //   const dateCopy = new Date(d.getTime());
+          //   dateCopy.setHours(0, 0, 0, 0);
+          //   dateCopy.setDate(dateCopy.getDate() + 3 - (dateCopy.getDay() + 6) % 7); 
+          //   const week1 = new Date(dateCopy.getFullYear(), 0, 4);
+          //   const diff = dateCopy - week1;
+          //   const oneDay = 1000 * 60 * 60 * 24;
+          //   const weekNumber = Math.ceil(diff / oneDay / 7);
+          //   return weekNumber;
+          // };
+
+          // const weekNumber = getWeekNumber(date);
+          // console.log(weekNumber)
+          // graphOptions[`Week ${weekNumber}`]=data.data.data[index].totalSales
+          const options = { weekday: 'short' };
+          const dayOfWeek = date.toLocaleDateString('en-US', options);
+          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+        } else if (selectedFilter === "Monthly") {
+          const options = { month: 'short' };
+          const dayOfWeek = date.toLocaleDateString('en-US', options);
+          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+        } else if (selectedFilter === "Yearly") {
+          const dayOfWeek = date.getFullYear()
+          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+        }
       }
+      setGraphOptions(graphOptions)
+    } catch (errors) {
+      console.log(errors)
     }
-    setGraphOptions(graphOptions)
-  }catch(errors){
-    console.log(errors)
   }
-} 
 
-  useEffect(()=>{
-    const fetchSummaryData = async()=>{
-      try{
-        const data= await getDashboardSummary()
+  useEffect(() => {
+    const fetchSummaryData = async () => {
+      try {
+        const data = await getDashboardSummary()
         setLoading(false)
-        console.log(data.data)
+        setData(data.data.data)
         return data
-      }catch(error){
+      } catch (error) {
         console.log(error)
       }
     }
     fetchSummaryData()
-  },[])
-  
-  useEffect(()=>{
-    fetchSalesOverview()
-  },[selectedFilter])
+  }, [])
 
-const summaryBoxes = [
+  useEffect(() => {
+    fetchSalesOverview()
+  }, [selectedFilter])
+
+  const summaryBoxes = [
     {
       icon: <StackIcon size={22} color="#FB5183" />,
       value: `${data.totalProducts}`,
@@ -111,103 +116,103 @@ const summaryBoxes = [
     {
       icon: <CardIcon size={22} color="#FB5183" />,
       value: `${data.payout}`,
-      label: "Profit",
+      label: "Payout",
     },
   ];
 
   return (
     <>
-    {loading?
-      <CustomLoader />:
-      <DashboardLayout>
-        <DashboardWrapper>
-          <FlexibleDiv className="summary__wrapper">
-            {summaryBoxes.map((sgn, idx) => (
-              <FlexibleDiv className="single__summary__box" key={idx}>
-                <div className="icon__wrapper">{sgn.icon}</div>
-                <div className="summary__text">
-                  <h1>{sgn.value}</h1>
-                  <p className="label__text">{sgn.label}</p>
-                </div>
-              </FlexibleDiv>
-            ))}
-          </FlexibleDiv>
-          <FlexibleDiv
-            flexDir="column"
-            className="graph__section"
-            flexWrap="nowrap"
-            gap="40px"
-          >
+      {loading ?
+        <CustomLoader /> :
+        <DashboardLayout>
+          <DashboardWrapper>
+            <FlexibleDiv className="summary__wrapper">
+              {summaryBoxes.map((sgn, idx) => (
+                <FlexibleDiv className="single__summary__box" key={idx}>
+                  <div className="icon__wrapper">{sgn.icon}</div>
+                  <div className="summary__text">
+                    <h1>{sgn.value}</h1>
+                    <p className="label__text">{sgn.label}</p>
+                  </div>
+                </FlexibleDiv>
+              ))}
+            </FlexibleDiv>
             <FlexibleDiv
-              flexDir="row"
-              alignItems="center"
-              justifyContent="space-between"
+              flexDir="column"
+              className="graph__section"
               flexWrap="nowrap"
-              className="graph__info__wrapper"
+              gap="40px"
             >
-              <FlexibleDiv
-                width="fit-content"
-                flexDir="column"
-                alignItems="flex-start"
-                className="graph__info"
-              >
-                <h4>Sales Overview</h4>
-                <p>Jan 2023 - Dec 2023</p>
-              </FlexibleDiv>
               <FlexibleDiv
                 flexDir="row"
+                alignItems="center"
+                justifyContent="space-between"
                 flexWrap="nowrap"
-                width="fit-content"
-                gap="15px"
+                className="graph__info__wrapper"
               >
-                {filters.map((sgn, idx) => (
-                  <Button
-                    backgroundColor={
-                      selectedFilter === sgn ? "var(--oosriPrimary)" : "#F5F5F5"
-                    }
-                    hoverBg="var(--oosriPrimary)"
-                    height="35px"
-                    radius="20px"
-                    key={idx}
-                    color={
-                      selectedFilter === sgn ? "var(--oosriWhite)" : "#757575"
-                    }
-                    onClick={() => setSelectedFilter(sgn)}
-                  >
-                    {sgn}
-                  </Button>
-                ))}
+                <FlexibleDiv
+                  width="fit-content"
+                  flexDir="column"
+                  alignItems="flex-start"
+                  className="graph__info"
+                >
+                  <h4>Sales Overview</h4>
+                  <p>{startDate} - {endDate}</p>
+                </FlexibleDiv>
+                <FlexibleDiv
+                  flexDir="row"
+                  flexWrap="nowrap"
+                  width="fit-content"
+                  gap="15px"
+                >
+                  {filters.map((sgn, idx) => (
+                    <Button
+                      backgroundColor={
+                        selectedFilter === sgn ? "var(--oosriPrimary)" : "#F5F5F5"
+                      }
+                      hoverBg="var(--oosriPrimary)"
+                      height="35px"
+                      radius="20px"
+                      key={idx}
+                      color={
+                        selectedFilter === sgn ? "var(--oosriWhite)" : "#757575"
+                      }
+                      onClick={() => setSelectedFilter(sgn)}
+                    >
+                      {sgn}
+                    </Button>
+                  ))}
+                </FlexibleDiv>
+              </FlexibleDiv>
+              <FlexibleDiv width="100%" className="graph__box">
+                <AreaChart data={graphOptions} empty={"loading..."} />
               </FlexibleDiv>
             </FlexibleDiv>
-            <FlexibleDiv width="100%" className="graph__box">
-              <AreaChart data={graphOptions} empty={"loading..."} />
+            {/* Table Section */}
+            <FlexibleDiv className="table__section" justifyContent="space-around">
+              <FlexibleDiv
+                flexDir="row"
+                width="100%"
+                justifyContent="space-between"
+                padding="0 30px"
+                className="top__recent__box"
+              >
+                <p className="recent__text">RECENT SALE</p>
+                <Link className="see__all__text" href={"/order-history"}>
+                  See All
+                </Link>
+              </FlexibleDiv>
+              <FlexibleDiv className="recent__sale__wrapper">
+                <Table
+                  columns={dashboardTableColumns}
+                  dataSource={dashboardTableData}
+                  className="table__class"
+                />
+              </FlexibleDiv>
             </FlexibleDiv>
-          </FlexibleDiv>
-          {/* Table Section */}
-          <FlexibleDiv className="table__section" justifyContent="space-around">
-            <FlexibleDiv
-              flexDir="row"
-              width="100%"
-              justifyContent="space-between"
-              padding="0 30px"
-              className="top__recent__box"
-            >
-              <p className="recent__text">RECENT SALE</p>
-              <Link className="see__all__text" href={"/order-history"}>
-                See All
-              </Link>
-            </FlexibleDiv>
-            <FlexibleDiv className="recent__sale__wrapper">
-              <Table
-                columns={dashboardTableColumns}
-                dataSource={dashboardTableData}
-                className="table__class"
-              />
-            </FlexibleDiv>
-          </FlexibleDiv>
-        </DashboardWrapper>
-      </DashboardLayout>
-    }    
+          </DashboardWrapper>
+        </DashboardLayout>
+      }
     </>
   );
 }
