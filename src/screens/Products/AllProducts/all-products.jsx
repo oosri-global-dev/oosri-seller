@@ -11,7 +11,7 @@ import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { deleteProduct, filterAllProducts, getAllProducts } from "@/network/product";
+import { deleteProduct, filterAllProducts, getAllProducts, toggleProductVisibility } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
@@ -75,6 +75,11 @@ export default function AllProductsScreen() {
         </Button>
     </div>
   )
+
+  const handleToggle= async(e,obj)=>{
+    const data = await toggleProductVisibility(obj._id,{"isVisible":e})
+    return data
+  }
   
   const productsTableColumns = [
     {
@@ -84,8 +89,7 @@ export default function AllProductsScreen() {
       render: (_,obj) => (
         <Space>
           {/* item image */}
-          {/* <Avatar size={45} src={obj?.images[0]} /> */}
-          <Avatar size={45} src={"https://placehold.co/600x400"} />
+          <Avatar size={45} src={obj?.images[0]} />
           <Space direction="vertical" size={1}>
             <p>{_}</p>
           </Space>
@@ -119,11 +123,11 @@ export default function AllProductsScreen() {
     },
     {
       title: "Visibility",
-      dataIndex: "isApproved",
-      key: "isApproved",
-      render: () => (
+      dataIndex: "isVisible",
+      key: "isVisible",
+      render: (_,obj) => (
         <div>
-          <Switch defaultChecked onChange={(e)=>{console.log(e)}} />
+          <Switch defaultChecked={_} onChange={(e)=>{handleToggle(e,obj)}} />
         </div>
       ),
     },

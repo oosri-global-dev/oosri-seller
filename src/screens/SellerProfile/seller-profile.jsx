@@ -18,19 +18,17 @@ import { UpdateProfilePicture } from "@/network/profile";
 export default function SellerProfile() {
 
     const [file, setFile] = useState(null);
-    const [activeTab, setActiveTab] = useState("personal-details");
+    const [activeTab, setActiveTab] = useState("1");
     const [isEditMode, setIsEditMode] = useState(true); // State for edit mode
     const [form] = Form.useForm();
     const [isLoading, setIsLoading] = useState(false);
     const [success, error] = useNotification();
     const {state: { user },} = useContext(MainContext);  
-    const activeBusinessItems= user?.corporateBusinessAccount?.companyName
-
-    const activePersonalItems= user?.personalBusinessAccount?.companyName
+    const activeBusinessItems= user?.businessType==="Corporate"
 
     const toggleEditMode = () => {
         setIsEditMode(!isEditMode); // Toggle edit mode
-      };
+    };
 
     const handleSaveDetails = () => {
         form.validateFields()
@@ -41,27 +39,27 @@ export default function SellerProfile() {
           .catch((err) => {
             console.error("Validation Error:", err);
           });
-      };
+    };
 
 
   const businessItemsTab = [
     {
-      key: "business-details",
+      key: "1",
       label: "Business Details",
     },
     {
-      key: "bank-details",
+      key: "2",
       label: "Bank Details",
     },
   ];
   
   const personalItemsTab = [
     {
-      key: "personal-details",
+      key: "1",
       label: "Personal Details",
     },
     {
-      key: "bank-details",
+      key: "2",
       label: "Bank Details",
     },
   ];
@@ -80,11 +78,13 @@ export default function SellerProfile() {
   };  
 
   const businessData = {
-    name: activeBusinessItems,
+    name: user?.corporateBusinessAccount?.companyName,
     type: "partnership",
     regNum: user?.corporateBusinessAccount?.companyRegNum,
     address: user?.corporateBusinessAccount?.companyAddress,
-    description: "MobileMaster is your trusted destination for all things mobile technology. With years of experience in the industry, we are dedicated to delivering top-notch products and services to meet your mobile needs.e offer a wide range of the latest smartphones, from top brands to budget-friendly options. Our knowledgeable staff can help you find the perfect phone to suit your needs."
+    description: "MobileMaster is your trusted destination for all things mobile technology. With years of experience in the industry, we are dedicated to delivering top-notch products and services to meet your mobile needs.e offer a wide range of the latest smartphones, from top brands to budget-friendly options. Our knowledgeable staff can help you find the perfect phone to suit your needs.",
+    companyCertificate:user?.corporateBusinessAccount?.vatCertificate,
+    businessCertificate:user?.corporateBusinessAccount?.companyCertificate,
   };  
 
   const bankInformationData = {
@@ -155,8 +155,8 @@ export default function SellerProfile() {
 
             {/* Profile Content */}
             {
-              user?.personalBusinessAccount?.dateOfBirth &&
-                activeTab === "personal-details" && (
+              !activeBusinessItems &&
+                activeTab === "1" && (
                     <FlexibleDiv className="profile__details__section">
                     
                         <FlexibleDiv className="profile__info__wrapper">
@@ -315,8 +315,8 @@ export default function SellerProfile() {
 
             {/* business details Content */}
             {
-              user?.corporateBusinessAccount?.companyName &&
-                activeTab === "business-details" && (
+              activeBusinessItems&&
+                activeTab === "1" && (
                     <FlexibleDiv 
                     className="business__details__section"
                     >
@@ -435,7 +435,7 @@ export default function SellerProfile() {
                             </FlexibleDiv>
 
                             {/* Business Desc */}
-                            <FlexibleDiv
+              <FlexibleDiv
                 flexDir="column"
                 alignItems="flex-start"
                 width="100%"
@@ -452,26 +452,27 @@ export default function SellerProfile() {
                       ) : (
                         <p>{businessData.description}</p>
                       )}
-                            </FlexibleDiv>
+              </FlexibleDiv>
 
-                            <FlexibleDiv style={{
+              <FlexibleDiv >
+                  <FlexibleDiv style={{
                     display:"flex",
                     flexDirection:"column",
                     alignItems:"flex-start",
-                    width:""
+                    width:"100%"
                 }}>
-                    <CustomUpload setFile={setFile} editable={isEditMode} title="Government Identification"/>
-                            </FlexibleDiv>
+                    <CustomUpload setFile={setFile} editable={isEditMode} title="Government Identification" initialImage={businessData.companyCertificate}/>
+                  </FlexibleDiv>
 
-                            <FlexibleDiv style={{
+                  <FlexibleDiv style={{
                     display:"flex",
                     flexDirection:"column",
                     alignItems:"flex-start",
-                }}>
-                    <CustomUpload setFile={setFile} editable={isEditMode} title="Business Registration Certificate"/>
-                            </FlexibleDiv>
-
-                
+                    width:"100%",
+                  }}>
+                    <CustomUpload setFile={setFile} editable={isEditMode} title="Business Registration Certificate" initialImage={businessData.businessCertificate}/>
+                  </FlexibleDiv>
+              </FlexibleDiv>
                         </Form>
                         </FlexibleDiv>
 
@@ -494,7 +495,7 @@ export default function SellerProfile() {
             }
 
             {/* bank information Content */}
-            {activeTab === "bank-details" && (
+            {activeTab === "2" && (
                 <FlexibleDiv 
                 className="business__details__section"
                 style={{
