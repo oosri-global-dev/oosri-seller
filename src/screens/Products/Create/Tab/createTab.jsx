@@ -1,7 +1,7 @@
 import { FlexibleDiv } from "../../../../components/lib/Box/styles"
 import Select from "../../../../components/lib/Select"
 import { Input, Upload } from "antd"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { CustomUpload } from "../../../../components/lib/CustomUpload"
 import { createProduct } from "@/network/product"
 import Button from "@/components/lib/Button"
@@ -43,6 +43,7 @@ export const CreateTab=({subCategories,category})=>{
     const [size,setSize]=useState("")
     const[modalError,setModalError]=useState(false)
     const[errorText,setErrorText]=useState(" ")
+    const [yard,setYard]=useState("")
     const[clearImage,setClearImg]=useState(false)
 
   const payload={
@@ -80,9 +81,8 @@ export const CreateTab=({subCategories,category})=>{
       glaze: glaze,
     }),
     ...(category === "Textiles/Fabrics" && {
-      length: length,
+      yard:yard,
       weight:weight,
-      width: width,
       fabricType: fabricType,
       pattern:pattern,
     }),
@@ -127,7 +127,7 @@ export const CreateTab=({subCategories,category})=>{
    setSize()
    setOpenModal(false)
    setModalError(false)
-  //  window.location.reload()
+   setYard(" ")
   }
       useEffect(()=>{
         if(subCategories){
@@ -282,15 +282,10 @@ export const CreateTab=({subCategories,category})=>{
                   <label htmlFor="Name">Weight</label>
                   <CustomInput value={weight} placeholder="Input Product Weight" backgroundColor="#FAFAFA" onChange={((e)=>{setWeight(e.target.value)})} type="number"/>
               </div>
-              {/* Width */}
+              {/* yard */}
               <div className="product__item">
-                  <label htmlFor="Name">Width</label>
-                  <CustomInput value={width} placeholder="Input Product Width" backgroundColor="#FAFAFA" onChange={((e)=>{setWidth(e.target.value)})} type="number"/>
-              </div>
-              {/* length */}
-              <div className="product__item">
-                  <label htmlFor="Name">Length</label>
-                  <CustomInput value={length} placeholder="Input Product Length" backgroundColor="#FAFAFA" onChange={((e)=>{setLength(e.target.value)})} type="number"/>
+                  <label htmlFor="Name">Yards</label>
+                  <CustomInput value={yard} placeholder="Input Product Yards" backgroundColor="#FAFAFA" onChange={((e)=>{setYard(e.target.value)})} type="number"/>
               </div>
               {/* Pattern */}
               <div className="product__item">

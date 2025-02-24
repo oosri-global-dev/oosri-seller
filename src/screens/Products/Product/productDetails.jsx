@@ -41,33 +41,33 @@ export const ProductDetails=({data,setEdit})=>{
                     {/* Name */}
                     <div className="product__item">
                     <label htmlFor="Name">Product Name</label>
-                        <h5 width={"100%"}>{productName}</h5>
+                        <h5 width={"100%"}>{data?.productName}</h5>
                     </div>
                 </FlexibleDiv>
                 {/* Category */}
                 <div className="product__item">
                     <label htmlFor="Name">Product Category</label>
-                    <h5>{subCategory}</h5>
+                    <h5>{data?.subCategory}</h5>
                 </div>
                 {/* Brand */}
                 <div className="product__item">
                     <label htmlFor="Name">Brand</label>
-                    <h5>{brandArtist}</h5>
+                    <h5>{data?.brandArtist}</h5>
                 </div>
                 {/* Product Type */}
                 <div className="product__item">
                     <label htmlFor="Name">Product Type</label>
-                    <h5>{productType}</h5>
+                    <h5>{data?.productType}</h5>
                 </div>
                 {/* Regular Price */}
                 <div className="product__item">
                     <label htmlFor="Name">Regular Price(NGN)</label>
-                    <h5>{regularPrice}</h5>
+                    <h5>{data?.regularPrice}</h5>
                 </div>
                 {/* Sales Price */}
                 <div className="product__item">
                     <label htmlFor="Name">Sales Price(NGN)</label>
-                    <h5>{salesPrice}</h5>
+                    <h5>{data?.salesPrice}</h5>
                 </div>
                 </FlexibleDiv>
                 {/* right section */}
@@ -84,12 +84,12 @@ export const ProductDetails=({data,setEdit})=>{
                 {/* Discounts */}
                 <div className="product__item">
                     <label htmlFor="Name">Dsicounts</label>
-                    <h5>{discount}</h5>
+                    <h5>{data?.discount}</h5>
                 </div>
                 {/*Product Description*/}
                 <div className="product__item">
                     <label htmlFor="Name">Product Description</label>
-                    <h5>{productDescription}</h5>
+                    <h5>{data?.productDescription}</h5>
                 </div>
                 {
                     category==="Sculpture"?
@@ -121,15 +121,10 @@ export const ProductDetails=({data,setEdit})=>{
                         <label htmlFor="Name">Weight</label>
                         <h5>{weight}</h5>
                     </div>
-                    {/* Width */}
+                    {/* Yard */}
                     <div className="product__item">
-                        <label htmlFor="Name">Width</label>
-                        <h5>{widh}</h5>
-                    </div>
-                    {/* length */}
-                    <div className="product__item">
-                        <label htmlFor="Name">Length</label>
-                        <h5>{length}</h5>
+                        <label htmlFor="Name">Yard</label>
+                        <h5>{data?.yard}</h5>
                     </div>
                     {/* Pattern */}
                     <div className="product__item">
@@ -163,7 +158,8 @@ export const ProductDetails=({data,setEdit})=>{
                             <label htmlFor="Name">Glaze</label>
                             <h5>{glaze}</h5>
                         </div>
-                    </>:category==="Paintings"?
+                    </>:
+                    category==="Paintings"?
                     <>
                     {/* Medium */}
                         <div className="product__item">

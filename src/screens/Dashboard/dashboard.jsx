@@ -44,7 +44,7 @@ export default function DashboardScreen() {
       const first = new Date(data.data.data[0].period)
       const last = new Date(data.data.data[data.data.data.length - 1].period)
       setStartDate(`${first.getDate("YYYY-MM-DD")}/${first.getUTCMonth("YYYY-MM-DD")}/${first.getFullYear()}`)
-      setEndDate(`${last.getDate("YYYY-MM-DD")}/${first.getUTCMonth("YYYY-MM-DD")}/${first.getFullYear()}`)
+      setEndDate(`${last.getDate("YYYY-MM-DD")}/${last.getUTCMonth("YYYY-MM-DD")}/${last.getFullYear()}`)
       for (let index = 0; index < data.data.data.length; index++) {
         const date = new Date(data.data.data[index].period);
         if (selectedFilter === "Daily") {

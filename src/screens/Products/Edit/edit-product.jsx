@@ -46,6 +46,8 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
     const [size,setSize]=useState(data?.size)
     const[modalError,setModalError]=useState(false)
     const[loading,setLoading]=useState(false)
+    const [stock,setStock]=useState(data?.inStock)
+    const [yard,setYard]=useState(data?.yard)
 
     const payload={
       category:category,
@@ -59,6 +61,7 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
       regularPrice:regularPrice,
       productType:productType,
       discount:discount,
+      inStock:stock,
       ...(category === "Sculpture" && {
         width: width,
         weight:weight,
@@ -151,7 +154,7 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
                 {/* Quantity available */}
                 <div className="product__item">
                     <label htmlFor="Name">Quantity Available (Stock)</label>
-                    <CustomInput placeholder="Input quantity available" backgroundColor="#FAFAFA"/>
+                    <CustomInput placeholder="Input quantity available" backgroundColor="#FAFAFA" value={stock} onChange={(e)=>{setStock(e.target.value)}}/>
                 </div>
                 {/* Product Type */}
                 <div className="product__item">
@@ -167,6 +170,11 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
                 <div className="product__item">
                     <label htmlFor="Name">Sales Price(NGN)</label>
                     <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setRegularPrice(e.target.value)})} type="number" value={salesPrice}/>
+                </div>
+                {/* Stock */}
+                <div className="product__item">
+                    <label htmlFor="Name">Stock</label>
+                    <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setStock(e.target.value)})} type="number" value={stock}/>
                 </div>
               </FlexibleDiv>
               {/* right section */}
@@ -219,15 +227,10 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
                       <label htmlFor="Name">Weight</label>
                       <CustomInput placeholder="Input Product Weight" backgroundColor="#FAFAFA" onChange={((e)=>{setWeight(e.target.value)})} type="number" value={weight}/>
                   </div>
-                  {/* Width */}
+                  {/* Yard */}
                   <div className="product__item">
-                      <label htmlFor="Name">Width</label>
-                      <CustomInput placeholder="Input Product Width" backgroundColor="#FAFAFA" onChange={((e)=>{setWidth(e.target.value)})} type="number" value={width}/>
-                  </div>
-                  {/* length */}
-                  <div className="product__item">
-                      <label htmlFor="Name">Length</label>
-                      <CustomInput placeholder="Input Product Length" backgroundColor="#FAFAFA" onChange={((e)=>{setLength(e.target.value)})} type="number" value={length}/>
+                      <label htmlFor="Name">Yard</label>
+                      <CustomInput placeholder="Input Product Yard" backgroundColor="#FAFAFA" onChange={((e)=>{setYard(e.target.value)})} type="number" value={yard}/>
                   </div>
                   {/* Pattern */}
                   <div className="product__item">
