@@ -154,7 +154,7 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
                 {/* Quantity available */}
                 <div className="product__item">
                     <label htmlFor="Name">Quantity Available (Stock)</label>
-                    <CustomInput placeholder="Input quantity available" backgroundColor="#FAFAFA" value={stock} onChange={(e)=>{setStock(e.target.value)}}/>
+                    <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setStock(e.target.value)})} type="number" value={stock}/>
                 </div>
                 {/* Product Type */}
                 <div className="product__item">
@@ -170,11 +170,6 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
                 <div className="product__item">
                     <label htmlFor="Name">Sales Price(NGN)</label>
                     <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setRegularPrice(e.target.value)})} type="number" value={salesPrice}/>
-                </div>
-                {/* Stock */}
-                <div className="product__item">
-                    <label htmlFor="Name">Stock</label>
-                    <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setStock(e.target.value)})} type="number" value={stock}/>
                 </div>
               </FlexibleDiv>
               {/* right section */}

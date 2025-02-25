@@ -12,7 +12,7 @@ import { countries } from "@/data-helpers/auth-helpers";
 import { CustomUpload } from "@/components/lib/CustomUpload";
 import { MainContext } from "@/context";
 import dayjs from "dayjs";
-import { UpdateProfilePicture } from "@/network/profile";
+import { UpdateProfileData, UpdateProfilePicture } from "@/network/profile";
 
 
 export default function SellerProfile() {
@@ -70,9 +70,9 @@ export default function SellerProfile() {
     firstName:  user?.firstName,
     sex: "Male",
     email: user?.email,
-    phone: "+2347011046109",
+    phone_number: user?.phone_number,
     address: user?.personalBusinessAccount?.residentialAddress,
-    dob: user?.personalBusinessAccount?.dateOfBirth,
+    dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
     country: user?.country,
     regDate: user?.createdAt,
   };  
@@ -100,7 +100,6 @@ export default function SellerProfile() {
   ];
 
   const handleImageUpload= async ()=>{
-    console.log(file)
     if(file){
     try{
         const data = await UpdateProfilePicture({profilePicture:file},user?._id)
@@ -110,12 +109,27 @@ export default function SellerProfile() {
       }
     }
   }
-
-  const handleSubmit = async (values) => {
+  const handleDataUpdate=async(payload)=>{
+    try{
+      const data= await UpdateProfileData(payload,user?._id)
+    }catch(errors){
+      console.log(errors)
+    }
+  }
+  const handleSubmit = async (type) => {
     setIsLoading(true);
     try {
       await handleImageUpload()
-      console.log("Submitted Values:", values);
+      if(type=="personal"){
+       await handleDataUpdate(
+        {profileData}
+       )
+      }else{
+       await handleDataUpdate(
+        {businessData}
+       )
+      }
+      console.log("Submitted Values:", type);
       success("Personal details saved successfully!");
       setIsLoading(false);
       toggleEditMode()
@@ -204,10 +218,11 @@ export default function SellerProfile() {
                                         <TextField
                                             name="regNum"
                                             placeholder="Enter registration number"
-                                            defaultValue={profileData.phone}
+                                            defaultValue={profileData.phone_number}
+                                            onChange={(e)=>{profileData.phone_number = e.target.value}}
                                         />
                                     ) : (
-                                    <p>{profileData.phone}</p>
+                                    <p>{profileData.phone_number}</p>
                                     )}
                                 </FlexibleDiv>
                             </FlexibleDiv>
@@ -220,6 +235,7 @@ export default function SellerProfile() {
                                             name="regNum"
                                             placeholder="Enter registration number"
                                             defaultValue={profileData.address}
+                                            onChange={(e)=>{profileData.address = e.target.value}}
                                         />
                                     ) : (
                                     <p>{profileData.address}</p>
@@ -231,13 +247,14 @@ export default function SellerProfile() {
                                     {isEditMode ? (
                                         <DatePicker
                                         name="regNum"
-                                        defaultValue={dayjs(profileData.dob)}
+                                        defaultValue={dayjs(profileData.dateOfBirth)}
                                         placeholder="Enter registration number"
                                         style={{width:"100%"}}
+                                        onChange={(e)=>{profileData.dateOfBirth = e, console.log(profileData.dateOfBirth)}}
                                         />
                                         
                                     ) : (
-                                    <p>{dayjs(profileData.dob).format('DD/MM/YYYY')}</p>
+                                    <p>{dayjs(profileData.dateOfBirth).format('DD/MM/YYYY')}</p>
                                     )}
                                 </FlexibleDiv>
                             </FlexibleDiv>
@@ -298,7 +315,7 @@ export default function SellerProfile() {
                         <CustomUpload setFile={setFile} editable={isEditMode} initialImage={user?.profilePicture} />
                             
                             <Button
-                                onClick={isEditMode ? handleSubmit : toggleEditMode}
+                                onClick={()=>{isEditMode ? handleSubmit("personal") : toggleEditMode()}}
                                 width="50%"
                                 radius="8px"
                                 color="var(--oosriWhite)"
