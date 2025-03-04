@@ -71,7 +71,7 @@ export default function SellerProfile() {
     sex: "Male",
     email: user?.email,
     phone_number: user?.phone_number,
-    address: user?.personalBusinessAccount?.residentialAddress,
+    residentialAddress: user?.personalBusinessAccount?.residentialAddress,
     dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
     country: user?.country,
     regDate: user?.createdAt,
@@ -217,7 +217,7 @@ export default function SellerProfile() {
                                         <TextField
                                             name="regNum"
                                             placeholder="Enter registration number"
-                                            defaultValue={profileData.phone_number || "none"}
+                                            defaultValue={profileData.phone_number || " "}
                                             onChange={(e)=>{profileData.phone_number = e.target.value}}
                                         />
                                     ) : (
@@ -233,11 +233,11 @@ export default function SellerProfile() {
                                         <TextField
                                             name="regNum"
                                             placeholder="Enter registration number"
-                                            defaultValue={profileData.address}
-                                            onChange={(e)=>{profileData.address = e.target.value}}
+                                            defaultValue={profileData.residentialAddress}
+                                            onChange={(e)=>{profileData.residentialAddress = e.target.value}}
                                         />
                                     ) : (
-                                    <p>{profileData.address}</p>
+                                    <p>{profileData.residentialAddress}</p>
                                     )}
                                 </FlexibleDiv>
 

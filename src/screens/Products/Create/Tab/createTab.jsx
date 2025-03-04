@@ -18,7 +18,6 @@ export const CreateTab=({subCategories,category})=>{
     const[productName,setProductName]=useState("")
     const[productDescription,setProductDescription]=useState("")
     const[brandArtist,setBrandArtist]=useState("")
-    const[discount,setDiscount]=useState("")
     const[weight,setWeight]=useState("")
     const [openModal,setOpenModal]=useState(false)
     const [categoryItem,setCategoryItem]=useState([])
@@ -56,7 +55,6 @@ export const CreateTab=({subCategories,category})=>{
     salesPrice:salesPrice,
     regularPrice:regularPrice,
     productType:productType,
-    discount:discount,
     ...(category === "Sculpture" && {
       width: width,
       weight:weight,
@@ -87,15 +85,6 @@ export const CreateTab=({subCategories,category})=>{
       pattern:pattern,
     }),
   }
-  // Discount manager
-    useEffect(()=>{
-      const handleDiscount=()=>{
-        if(salesPrice && regularPrice){
-          setDiscount((regularPrice-salesPrice)/regularPrice * 100)
-        }
-      }
-      handleDiscount()
-    },[salesPrice,regularPrice])
 
   const handleModalClose=()=>{
    setClearImg(true)
@@ -106,7 +95,6 @@ export const CreateTab=({subCategories,category})=>{
    setProductName("")
    setProductDescription("")  
    setBrandArtist("")
-   setDiscount()
    setWeight("")
    setProductType("")
    setRegularPrice("")
@@ -220,11 +208,6 @@ export const CreateTab=({subCategories,category})=>{
             <div className="product__item">
                 <label htmlFor="Name">Sales Price(NGN)</label>
                 <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" disabled type="number"/>
-            </div>
-            {/* Discounts */}
-            <div className="product__item">
-                <label htmlFor="Name">Dsicounts</label>
-                <CustomInput placeholder="Specify if there are promotions, discounts" value={`${discount}%`} backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}} disabled/>
             </div>
           </FlexibleDiv>
           {/* right section */}

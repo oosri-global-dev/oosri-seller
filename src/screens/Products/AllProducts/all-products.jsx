@@ -18,7 +18,6 @@ import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
 
 
 export default function AllProductsScreen() {
-  const [activeTab, setActiveTab] = useState("products");
   const [allProducts,setAllProducts]=useState([])
   const [openModal,setOpenModal]=useState(false)
   const [modalError,setModalError]=useState(false)
@@ -32,17 +31,6 @@ export default function AllProductsScreen() {
     dispatch,
     state: { user },
   } = useMainContext();
-
-  const items = [
-    {
-      key: "1",
-      label: "Products",
-    },
-    {
-      key: "2",
-      label: "Pending Products",
-    },
-  ];
 
   const handleDelete= async (param)=>{
     try{
@@ -99,12 +87,21 @@ export default function AllProductsScreen() {
         height="30px"
         radius="5px"
         onClick={() => {setSort("newest")}}
+        width="100%"
       >
         Newest First
       </Button>
-        <Button height="30px" radius="5px" onClick={() => {setSort("oldest")}}
+        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("oldest")}}
         >
           Oldest First
+        </Button>
+        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_asc")}}
+        >
+          Ascending Price
+        </Button>
+        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_desc")}}
+        >
+          Descending Price
         </Button>
     </div>
   )
@@ -244,16 +241,6 @@ export default function AllProductsScreen() {
           </Button>
         </FlexibleDiv>
 
-        <TopMenuWrapper>
-          <Tabs
-            className="tabs__custom"
-            defaultActiveKey="1"
-            items={items}
-            onChange={(e) =>
-              e === 1 ? setActiveTab("products") : setActiveTab("pendingProducts")
-            }
-          />
-        </TopMenuWrapper>
         <AllProductsWrapper>
           <FlexibleDiv
             flexDir="column"
