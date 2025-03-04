@@ -4,8 +4,8 @@ import { Select } from "antd";
 export default styled(Select)`
   width: ${({ width }) => width || "fit-content"};
   margin: ${({ margin }) => margin};
-  height: ${({ height }) => height || "35px"};
-  min-height: ${({ height }) => height || "35px"};
+  height: ${({ height }) => height || "40px"};
+  min-height: ${({ height }) => height || "40px"};
   min-width: ${({ minWidth }) => minWidth || "100px"};
   background: ${({ bgColor }) => bgColor || "#FAFAFA"};
 
