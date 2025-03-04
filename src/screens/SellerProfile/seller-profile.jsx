@@ -91,7 +91,6 @@ export default function SellerProfile() {
     accountname: user?.bankDetails?.accountName,
     bankname: user?.bankDetails?.bank,
     accountnumber: user?.bankDetails?.accountNumber,
-    nin: "49583837293939",
   }
 
   const businessTypeOptions = [
@@ -218,7 +217,7 @@ export default function SellerProfile() {
                                         <TextField
                                             name="regNum"
                                             placeholder="Enter registration number"
-                                            defaultValue={profileData.phone_number}
+                                            defaultValue={profileData.phone_number || "none"}
                                             onChange={(e)=>{profileData.phone_number = e.target.value}}
                                         />
                                     ) : (

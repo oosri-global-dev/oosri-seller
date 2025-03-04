@@ -116,7 +116,10 @@ export default function AllProductsScreen() {
   
   const productsTableColumns = [
     {
-      title: "Product Name",
+      title:
+        <FlexibleDiv justifyContent="start" padding="0 0 0 40px">
+          <p>Product Name</p>
+        </FlexibleDiv>,
       dataIndex: "productName",
       key: "productName",
       render: (_,obj) => (
@@ -128,6 +131,7 @@ export default function AllProductsScreen() {
           </Space>
         </Space>
       ),
+      
     },
     {
       title: "Brand Name",

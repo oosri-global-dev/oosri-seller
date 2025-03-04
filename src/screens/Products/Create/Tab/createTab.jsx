@@ -178,14 +178,8 @@ export const CreateTab=({subCategories,category})=>{
       }
 
       const handleSalesPrice=(e)=>{
-        if(e.target.value > regularPrice){
-          setSalesError(true)
-        }else{
-          setSalesPrice(e.target.value)
-          setSalesError(false)
-        }
-        console.log("sale", regularPrice)
-        console.log("reg",regularPrice)
+        setRegularPrice(e)
+        setSalesPrice(e - (e * 5/100)) 
       }
 
     return(
@@ -220,16 +214,12 @@ export const CreateTab=({subCategories,category})=>{
             {/* Regular Price */}
             <div className="product__item">
                 <label htmlFor="Name">Regular Price(NGN)</label>
-                <CustomInput placeholder="Input Product Price" value={regularPrice} backgroundColor="#FAFAFA" type="number" onChange={(e)=>{setRegularPrice(e.target.value)}} />
+                <CustomInput placeholder="Input Product Price" value={regularPrice} backgroundColor="#FAFAFA" type="number" onChange={(e)=>{handleSalesPrice(e.target.value)}} />
             </div>
             {/* Sales Price */}
             <div className="product__item">
                 <label htmlFor="Name">Sales Price(NGN)</label>
-                <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" onChange={((e)=>{handleSalesPrice(e)})} type="number"/>
-                  {
-                    salesError &&
-                    <p style={{color:"red"}}>Sales price cannot be more than the normal price</p>
-                  }
+                <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" disabled type="number"/>
             </div>
             {/* Discounts */}
             <div className="product__item">
