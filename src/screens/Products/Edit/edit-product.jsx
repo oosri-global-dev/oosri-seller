@@ -60,7 +60,6 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
       salesPrice:salesPrice,
       regularPrice:regularPrice,
       productType:productType,
-      discount:discount,
       inStock:stock,
       ...(category === "Sculpture" && {
         width: width,
@@ -122,6 +121,12 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
       setEdit(false)
     }
 
+    const handleSalesPrice=(e)=>{
+      setRegularPrice(e)
+      setSalesPrice(e - (e * 5/100)) 
+    }
+
+
     return(
       <>
       {
@@ -164,12 +169,12 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
                 {/* Regular Price */}
                 <div className="product__item">
                     <label htmlFor="Name">Regular Price(NGN)</label>
-                    <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" type="number" onChange={(e)=>{setSalesPrice(e.target.value)}} value={regularPrice} />
+                    <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" type="number" onChange={(e)=>{handleSalesPrice(e.target.value)}}  value={regularPrice} />
                 </div>
                 {/* Sales Price */}
                 <div className="product__item">
                     <label htmlFor="Name">Sales Price(NGN)</label>
-                    <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setRegularPrice(e.target.value)})} type="number" value={salesPrice}/>
+                    <CustomInput placeholder="Input Product Price" backgroundColor="#FAFAFA" onChange={((e)=>{setSalesPrice(e.target.value)})} type="number" value={salesPrice} disabled/>
                 </div>
               </FlexibleDiv>
               {/* right section */}
@@ -182,11 +187,6 @@ export default function EditProduct({data,id,setEdit, fetchData,subCategories}) 
                     <CustomUpload initialImage={images[3]} editable setFile={setImg4} />
                   </FlexibleDiv>
                 </FlexibleDiv>
-                {/* Discounts */}
-                <div className="product__item">
-                    <label htmlFor="Name">Dsicounts</label>
-                    <CustomInput placeholder="Specify if there are promotions, discounts" backgroundColor="#FAFAFA" value={discount} onChange={(e)=>{setDiscount(e.target.value)}}/>
-                </div>
                 {/*Product Description*/}
                 <div className="product__item">
                     <label htmlFor="Name">Product Description</label>

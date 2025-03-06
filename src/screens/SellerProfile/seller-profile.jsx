@@ -68,13 +68,11 @@ export default function SellerProfile() {
   const profileData = {
     lastName: user?.lastName,
     firstName:  user?.firstName,
-    sex: "Male",
     email: user?.email,
     phone_number: user?.phone_number,
     residentialAddress: user?.personalBusinessAccount?.residentialAddress,
     dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
     country: user?.country,
-    regDate: user?.createdAt,
   };  
 
   const businessData = {
@@ -115,6 +113,7 @@ export default function SellerProfile() {
       console.log(errors)
     }
   }
+
   const handleSubmit = async (type) => {
     setIsLoading(true);
     try {
@@ -150,8 +149,6 @@ export default function SellerProfile() {
       setIsLoading(false);
     }
   };
-
-
 
 
     return (
@@ -297,12 +294,12 @@ export default function SellerProfile() {
                                     {isEditMode ? (
                                         <DatePicker
                                             name="regNum"
-                                            defaultValue={dayjs(profileData.regDate)}
+                                            defaultValue={dayjs(user?.createdAt)}
                                             disabled
                                             style={{width:"100%"}}
                                         />
                                     ) : (
-                                    <p>{dayjs(profileData.regDate).format("DD/MM/YYYY")}</p>
+                                    <p>{dayjs( user?.createdAt).format("DD/MM/YYYY")}</p>
                                     )}
                                 </FlexibleDiv>
                             </FlexibleDiv>
@@ -496,7 +493,7 @@ export default function SellerProfile() {
                         className="edit__details__cont"
                         >
                             <Button
-                            onClick={isEditMode ? handleSaveDetails : toggleEditMode}
+                            onClick={()=>{isEditMode ? handleDataUpdate(businessData) : toggleEditMode}}
                             type="submit"
                             radius="8px"
                             color="var(--oosriWhite)"
