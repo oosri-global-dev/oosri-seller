@@ -73,6 +73,7 @@ export default function SellerProfile() {
     residentialAddress: user?.personalBusinessAccount?.residentialAddress,
     dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
     country: user?.country,
+    // countryIdentificationCard:user?.personalBusinessAccount.countryIdentificationCard,
   };  
 
   const businessData = {

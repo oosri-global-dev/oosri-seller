@@ -88,18 +88,33 @@ export default function AllProductsScreen() {
         radius="5px"
         onClick={() => {setSort("newest")}}
         width="100%"
-      >
+        style={{
+          backgroundColor: sort === "newest" ? "var(--oosriPrimary)":"transparent",
+          color: sort === "newest" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+        }}>
         Newest First
       </Button>
         <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("oldest")}}
+            style={{
+            backgroundColor: sort === "oldest" ? "var(--oosriPrimary)":"transparent",
+            color: sort === "oldest" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+          }}
         >
           Oldest First
         </Button>
         <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_asc")}}
+            style={{
+            backgroundColor: sort === "price_asc" ? "var(--oosriPrimary)":"transparent",
+            color: sort === "price_asc" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+          }}
         >
           Ascending Price
         </Button>
         <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_desc")}}
+            style={{
+            backgroundColor: sort === "price_desc" ? "var(--oosriPrimary)":"transparent",
+            color: sort === "price_desc" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+          }}
         >
           Descending Price
         </Button>
