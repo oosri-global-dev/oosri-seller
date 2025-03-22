@@ -66,7 +66,13 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
   }
 
   .profile__info__wrapper {
-  width:60%;
+    width:60%;
+    h2{
+     justify-content:flex-start;
+     text-align:left;
+     width:100%;
+     padding-left:30px;
+    }
   }
 
   .profile__image__wrapper {
@@ -115,6 +121,7 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
 
   .business__info__wrapper {
   width:50%;
+  flex-basis:80%;
 }
 
   .business__details__form {
@@ -139,6 +146,7 @@ export const SellersProfileWrapper = styled(FlexibleDiv)`
   display: flex;
   justifyContent: center;
   align-items: flex-start;
+  flex-basis:20%;
   }
 
   // Bank details styling 

@@ -6,6 +6,6 @@ export const UpdateProfilePicture=async(payload,params)=>{
 }
 
 export const UpdateProfileData=async(payload,params)=>{
-    const data= await instance.put(`/settings/seller/profile/${params}`,payload)
+    const data= await formInstance.put(`/settings/seller/profile/${params}`,payload)
     return data
 }
