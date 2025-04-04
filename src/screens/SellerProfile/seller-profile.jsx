@@ -238,7 +238,7 @@ export default function SellerProfile() {
                                   <TextField
                                     name="regNum"
                                     placeholder="Enter registration number"
-                                    defaultValue={profileData.residentialAddress}
+                                    defaultValue={profileData.personalBusinessAccount.residentialAddress}
                                     onChange={(e)=>{
                                       profileData.residentialAddress = e.target.value;
                                       setProfileData((prev)=>({
