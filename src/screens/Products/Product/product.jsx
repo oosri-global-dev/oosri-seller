@@ -48,13 +48,13 @@ export default function Product() {
         const categories=data.data.data
         const selectedCategory = categories.find((category) => category.name === productData?.category);
         if (selectedCategory) {
-          setSubCategories(selectedCategory.subcategories);
           const items=[]
-          for (let index = 0; index < subCategories.length; index++) {    
+          const values=selectedCategory.subcategories
+          for (let index = 0; index < values.length; index++) {    
             items.push(
               {
-                key:subCategories[index].name,
-                label:subCategories[index].name,
+                key:values[index].name,
+                label:values[index].name,
               }
             ) 
           }
