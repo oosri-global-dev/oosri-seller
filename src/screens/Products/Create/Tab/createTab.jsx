@@ -1,7 +1,7 @@
 import { FlexibleDiv } from "../../../../components/lib/Box/styles"
 import Select from "../../../../components/lib/Select"
 import { Input, Upload } from "antd"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { CustomUpload } from "../../../../components/lib/CustomUpload"
 import { createProduct } from "@/network/product"
 import Button from "@/components/lib/Button"
@@ -18,7 +18,6 @@ export const CreateTab=({subCategories,category})=>{
     const[productName,setProductName]=useState("")
     const[productDescription,setProductDescription]=useState("")
     const[brandArtist,setBrandArtist]=useState("")
-    const[discount,setDiscount]=useState("")
     const[weight,setWeight]=useState("")
     const [openModal,setOpenModal]=useState(false)
     const [categoryItem,setCategoryItem]=useState([])
@@ -43,6 +42,7 @@ export const CreateTab=({subCategories,category})=>{
     const [size,setSize]=useState("")
     const[modalError,setModalError]=useState(false)
     const[errorText,setErrorText]=useState(" ")
+    const [yard,setYard]=useState("")
     const[clearImage,setClearImg]=useState(false)
 
   const payload={
@@ -55,7 +55,6 @@ export const CreateTab=({subCategories,category})=>{
     salesPrice:salesPrice,
     regularPrice:regularPrice,
     productType:productType,
-    discount:discount,
     ...(category === "Sculpture" && {
       width: width,
       weight:weight,
@@ -80,22 +79,12 @@ export const CreateTab=({subCategories,category})=>{
       glaze: glaze,
     }),
     ...(category === "Textiles/Fabrics" && {
-      length: length,
+      yard:yard,
       weight:weight,
-      width: width,
       fabricType: fabricType,
       pattern:pattern,
     }),
   }
-  // Discount manager
-    useEffect(()=>{
-      const handleDiscount=()=>{
-        if(salesPrice && regularPrice){
-          setDiscount((regularPrice-salesPrice)/regularPrice * 100)
-        }
-      }
-      handleDiscount()
-    },[salesPrice,regularPrice])
 
   const handleModalClose=()=>{
    setClearImg(true)
@@ -106,7 +95,6 @@ export const CreateTab=({subCategories,category})=>{
    setProductName("")
    setProductDescription("")  
    setBrandArtist("")
-   setDiscount()
    setWeight("")
    setProductType("")
    setRegularPrice("")
@@ -127,7 +115,7 @@ export const CreateTab=({subCategories,category})=>{
    setSize()
    setOpenModal(false)
    setModalError(false)
-  //  window.location.reload()
+   setYard(" ")
   }
       useEffect(()=>{
         if(subCategories){
@@ -178,14 +166,8 @@ export const CreateTab=({subCategories,category})=>{
       }
 
       const handleSalesPrice=(e)=>{
-        if(e.target.value > regularPrice){
-          setSalesError(true)
-        }else{
-          setSalesPrice(e.target.value)
-          setSalesError(false)
-        }
-        console.log("sale", regularPrice)
-        console.log("reg",regularPrice)
+        setRegularPrice(e)
+        setSalesPrice(e - (e * 5/100)) 
       }
 
     return(
@@ -220,21 +202,12 @@ export const CreateTab=({subCategories,category})=>{
             {/* Regular Price */}
             <div className="product__item">
                 <label htmlFor="Name">Regular Price(NGN)</label>
-                <CustomInput placeholder="Input Product Price" value={regularPrice} backgroundColor="#FAFAFA" type="number" onChange={(e)=>{setRegularPrice(e.target.value)}} />
+                <CustomInput placeholder="Input Product Price" value={regularPrice} backgroundColor="#FAFAFA" type="number" onChange={(e)=>{handleSalesPrice(e.target.value)}} />
             </div>
             {/* Sales Price */}
             <div className="product__item">
                 <label htmlFor="Name">Sales Price(NGN)</label>
-                <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" onChange={((e)=>{handleSalesPrice(e)})} type="number"/>
-                  {
-                    salesError &&
-                    <p style={{color:"red"}}>Sales price cannot be more than the normal price</p>
-                  }
-            </div>
-            {/* Discounts */}
-            <div className="product__item">
-                <label htmlFor="Name">Dsicounts</label>
-                <CustomInput placeholder="Specify if there are promotions, discounts" value={`${discount}%`} backgroundColor="#FAFAFA" onChange={(e)=>{setDiscount(e.target.value)}} disabled/>
+                <CustomInput placeholder="Input Product Price" value={salesPrice} backgroundColor="#FAFAFA" disabled type="number"/>
             </div>
           </FlexibleDiv>
           {/* right section */}
@@ -282,15 +255,10 @@ export const CreateTab=({subCategories,category})=>{
                   <label htmlFor="Name">Weight</label>
                   <CustomInput value={weight} placeholder="Input Product Weight" backgroundColor="#FAFAFA" onChange={((e)=>{setWeight(e.target.value)})} type="number"/>
               </div>
-              {/* Width */}
+              {/* yard */}
               <div className="product__item">
-                  <label htmlFor="Name">Width</label>
-                  <CustomInput value={width} placeholder="Input Product Width" backgroundColor="#FAFAFA" onChange={((e)=>{setWidth(e.target.value)})} type="number"/>
-              </div>
-              {/* length */}
-              <div className="product__item">
-                  <label htmlFor="Name">Length</label>
-                  <CustomInput value={length} placeholder="Input Product Length" backgroundColor="#FAFAFA" onChange={((e)=>{setLength(e.target.value)})} type="number"/>
+                  <label htmlFor="Name">Yards</label>
+                  <CustomInput value={yard} placeholder="Input Product Yards" backgroundColor="#FAFAFA" onChange={((e)=>{setYard(e.target.value)})} type="number"/>
               </div>
               {/* Pattern */}
               <div className="product__item">

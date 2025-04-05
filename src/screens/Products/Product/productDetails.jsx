@@ -6,30 +6,6 @@ import Button from "@/components/lib/Button"
 
 export const ProductDetails=({data,setEdit})=>{
     const [category,setCategory]=useState(data?.category)
-    const[productName,setProductName]=useState(data?.productName)
-    const[productDescription,setProductDescription]=useState(data?.productDescription)
-    const[brandArtist,setBrandArtist]=useState(data?.brandArtist)
-    const[discount,setDiscount]=useState(data?.discount)
-    const[weight,setWeight]=useState(data?.weight)
-    const [categoryItem,setCategoryItem]=useState([])
-    const[subCategory,setSubCategory]=useState(data.subcategory)
-    const [productType,setProductType]=useState(data.productType)
-    const [regularPrice,setRegularPrice]=useState(data?.regularPrice)
-    const [salesPrice,setSalesPrice]=useState(data?.salesPrice)
-    const [width,setWidth]=useState(data?.width)
-    const [height,setHeight]=useState(data.height)
-    const [technique,setTechnique]=useState(data?.technique)
-    const [length,setLength]=useState(data?.length)
-    const [fabricType,setFabricType]=useState(data?.fabricType)
-    const [clayType,setClayType]=useState(data?.clayType)
-    const [glaze,setGlaze]=useState(data?.glaze)
-    const [diameter,setDiameter]=useState(data?.diameter)
-    const [pattern,setPattern]=useState(data?.pattern)
-    const [stoneType,setStoneType]=useState(data?.stoneType)
-    const [metalType,setMetalType]=useState(data?.metalType)
-    const [medium,setMedium]=useState(data?.medium)
-    const [condition,setCondition]=useState(data?.condition)
-    const [size,setSize]=useState(data?.size)
 
     return(
         <CreateProductPageWrapper style={{width:"100%"}}>
@@ -41,33 +17,45 @@ export const ProductDetails=({data,setEdit})=>{
                     {/* Name */}
                     <div className="product__item">
                     <label htmlFor="Name">Product Name</label>
-                        <h5 width={"100%"}>{productName}</h5>
+                        <h5 width={"100%"}>{data?.productName}</h5>
                     </div>
                 </FlexibleDiv>
                 {/* Category */}
                 <div className="product__item">
                     <label htmlFor="Name">Product Category</label>
-                    <h5>{subCategory}</h5>
+                    <h5>{data?.subCategory}</h5>
                 </div>
                 {/* Brand */}
                 <div className="product__item">
                     <label htmlFor="Name">Brand</label>
-                    <h5>{brandArtist}</h5>
+                    <h5>{data?.brandArtist}</h5>
                 </div>
                 {/* Product Type */}
                 <div className="product__item">
                     <label htmlFor="Name">Product Type</label>
-                    <h5>{productType}</h5>
+                    <h5>{data?.productType}</h5>
                 </div>
                 {/* Regular Price */}
-                <div className="product__item">
+                 {
+                  data?.previousPrice === data?.regularPrice ?
+
+                 <div className="product__item">
                     <label htmlFor="Name">Regular Price(NGN)</label>
-                    <h5>{regularPrice}</h5>
+                    <h5>{data?.regularPrice}</h5>
                 </div>
+                :
+                <div>
+                    <label htmlFor="Name">Regular Price(NGN)</label>
+                    <FlexibleDiv justifyContent="start" flexWrap="nowrap" gap="20px">
+                        <h5>{data?.regularPrice}</h5>
+                        <h5 style={{textDecoration:"line-through", color:"gray"}}>{data?.previousPrice}</h5>
+                    </FlexibleDiv>
+                </div>
+                 }    
                 {/* Sales Price */}
                 <div className="product__item">
                     <label htmlFor="Name">Sales Price(NGN)</label>
-                    <h5>{salesPrice}</h5>
+                    <h5>{data?.salesPrice}</h5>
                 </div>
                 </FlexibleDiv>
                 {/* right section */}
@@ -84,12 +72,12 @@ export const ProductDetails=({data,setEdit})=>{
                 {/* Discounts */}
                 <div className="product__item">
                     <label htmlFor="Name">Dsicounts</label>
-                    <h5>{discount}</h5>
+                    <h5>{data?.discount}</h5>
                 </div>
                 {/*Product Description*/}
                 <div className="product__item">
                     <label htmlFor="Name">Product Description</label>
-                    <h5>{productDescription}</h5>
+                    <h5>{data?.productDescription}</h5>
                 </div>
                 {
                     category==="Sculpture"?
@@ -97,110 +85,106 @@ export const ProductDetails=({data,setEdit})=>{
                     {/* Weight */}
                     <div className="product__item">
                         <label htmlFor="Name">Weight</label>
-                        <h5>{weight}</h5>
+                        <h5>{data?.weight}</h5>
                     </div>
                     {/* Width */}
                     <div className="product__item">
                         <label htmlFor="Name">Width</label>
-                        <h5>{width}</h5>
+                        <h5>{data?.width}</h5>
                     </div>
                     {/* Height */}
                     <div className="product__item">
                         <label htmlFor="Name">Height</label>
-                        <h5>{height}</h5>
+                        <h5>{data?.height}</h5>
                     </div>
                     {/* Technique */}
                     <div className="product__item">
                         <label htmlFor="Name">Technique</label>
-                        <h5>{technique}</h5>
+                        <h5>{data?.technique}</h5>
                     </div>
                     </>:category==="Textiles/Fabrics"?
                     <>
                     {/* Weight */}
                     <div className="product__item">
                         <label htmlFor="Name">Weight</label>
-                        <h5>{weight}</h5>
+                        <h5>{data?.weight}</h5>
                     </div>
-                    {/* Width */}
+                    {/* Yard */}
                     <div className="product__item">
-                        <label htmlFor="Name">Width</label>
-                        <h5>{widh}</h5>
-                    </div>
-                    {/* length */}
-                    <div className="product__item">
-                        <label htmlFor="Name">Length</label>
-                        <h5>{length}</h5>
+                        <label htmlFor="Name">Yard</label>
+                        <h5>{data?.yard}</h5>
                     </div>
                     {/* Pattern */}
                     <div className="product__item">
                         <label htmlFor="Name">Pattern</label>
-                        <h5>{pattern}</h5>
+                        <h5>{data?.pattern}</h5>
                     </div>
                     {/* FabricType */}
                     <div className="product__item">
                         <label htmlFor="Name">Fabric Type</label>
-                        <h5>{fabricType}</h5>
+                        <h5>{data?.fabricType}</h5>
                     </div>
                     </>:category==="Pottery"?
                     <>
                         {/* Diameter */}
                         <div className="product__item">
                         <label htmlFor="Name">Diameter</label>
-                        <h5>{diameter}</h5>
+                        <h5>{data?.diameter}</h5>
                         </div>
                         {/* ClayType */}
                         <div className="product__item">
                             <label htmlFor="Name">Clay Type</label>
-                            <h5>{clayType}</h5>
+                            <h5>{data?.clayType}</h5>
                         </div>
                         {/* Height */}
                         <div className="product__item">
                             <label htmlFor="Name">Height</label>
-                            <h5>{height}</h5>
+                            <h5>{data?.height}</h5>
                         </div>
                         {/* Glaze */}
                         <div className="product__item">
                             <label htmlFor="Name">Glaze</label>
-                            <h5>{glaze}</h5>
+                            <h5>{data?.glaze}</h5>
                         </div>
-                    </>:category==="Paintings"?
+                    </>:
+                    category==="Paintings"?
                     <>
                     {/* Medium */}
                         <div className="product__item">
                         <label htmlFor="Name">Medium</label>
-                        <h5>{medium}</h5>
+                        <h5>{data?.medium}</h5>
                         </div>
                         {/* Condition */}
                         <div className="product__item">
                             <label htmlFor="Name">Condition</label>
-                            <h5>{condition}</h5>
+                            <h5>{data?.condition}</h5>
                         </div>
                         {/* Size */}
                         <div className="product__item">
                             <label htmlFor="Name">Size</label>
-                            <h5>{size}</h5>
+                            <h5>{data?.size}</h5>
                         </div>
                     </>:category==="Jewelry"&&
                     <>
                     {/* length */}
                     <div className="product__item">
                         <label htmlFor="Name">Length</label>
-                        <h5>{length}</h5>
+                        <h5>{data?.length}</h5>
                     </div>
                     {/* Diameter */}
                     <div className="product__item">
                         <label htmlFor="Name">Diameter</label>
-                        <h5>{diameter}</h5>
+                        <h5>{data?.diameter}</h5>
                     </div>
                     {/* stoneType */}
                     <div className="product__item">
                         <label htmlFor="Name">Stone Type</label>
-                        <h5>{stoneType}</h5>
+                        <h5>{data?.stoneType}</h5>
                     </div>
                     {/* Metal type */}
                     <div className="product__item">
                         <label htmlFor="Name">Metal Type</label>
-                        <h5>{metalType}</h5>
+                        <h5>{data?.metalType}</h5>
                     </div>
                     </>
                 }

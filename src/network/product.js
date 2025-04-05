@@ -31,11 +31,10 @@ export const createProduct=async(payload)=>{
 }
 
 export const editProduct=async(params,payload)=>{
-
-    const data= await instance.put(`/products/seller/${params}`,payload,{
-        headers:{
-            'Content-Type': 'multipart/form-data',
-          }
-    })
+    const data= await formInstance.put(`/products/seller/${params}`,payload)
+    return data
+}
+export const toggleProductVisibility=async(id,payload)=>{
+    const data = await instance.patch(`products/seller/${id}/visibility`,payload)
     return data
 }

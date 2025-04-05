@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { AllProductsWrapper, TopMenuWrapper } from "./all-products.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { Table,Space, Avatar,Popover, Switch } from "antd";
+import { Table,Space, Avatar,Popover, Switch, Tabs } from "antd";
 import Button from "@/components/lib/Button";
 import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import TextField from "@/components/lib/TextField";
@@ -11,37 +11,26 @@ import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { deleteProduct, filterAllProducts, getAllProducts } from "@/network/product";
+import { deleteProduct, filterAllProducts, getAllProducts, toggleProductVisibility } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
 
 
 export default function AllProductsScreen() {
-  const [activeTab, setActiveTab] = useState("products");
-  const [loading, setLoading] = useState(false);
   const [allProducts,setAllProducts]=useState([])
   const [openModal,setOpenModal]=useState(false)
   const [modalError,setModalError]=useState(false)
   const [editModal,setEditModal]=useState(true)
   const [tableLoading,setTableLoading]=useState(false)
   const [deleteId,setDeleteId]=useState("")
+  const [sort,setSort]=useState("newest")
+
   const { push } = useRouter();
   const {
     dispatch,
     state: { user },
   } = useMainContext();
-
-  const items = [
-    {
-      key: "1",
-      label: "Products",
-    },
-    {
-      key: "2",
-      label: "Pending Products",
-    },
-  ];
 
   const handleDelete= async (param)=>{
     try{
@@ -74,31 +63,101 @@ export default function AllProductsScreen() {
         </Button>
     </div>
   )
+
+  const filterProducts=async(e)=>{
+    const filterParams=`productName=${e}&sortBy=${sort}`
+    setTableLoading(true)
+    const payload={
+      pageNo: 1,
+      pageSize: 1
+    }
+    try{
+      const data=await filterAllProducts(filterParams)
+      setAllProducts(data.data.data);
+      setTableLoading(false)
+    }catch(errors){
+      console.log(errors)
+      setTableLoading(false)
+    }
+  }
+
+  const filterContent = () => (
+    <div className="popover__custom">
+      <Button
+        height="30px"
+        radius="5px"
+        onClick={() => {setSort("newest")}}
+        width="100%"
+        hoverColor="var(--oosriBlack)"
+        style={{
+          backgroundColor: sort === "newest" ? "var(--oosriPrimary)":"transparent",
+          color: sort === "newest" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+        }}>
+        Newest First
+      </Button>
+        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("oldest")}}
+        hoverColor="var(--oosriBlack)"
+            style={{
+            backgroundColor: sort === "oldest" ? "var(--oosriPrimary)":"transparent",
+            color: sort === "oldest" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+          }}
+        >
+          Oldest First
+        </Button>
+        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_asc")}}
+        hoverColor="var(--oosriBlack)"
+            style={{
+            backgroundColor: sort === "price_asc" ? "var(--oosriPrimary)":"transparent",
+            color: sort === "price_asc" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+          }}
+        >
+          Ascending Price
+        </Button>
+        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_desc")}}
+        hoverColor="var(--oosriBlack)"
+            style={{
+            backgroundColor: sort === "price_desc" ? "var(--oosriPrimary)":"transparent",
+            color: sort === "price_desc" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
+          }}
+        >
+          Descending Price
+        </Button>
+    </div>
+  )
+
+  const handleToggle= async(e,obj)=>{
+    const data = await toggleProductVisibility(obj._id,{"isVisible":e})
+    return data
+  }
   
   const productsTableColumns = [
     {
-      title: "Seller Name",
-      dataIndex: "brandArtist",
-      key: "brandArtist",
+      title:
+        <FlexibleDiv justifyContent="start" padding="0 0 0 40px">
+          <p>Product Name</p>
+        </FlexibleDiv>,
+      dataIndex: "productName",
+      key: "productName",
       render: (_,obj) => (
         <Space>
           {/* item image */}
-          <Avatar size={45} src={obj.images[0]} />
+          <Avatar size={45} src={obj?.images[0]} />
           <Space direction="vertical" size={1}>
             <p>{_}</p>
           </Space>
         </Space>
       ),
+      
     },
     {
-      title: "Product Name",
-      dataIndex: "productName",
-      key: "productName",
+      title: "Brand Name",
+      dataIndex: "brandArtist",
+      key: "brandArtist",
     },
     {
       title: "Product ID",
-      dataIndex: "_id",
-      key: "_id",
+      dataIndex: "productId",
+      key: "productId",
     },
     {
       title: "Price",
@@ -112,16 +171,17 @@ export default function AllProductsScreen() {
     },
     {
       title: "In stock",
-      dataIndex: "instock",
-      key: "instock",
+      dataIndex: "inStock",
+      key: "inStock",
+      align:"center",
     },
     {
       title: "Visibility",
-      dataIndex: "isApproved",
-      key: "isApproved",
-      render: () => (
+      dataIndex: "isVisible",
+      key: "isVisible",
+      render: (_,obj) => (
         <div>
-          <Switch defaultChecked disabled />
+          <Switch defaultChecked={_} onChange={(e)=>{handleToggle(e,obj)}} />
         </div>
       ),
     },
@@ -151,9 +211,13 @@ export default function AllProductsScreen() {
   };
 
   useEffect(() => {
-    // Fetch products initially
     fetchAllProducts();
   }, []);
+  
+  useEffect(() => {
+    filterProducts();
+  }, [sort]);
+
 
   const closeModal=async()=>{
     setTableLoading(true)
@@ -166,22 +230,6 @@ export default function AllProductsScreen() {
       setTableLoading(false)
       setOpenModal(false)
       setModalError(false)
-    }
-  }
-
-  const filterProducts=async(e)=>{
-    const filterParams=`productName=${e}&sortBy=newest`
-    setTableLoading(true)
-    const payload={
-      pageNo: 1,
-      pageSize: 1
-    }
-    try{
-      const data=await filterAllProducts(filterParams)
-      setAllProducts(data.data.data);
-      setTableLoading(false)
-    }catch(errors){
-      console.log(errors)
     }
   }
 
@@ -212,16 +260,6 @@ export default function AllProductsScreen() {
           </Button>
         </FlexibleDiv>
 
-        {/* <TopMenuWrapper>
-          <Tabs
-            className="tabs__custom"
-            defaultActiveKey="1"
-            items={items}
-            onChange={(e) =>
-              e === 1 ? setActiveTab("products") : setActiveTab("pendingProducts")
-            }
-          />
-        </TopMenuWrapper> */}
         <AllProductsWrapper>
           <FlexibleDiv
             flexDir="column"
@@ -249,18 +287,20 @@ export default function AllProductsScreen() {
                   onChange={(e)=>{filterProducts(e.target.value)}}
                 />
               </FlexibleDiv>
-              <Button
-                border="1px solid #E0E0E0"
-                height="38px"
-                className="filter__btn__custom"
-                hoverBg="transparent"
-                radius="8px"
-                hoverBorderColor="var(--oosriPrimary) !important"
-                hoverColor="var(--oosriBlack)"
-              >
-                <FilterArrow size={16} color="black" />
-                Filter
-              </Button>
+              <Popover content={filterContent}>
+                <Button
+                  border="1px solid #E0E0E0"
+                  height="38px"
+                  className="filter__btn__custom"
+                  hoverBg="transparent"
+                  radius="8px"
+                  hoverBorderColor="var(--oosriPrimary) !important"
+                  hoverColor="var(--oosriBlack)"
+                >
+                  <FilterArrow size={16} color="black" />
+                  Filter
+                </Button>
+              </Popover>
             </FlexibleDiv>
 
             <FlexibleDiv className="products__table__wrapper">
