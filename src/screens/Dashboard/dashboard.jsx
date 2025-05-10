@@ -122,8 +122,9 @@ export default function DashboardScreen() {
 
   return (
     <>
-      {loading ?
-        <CustomLoader /> :
+      {loading ? (
+        <CustomLoader />
+      ) : (
         <DashboardLayout>
           <DashboardWrapper>
             <FlexibleDiv className="summary__wrapper">
@@ -157,7 +158,9 @@ export default function DashboardScreen() {
                   className="graph__info"
                 >
                   <h4>Sales Overview</h4>
-                  <p>{startDate} - {endDate}</p>
+                  <p>
+                    {startDate} - {endDate}
+                  </p>
                 </FlexibleDiv>
                 <FlexibleDiv
                   flexDir="row"
@@ -168,7 +171,9 @@ export default function DashboardScreen() {
                   {filters.map((sgn, idx) => (
                     <Button
                       backgroundColor={
-                        selectedFilter === sgn ? "var(--oosriPrimary)" : "#F5F5F5"
+                        selectedFilter === sgn
+                          ? "var(--oosriPrimary)"
+                          : "#F5F5F5"
                       }
                       hoverBg="var(--oosriPrimary)"
                       height="35px"
@@ -189,7 +194,10 @@ export default function DashboardScreen() {
               </FlexibleDiv>
             </FlexibleDiv>
             {/* Table Section */}
-            <FlexibleDiv className="table__section" justifyContent="space-around">
+            <FlexibleDiv
+              className="table__section"
+              justifyContent="space-around"
+            >
               <FlexibleDiv
                 flexDir="row"
                 width="100%"
@@ -198,7 +206,7 @@ export default function DashboardScreen() {
                 className="top__recent__box"
               >
                 <p className="recent__text">RECENT SALE</p>
-                <Link className="see__all__text" href={"/order-history"}>
+                <Link className="see__all__text" href={"/order"}>
                   See All
                 </Link>
               </FlexibleDiv>
@@ -212,7 +220,7 @@ export default function DashboardScreen() {
             </FlexibleDiv>
           </DashboardWrapper>
         </DashboardLayout>
-      }
+      )}
     </>
   );
 }
