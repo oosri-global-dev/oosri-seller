@@ -70,12 +70,6 @@ export default function DashboardLayout({
       },
     },
     {
-      key: "/messages",
-      icon: <PaymentIcon />,
-      label: "Messages",
-      onClick: ({ item, key }) => {},
-    },
-    {
       key: "/sales-analytics",
       icon: <GraphIcon />,
       label: "Sales Analytics",
