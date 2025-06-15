@@ -15,22 +15,42 @@ import { deleteProduct, filterAllProducts, getAllProducts, toggleProductVisibili
 import CustomLoader from "@/components/lib/CustomLoader";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
-
+import { useQuery } from "@tanstack/react-query";
 
 export default function AllProductsScreen() {
-  const [allProducts,setAllProducts]=useState([])
+  // const [allProducts,setAllProducts]=useState([])
   const [openModal,setOpenModal]=useState(false)
   const [modalError,setModalError]=useState(false)
   const [editModal,setEditModal]=useState(true)
-  const [tableLoading,setTableLoading]=useState(false)
   const [deleteId,setDeleteId]=useState("")
   const [sort,setSort]=useState("newest")
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { 
+  data: productsData,
+  isPending: tableLoading, 
+   isError, error,
+  } = useQuery({
+   queryKey: ["products", searchTerm, sort],
+   queryFn: async () => {
+      if(searchTerm){
+        const filterParams = `productName=${searchTerm}&sortBy=${sort}`;
+        return await filterAllProducts(filterParams);
+      }
+      return await getAllProducts();
+   },
+   staleTime: 5 * 60 * 1000,
+   cacheTime: 15 * 60 * 1000
+});
+const allProducts = productsData?.data?.data || [];
 
   const { push } = useRouter();
   const {
     dispatch,
     state: { user },
   } = useMainContext();
+
+  
 
   const handleDelete= async (param)=>{
     try{
@@ -64,22 +84,22 @@ export default function AllProductsScreen() {
     </div>
   )
 
-  const filterProducts=async(e)=>{
-    const filterParams=`productName=${e}&sortBy=${sort}`
-    setTableLoading(true)
-    const payload={
-      pageNo: 1,
-      pageSize: 1
-    }
-    try{
-      const data=await filterAllProducts(filterParams)
-      setAllProducts(data.data.data);
-      setTableLoading(false)
-    }catch(errors){
-      console.log(errors)
-      setTableLoading(false)
-    }
-  }
+  // const filterProducts=async(e)=>{
+  //   const filterParams=`productName=${e}&sortBy=${sort}`
+  //   setTableLoading(true)
+  //   const payload={
+  //     pageNo: 1,
+  //     pageSize: 1
+  //   }
+  //   try{
+  //     const data=await filterAllProducts(filterParams)
+  //     setAllProducts(data.data.data);
+  //     setTableLoading(false)
+  //   }catch(errors){
+  //     console.log(errors)
+  //     setTableLoading(false)
+  //   }
+  // }
 
   const filterContent = () => (
     <div className="popover__custom">
@@ -198,25 +218,25 @@ export default function AllProductsScreen() {
   ];
   
 
-  const fetchAllProducts = async () => {
-    setTableLoading(true);
-    try {
-      const data = await getAllProducts();
-      setAllProducts(data.data.data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setTableLoading(false);
-    }
-  };
+  // const fetchAllProducts = async () => {
+  //   setTableLoading(true);
+  //   try {
+  //     const data = await getAllProducts();
+  //     setAllProducts(data.data.data);
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error);
+  //   } finally {
+  //     setTableLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchAllProducts();
-  }, []);
+  // useEffect(() => {
+  //   fetchAllProducts();
+  // }, []);
   
-  useEffect(() => {
-    filterProducts();
-  }, [sort]);
+  // useEffect(() => {
+  //   filterProducts();
+  // }, [sort]);
 
 
   const closeModal=async()=>{
@@ -283,7 +303,8 @@ export default function AllProductsScreen() {
                   className="text__field__custom"
                   placeholder="Search by products name"
                   autoComplete="new-password"
-                  type="text"
+                  type="text" 
+                  value={searchTerm}
                   onChange={(e)=>{filterProducts(e.target.value)}}
                 />
               </FlexibleDiv>

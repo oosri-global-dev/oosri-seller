@@ -11,11 +11,12 @@ import {
   dashboardTableData,
 } from "@/utils/dashboard-helpers";
 import Link from "next/link";
-import { getDashboardOverview, getDashboardSummary } from "@/network/dashboard";
+
 import CustomLoader from "@/components/lib/CustomLoader";
 import { GoStack as StackIcon } from "react-icons/go";
 import { IoBagOutline as BagIcon } from "react-icons/io5";
 import { CiCreditCard1 as CardIcon } from "react-icons/ci";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 export default function DashboardScreen() {
   const [filters, setFilters] = useState([
@@ -25,14 +26,19 @@ export default function DashboardScreen() {
     "Yearly",
   ]);
   const [selectedFilter, setSelectedFilter] = useState("Daily");
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState({
-    averageOrderValue: 0,
-    payout: 0,
-    totalOrders: 0,
-    totalProducts: 0,
-    totalSales: 0
-  })
+  // const [loading, setLoading] = useState(false);
+  // const [data, setData] = useState({
+  //   averageOrderValue: 0, 
+  //   payout: 0,
+  //   totalOrders: 0,
+  //   totalProducts: 0,
+  //   totalSales: 0
+  // });
+
+  const { data, isLoading, error} = useDashboardData(selectedFilter.toLowerCase());
+  const dashboardSummary = data?.overview?.data?.data || {};
+  const dashboardSalesOverview = data?.summary?.data?.data || {};
+
   const [graphOptions, setGraphOptions] = useState({})
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
@@ -40,17 +46,18 @@ export default function DashboardScreen() {
   const fetchSalesOverview = async () => {
     const graphOptions = {}
     try {
-      const data = await getDashboardOverview(selectedFilter.toLocaleLowerCase())
-      const first = new Date(data.data.data[0].period)
-      const last = new Date(data.data.data[data.data.data.length - 1].period)
+      const data = dashboardSalesOverview;
+      console.log("Sales Overview Data:", data);
+      const first = new Date(data[0].period)
+      const last = new Date(data[data.length - 1].period)
       setStartDate(`${first.getDate("YYYY-MM-DD")}/${first.getUTCMonth("YYYY-MM-DD")}/${first.getFullYear()}`)
       setEndDate(`${last.getDate("YYYY-MM-DD")}/${last.getUTCMonth("YYYY-MM-DD")}/${last.getFullYear()}`)
-      for (let index = 0; index < data.data.data.length; index++) {
-        const date = new Date(data.data.data[index].period);
+      for (let index = 0; index < data.length; index++) {
+        const date = new Date(data[index].period);
         if (selectedFilter === "Daily") {
           const options = { weekday: 'short' };
           const dayOfWeek = date.toLocaleDateString('en-US', options);
-          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+          graphOptions[dayOfWeek] = data[index].totalSales
         } else if (selectedFilter === "Weekly") {
           // const getWeekNumber = (d) => {
           //   const dateCopy = new Date(d.getTime());
@@ -68,14 +75,14 @@ export default function DashboardScreen() {
           // graphOptions[`Week ${weekNumber}`]=data.data.data[index].totalSales
           const options = { weekday: 'short' };
           const dayOfWeek = date.toLocaleDateString('en-US', options);
-          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+          graphOptions[dayOfWeek] = data[index].totalSales
         } else if (selectedFilter === "Monthly") {
           const options = { month: 'short' };
           const dayOfWeek = date.toLocaleDateString('en-US', options);
-          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+          graphOptions[dayOfWeek] = data[index].totalSales
         } else if (selectedFilter === "Yearly") {
           const dayOfWeek = date.getFullYear()
-          graphOptions[dayOfWeek] = data.data.data[index].totalSales
+          graphOptions[dayOfWeek] = data[index].totalSales
         }
       }
       setGraphOptions(graphOptions)
@@ -84,45 +91,45 @@ export default function DashboardScreen() {
     }
   }
 
-  useEffect(() => {
-    const fetchSummaryData = async () => {
-      try {
-        const data = await getDashboardSummary()
-        setLoading(false)
-        setData(data.data.data)
-        return data
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    fetchSummaryData()
-  }, [])
+  // useEffect(() => {
+  //   const fetchSummaryData = async () => {
+  //     try {
+  //       const data = await getDashboardSummary()
+  //       setLoading(false)
+  //       setData(data.data.data)
+  //       return data
+  //     } catch (error) {
+  //       console.log(error)
+  //     }
+  //   }
+  //   fetchSummaryData()
+  // }, [])
 
   useEffect(() => {
-    fetchSalesOverview()
+    fetchSalesOverview();
   }, [selectedFilter])
 
   const summaryBoxes = [
     {
       icon: <StackIcon size={22} color="#FB5183" />,
-      value: `${data.totalProducts}`,
+      value: `${dashboardSummary.totalProducts}`,
       label: "Total Products",
     },
     {
       icon: <BagIcon size={22} color="#FB5183" />,
-      value: `${data.totalOrders}`,
+      value: `${dashboardSummary.totalOrders}`,
       label: "Total Order",
     },
     {
       icon: <CardIcon size={22} color="#FB5183" />,
-      value: `${data.payout}`,
+      value: `${dashboardSummary.payout}`,
       label: "Payout",
     },
   ];
 
   return (
     <>
-      {loading ? (
+      {isLoading ? (
         <CustomLoader />
       ) : (
         <DashboardLayout>
