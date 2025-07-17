@@ -18,6 +18,7 @@ import { IoBagOutline as BagIcon } from "react-icons/io5";
 import { CiCreditCard1 as CardIcon } from "react-icons/ci";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useOrders } from "@/hooks/useOrders";
+import { useOrders } from "@/hooks/useOrders";
 
 export default function DashboardScreen() {
   const [filters, setFilters] = useState([
