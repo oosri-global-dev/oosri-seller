@@ -17,64 +17,6 @@ import { IoSettingsOutline as SettingsIcon } from "react-icons/io5";
 import { Avatar, Dropdown, Menu, Space, Tag } from "antd";
 import Picture from "@/assets/images/profile.jpg";
 
-export const summaryBoxes = [
-  {
-    icon: <StackIcon size={22} color="#FB5183" />,
-    value: "1080",
-    label: "Total Products",
-  },
-  {
-    icon: <BagIcon size={22} color="#FB5183" />,
-    value: "20",
-    label: "Total Order",
-  },
-  {
-    icon: <CardIcon size={22} color="#FB5183" />,
-    value: "N10,580",
-    label: "Profit",
-  },
-];
-export const salesBoxes = [
-  {
-    icon: <StackIcon size={22} color="#FB5183" />,
-    value: "N50,30.098",
-    label: "Total Sale",
-  },
-  {
-    icon: <BagIcon size={22} color="#FB5183" />,
-    value: "N10,560.098",
-    label: "Total Order",
-  }
-];
-
-export const summaryBoxes2 = [
-  {
-    icon: <StackIcon size={22} color="#FB5183" />,
-    value: "N50,300.98",
-    label: "Total Sales",
-  },
-  {
-    icon: <BagIcon size={22} color="#FB5183" />,
-    value: "N10,560.98",
-    label: "Total Orders",
-  },
-];
-
-const dropdownItems = [
-  {
-    key: "1",
-    label: (
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://www.antgroup.com"
-      >
-        1st menu item
-      </a>
-    ),
-  },
-];
-
 export const dashboardTableColumns = [
   {
     title: "OrderId",
@@ -131,49 +73,5 @@ export const dashboardTableColumns = [
       </Space>
     ),
   },
-  {
-    title: "hi",
-    dataIndex: "action",
-    key: "action",
-    render: () => <div>Dropdown</div>,
-  },
 ];
 
-export const dashboardTableData = [
-  {
-    key: "orderId",
-    orderId: "#777780",
-    orderDate: "27th April, 2023",
-    amount: "N7000",
-    customer: "Ajayi Opeyemi",
-    country: "Nigeria",
-    status: "Sent for pickup",
-  },
-  {
-    key: "orderId1",
-    orderId: "#777480",
-    orderDate: "27th April, 2023",
-    amount: "N7000",
-    customer: "Ajayi Opeyemi",
-    country: "Nigeria",
-    status: "Delivered",
-  },
-  {
-    key: "orderId2",
-    orderId: "#773780",
-    orderDate: "27th April, 2023",
-    amount: "N7000",
-    customer: "Ajayi Opeyemi",
-    country: "Nigeria",
-    status: "Sent for pickup",
-  },
-  {
-    key: "orderId4",
-    orderId: "#227780",
-    orderDate: "27th April, 2023",
-    amount: "N7000",
-    customer: "Ajayi Opeyemi",
-    country: "Nigeria",
-    status: "Delivered",
-  },
-];
