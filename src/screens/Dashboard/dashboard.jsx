@@ -11,14 +11,11 @@ import {
   dashboardTableData,
 } from "@/utils/dashboard-helpers";
 import Link from "next/link";
-
 import CustomLoader from "@/components/lib/CustomLoader";
 import { GoStack as StackIcon } from "react-icons/go";
 import { IoBagOutline as BagIcon } from "react-icons/io5";
 import { CiCreditCard1 as CardIcon } from "react-icons/ci";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { useOrders } from "@/hooks/useOrders";
-import { useOrders } from "@/hooks/useOrders";
 
 export default function DashboardScreen() {
   const [filters, setFilters] = useState([
@@ -112,17 +109,17 @@ export default function DashboardScreen() {
   const summaryBoxes = [
     {
       icon: <StackIcon size={22} color="#FB5183" />,
-      value: `${dashboardSummary.totalProducts}`,
+      value: `${dashboardSummary.totalProducts || 0}`,
       label: "Total Products",
     },
     {
       icon: <BagIcon size={22} color="#FB5183" />,
-      value: `${dashboardSummary.totalOrders}`,
+      value: `${dashboardSummary.totalOrders || 0}`,
       label: "Total Order",
     },
     {
       icon: <CardIcon size={22} color="#FB5183" />,
-      value: `${dashboardSummary.payout}`,
+      value: `${dashboardSummary.payout || 0}`,
       label: "Payout",
     },
   ];
