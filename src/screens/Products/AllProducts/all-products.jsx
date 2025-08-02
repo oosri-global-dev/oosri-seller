@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { AllProductsWrapper, TopMenuWrapper } from "./all-products.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { Table,Space, Avatar,Popover, Switch, Tabs } from "antd";
+import { Table, Space, Avatar, Popover, Switch, Tabs } from "antd";
 import Button from "@/components/lib/Button";
 import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import TextField from "@/components/lib/TextField";
@@ -11,20 +11,42 @@ import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { deleteProduct, filterAllProducts, getAllProducts, toggleProductVisibility } from "@/network/product";
-import CustomLoader from "@/components/lib/CustomLoader";
+import { deleteProduct, toggleProductVisibility } from "@/network/product";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
-
+import { useProducts } from "@/hooks/useProducts";
+import { useToggleVisibility } from "@/hooks/useToggleVisibility";
 
 export default function AllProductsScreen() {
-  const [allProducts,setAllProducts]=useState([])
-  const [openModal,setOpenModal]=useState(false)
-  const [modalError,setModalError]=useState(false)
-  const [editModal,setEditModal]=useState(true)
-  const [tableLoading,setTableLoading]=useState(false)
-  const [deleteId,setDeleteId]=useState("")
-  const [sort,setSort]=useState("newest")
+  const [openModal, setOpenModal] = useState(false);
+  const [modalError, setModalError] = useState(false);
+  const [editModal, setEditModal] = useState(true);
+  const [deleteId, setDeleteId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [filters, setFilters] = useState({
+    keyword: "",
+    category: "",
+    minPrice: undefined,
+    maxPrice: undefined,
+    limit: 10,
+    sortBy: "newest",
+  });
+
+  const { data, isLoading, refetch } = useProducts(filters);
+
+  const allProducts = data?.data?.data || data?.data || [];
+  const pagination = data?.data?.pagination || data?.pagination || {};
+  const [toggleLoading, setToggleLoading] = useState({});
+  const [tempProducts, setTempProducts] = useState(allProducts);
+  const handleToggle = useToggleVisibility(setToggleLoading, setTempProducts);
+
+  useEffect(() => {
+    if (allProducts && allProducts?.length > 0) {
+      setTempProducts(allProducts);
+    }
+  }, [allProducts]);
+  console.log("All Products Data:", allProducts);
 
   const { push } = useRouter();
   const {
@@ -32,122 +54,181 @@ export default function AllProductsScreen() {
     state: { user },
   } = useMainContext();
 
-  const handleDelete= async (param)=>{
-    try{
-      const data = await deleteProduct(param)
-      setModalError(false)
-      setEditModal(false)
-    }catch(errors){
-      console.log(errors)
-      setModalError(true)
-    }
-}
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) => ({
+        ...prev,
+        keyword: searchTerm,
+        page: 1,
+      }));
+    }, 300);
 
-  const openDeleteModal=(params)=>{
-    setOpenModal(true)
-    setDeleteId(params)
-  } 
-  
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      sortBy: filters.sortBy,
+      page: 1,
+    }));
+  }, [filters.sortBy]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handlePageChange = (page, pageSize) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: page,
+      limit: pageSize,
+    }));
+  };
+
+  const handleSortChange = (sortValue) => {
+    setFilters((prev) => ({
+      ...prev,
+      sortBy: sortValue,
+      page: 1,
+    }));
+  };
+
+  const handleDelete = async (param) => {
+    try {
+      await deleteProduct(param);
+      setModalError(false);
+      setEditModal(false);
+      // Refetch data after successful deletion
+      refetch();
+    } catch (errors) {
+      console.log(errors);
+      setModalError(true);
+    }
+  };
+
+  const openDeleteModal = (params) => {
+    setOpenModal(true);
+    setDeleteId(params);
+  };
+
   const content = (obj) => (
     <div className="popover__custom">
       <Button
         height="30px"
         radius="5px"
-        onClick={() => {window.location= `product/${obj._id}`}}
+        onClick={() => {
+          window.location = `product/${obj._id}`;
+        }}
       >
         View More Details
       </Button>
-        <Button height="30px" radius="5px" onClick={() => {openDeleteModal(obj)}}
-        >
-          Unpublish Details
-        </Button>
+      <Button
+        height="30px"
+        radius="5px"
+        onClick={() => {
+          openDeleteModal(obj);
+        }}
+      >
+        Unpublish Details
+      </Button>
     </div>
-  )
-
-  const filterProducts=async(e)=>{
-    const filterParams=`productName=${e}&sortBy=${sort}`
-    setTableLoading(true)
-    const payload={
-      pageNo: 1,
-      pageSize: 1
-    }
-    try{
-      const data=await filterAllProducts(filterParams)
-      setAllProducts(data.data.data);
-      setTableLoading(false)
-    }catch(errors){
-      console.log(errors)
-      setTableLoading(false)
-    }
-  }
+  );
 
   const filterContent = () => (
     <div className="popover__custom">
       <Button
         height="30px"
         radius="5px"
-        onClick={() => {setSort("newest")}}
+        onClick={() => handleSortChange("newest")}
         width="100%"
         hoverColor="var(--oosriBlack)"
         style={{
-          backgroundColor: sort === "newest" ? "var(--oosriPrimary)":"transparent",
-          color: sort === "newest" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
-        }}>
+          backgroundColor:
+            filters.sortBy === "newest" ? "var(--oosriPrimary)" : "transparent",
+          color:
+            filters.sortBy === "newest"
+              ? "var(--oosriWhite) !important"
+              : "var(--oosriBlack)",
+        }}
+      >
         Newest First
       </Button>
-        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("oldest")}}
+      <Button
+        height="30px"
+        width="100%"
+        radius="5px"
+        onClick={() => handleSortChange("oldest")}
         hoverColor="var(--oosriBlack)"
-            style={{
-            backgroundColor: sort === "oldest" ? "var(--oosriPrimary)":"transparent",
-            color: sort === "oldest" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
-          }}
-        >
-          Oldest First
-        </Button>
-        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_asc")}}
+        style={{
+          backgroundColor:
+            filters.sortBy === "oldest" ? "var(--oosriPrimary)" : "transparent",
+          color:
+            filters.sortBy === "oldest"
+              ? "var(--oosriWhite) !important"
+              : "var(--oosriBlack)",
+        }}
+      >
+        Oldest First
+      </Button>
+      <Button
+        height="30px"
+        width="100%"
+        radius="5px"
+        onClick={() => handleSortChange("price_asc")}
         hoverColor="var(--oosriBlack)"
-            style={{
-            backgroundColor: sort === "price_asc" ? "var(--oosriPrimary)":"transparent",
-            color: sort === "price_asc" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
-          }}
-        >
-          Ascending Price
-        </Button>
-        <Button height="30px" width="100%" radius="5px" onClick={() => {setSort("price_desc")}}
+        style={{
+          backgroundColor:
+            filters.sortBy === "price_asc"
+              ? "var(--oosriPrimary)"
+              : "transparent",
+          color:
+            filters.sortBy === "price_asc"
+              ? "var(--oosriWhite) !important"
+              : "var(--oosriBlack)",
+        }}
+      >
+        Ascending Price
+      </Button>
+      <Button
+        height="30px"
+        width="100%"
+        radius="5px"
+        onClick={() => handleSortChange("price_desc")}
         hoverColor="var(--oosriBlack)"
-            style={{
-            backgroundColor: sort === "price_desc" ? "var(--oosriPrimary)":"transparent",
-            color: sort === "price_desc" ? "var(--oosriWhite) !important":"var(--oosriBlack)",
-          }}
-        >
-          Descending Price
-        </Button>
+        style={{
+          backgroundColor:
+            filters.sortBy === "price_desc"
+              ? "var(--oosriPrimary)"
+              : "transparent",
+          color:
+            filters.sortBy === "price_desc"
+              ? "var(--oosriWhite) !important"
+              : "var(--oosriBlack)",
+        }}
+      >
+        Descending Price
+      </Button>
     </div>
-  )
+  );
 
-  const handleToggle= async(e,obj)=>{
-    const data = await toggleProductVisibility(obj._id,{"isVisible":e})
-    return data
-  }
-  
   const productsTableColumns = [
     {
-      title:
+      title: (
         <FlexibleDiv justifyContent="start" padding="0 0 0 40px">
           <p>Product Name</p>
-        </FlexibleDiv>,
+        </FlexibleDiv>
+      ),
       dataIndex: "productName",
       key: "productName",
-      render: (_,obj) => (
+      render: (_, obj) => (
         <Space>
-          {/* item image */}
           <Avatar size={45} src={obj?.images[0]} />
           <Space direction="vertical" size={1}>
             <p>{_}</p>
           </Space>
         </Space>
       ),
-      
     },
     {
       title: "Brand Name",
@@ -173,174 +254,221 @@ export default function AllProductsScreen() {
       title: "In stock",
       dataIndex: "inStock",
       key: "inStock",
-      align:"center",
+      align: "center",
     },
     {
       title: "Visibility",
       dataIndex: "isVisible",
       key: "isVisible",
-      render: (_,obj) => (
-        <div>
-          <Switch defaultChecked={_} onChange={(e)=>{handleToggle(e,obj)}} />
-        </div>
-      ),
+      render: (isVisible, obj) => {
+        // console.log('Rendering switch for:', obj._id, isVisible);
+        return (
+          <Switch
+            checked={isVisible}
+            loading={!!toggleLoading[obj._id]}
+            onChange={(checked) => handleToggle(checked, obj)}
+          />
+        );
+      },
     },
     {
       title: "",
       dataIndex: "action",
       key: "action",
-      render: (_,obj) => (
-       <Popover content={content(obj)} trigger="click">
+      render: (_, obj) => (
+        <Popover content={content(obj)} trigger="click">
           <EllipsisIcon style={{ cursor: "pointer" }} />
-       </Popover>
+        </Popover>
       ),
     },
   ];
-  
 
-  const fetchAllProducts = async () => {
-    setTableLoading(true);
-    try {
-      const data = await getAllProducts();
-      setAllProducts(data.data.data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setTableLoading(false);
-    }
+  const closeModal = () => {
+    setEditModal(true);
+    setOpenModal(false);
+    setModalError(false);
   };
 
-  useEffect(() => {
-    fetchAllProducts();
-  }, []);
-  
-  useEffect(() => {
-    filterProducts();
-  }, [sort]);
-
-
-  const closeModal=async()=>{
-    setTableLoading(true)
-    try{
-      await fetchAllProducts()
-    }catch(errors){
-      console.log(errors)
-    }finally{
-      setEditModal(true)
-      setTableLoading(false)
-      setOpenModal(false)
-      setModalError(false)
-    }
-  }
-
-
-
   return (
-      <DashboardLayout title={"Products"}>
-        <FlexibleDiv
-          width="100%"
-          justifyContent="flex-end"
-          margin="0px 0px 20px 0"
+    <DashboardLayout title={"Products"}>
+      <FlexibleDiv
+        width="100%"
+        justifyContent="flex-end"
+        margin="0px 0px 20px 0"
+      >
+        <Button
+          backgroundColor="var(--oosriPrimary)"
+          color="#fff"
+          onClick={() => {
+            if (isBusinessActive(user)) {
+              push("/product/create");
+            } else {
+              dispatch({
+                type: NO_BUSINESS_MODAL,
+                payload: true,
+              });
+            }
+          }}
         >
-          <Button
-            backgroundColor="var(--oosriPrimary)"
-            color="#fff"
-            onClick={() => {
-              if (isBusinessActive(user)) {
-                push("/product/create");
-              } else {
-                dispatch({
-                  type: NO_BUSINESS_MODAL,
-                  payload: true,
-                });
-              }
-            }}
-          >
-            + Add New Product
-          </Button>
-        </FlexibleDiv>
+          + Add New Product
+        </Button>
+      </FlexibleDiv>
 
-        <AllProductsWrapper>
+      <AllProductsWrapper>
+        <FlexibleDiv
+          flexDir="column"
+          alignItems="space-between"
+          className="products__table__section"
+        >
           <FlexibleDiv
-            flexDir="column"
-            alignItems="space-between"
-            className="products__table__section"
+            flexDir="row"
+            justifyContent="space-between"
+            flexWrap="nowrap"
+            className="search__body__section"
           >
             <FlexibleDiv
+              className="search__section"
               flexDir="row"
-              justifyContent="space-between"
               flexWrap="nowrap"
-              className="search__body__section"
             >
-              <FlexibleDiv
-                className="search__section"
-                flexDir="row"
-                flexWrap="nowrap"
+              <SearchIcon size={18} className="search__icon" />
+              <TextField
+                id="search"
+                className="text__field__custom"
+                placeholder="Search by products name"
+                autoComplete="new-password"
+                type="text"
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </FlexibleDiv>
+            <Popover content={filterContent}>
+              <Button
+                border="1px solid #E0E0E0"
+                height="38px"
+                className="filter__btn__custom"
+                hoverBg="transparent"
+                radius="8px"
+                hoverBorderColor="var(--oosriPrimary) !important"
+                hoverColor="var(--oosriBlack)"
               >
-                <SearchIcon size={18} className="search__icon" />
-                <TextField
-                  id="search"
-                  className="text__field__custom"
-                  placeholder="Search by products name"
-                  autoComplete="new-password"
-                  type="text"
-                  onChange={(e)=>{filterProducts(e.target.value)}}
-                />
-              </FlexibleDiv>
-              <Popover content={filterContent}>
-                <Button
-                  border="1px solid #E0E0E0"
-                  height="38px"
-                  className="filter__btn__custom"
-                  hoverBg="transparent"
-                  radius="8px"
-                  hoverBorderColor="var(--oosriPrimary) !important"
-                  hoverColor="var(--oosriBlack)"
-                >
-                  <FilterArrow size={16} color="black" />
-                  Filter
-                </Button>
-              </Popover>
-            </FlexibleDiv>
-
-            <FlexibleDiv className="products__table__wrapper">
-                <Table
-                  columns={productsTableColumns}
-                  dataSource={allProducts}
-                  className="table__class"
-                  loading={tableLoading}
-                  
-                />
-            </FlexibleDiv>
+                <FilterArrow size={16} color="black" />
+                Filter
+              </Button>
+            </Popover>
           </FlexibleDiv>
 
-        <StyledModal maskClosable={true} open={openModal} centered closeIcon={null} className="modal" footer={null} >
-          {
-            editModal?
-            <>
-              <h2 style={{textAlign:"center"}}>Delete Product</h2>
-              <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Are you sure you want to delete this product {deleteId.productName}?</p>
-              <FlexibleDiv flexWrap="nowrap" gap="24px">
-                <Button border="1px solid #FC5353" color="#FC5353" hoverBg="white" hoverColor="var(--oosriPrimary)" width="100%" onClick={()=>{setOpenModal(false)}}>No</Button>
-                <Button onClick={() => handleDelete(deleteId?._id)} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Yes</Button>
+          <FlexibleDiv className="products__table__wrapper">
+            <Table
+              columns={productsTableColumns}
+              dataSource={tempProducts}
+              loading={isLoading}
+              pagination={{
+                current: pagination?.currentPage || filters.page,
+                pageSize: filters.limit,
+                total: pagination?.total || 0,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} of ${total} items`,
+                onChange: handlePageChange,
+              }}
+              className="table__class"
+            />
+          </FlexibleDiv>
+        </FlexibleDiv>
 
+        <StyledModal
+          maskClosable={true}
+          open={openModal}
+          centered
+          closeIcon={null}
+          className="modal"
+          footer={null}
+        >
+          {editModal ? (
+            <>
+              <h2 style={{ textAlign: "center" }}>Delete Product</h2>
+              <p
+                style={{
+                  textAlign: "center",
+                  margin: "16px 0px",
+                  color: "#777777",
+                }}
+              >
+                Are you sure you want to delete this product{" "}
+                {deleteId.productName}?
+              </p>
+              <FlexibleDiv flexWrap="nowrap" gap="24px">
+                <Button
+                  border="1px solid #FC5353"
+                  color="#FC5353"
+                  hoverBg="white"
+                  hoverColor="var(--oosriPrimary)"
+                  width="100%"
+                  onClick={() => setOpenModal(false)}
+                >
+                  No
+                </Button>
+                <Button
+                  onClick={() => handleDelete(deleteId?._id)}
+                  border="1px solid #FC5353"
+                  color="white"
+                  backgroundColor="var(--oosriPrimary)"
+                  width="100%"
+                >
+                  Yes
+                </Button>
               </FlexibleDiv>
             </>
-            :modalError?
-              <>
-                <h2 style={{textAlign:"center"}}>Product Update Failed</h2>
-                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>We ran into a problem while trying to delete this product please try again</p>
-                <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
-              </>:
-              <>
-                <h2 style={{textAlign:"center"}}>Product Deleted Succesfully</h2>
-                <p style={{textAlign:"center",margin:"16px 0px", color:"#777777"}}>Your Produt has been deleted Successfully</p>
-                <Button onClick={closeModal} border="1px solid #FC5353" color="white" backgroundColor="var(--oosriPrimary)" width="100%">Close</Button>
-              </>
-            }
+          ) : modalError ? (
+            <>
+              <h2 style={{ textAlign: "center" }}>Product Update Failed</h2>
+              <p
+                style={{
+                  textAlign: "center",
+                  margin: "16px 0px",
+                  color: "#777777",
+                }}
+              >
+                We ran into a problem while trying to delete this product please
+                try again
+              </p>
+              <Button
+                onClick={closeModal}
+                border="1px solid #FC5353"
+                color="white"
+                backgroundColor="var(--oosriPrimary)"
+                width="100%"
+              >
+                Close
+              </Button>
+            </>
+          ) : (
+            <>
+              <h2 style={{ textAlign: "center" }}>
+                Product Deleted Successfully
+              </h2>
+              <p
+                style={{
+                  textAlign: "center",
+                  margin: "16px 0px",
+                  color: "#777777",
+                }}
+              >
+                Your Product has been deleted successfully
+              </p>
+              <Button
+                onClick={closeModal}
+                border="1px solid #FC5353"
+                color="white"
+                backgroundColor="var(--oosriPrimary)"
+                width="100%"
+              >
+                Close
+              </Button>
+            </>
+          )}
         </StyledModal>
-        </AllProductsWrapper>
-      </DashboardLayout>
-  )
+      </AllProductsWrapper>
+    </DashboardLayout>
+  );
 }
- 
