@@ -53,3 +53,14 @@ export const toggleProductVisibility = async (id, payload) => {
   );
   return data;
 };
+
+export const searchProduct = async (searchTerm) => {
+  try {
+    const response = await instance.get(`/products/seller/search?q=${searchTerm}`);
+    return response;
+  } catch (error) {
+     console.error("Error filtering products:", error);
+    throw error;
+  }
+  
+} 

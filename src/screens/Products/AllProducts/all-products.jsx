@@ -30,16 +30,47 @@ export default function AllProductsScreen() {
     minPrice: undefined,
     maxPrice: undefined,
     limit: 10,
-    sortBy: "newest",
+    sortBy: "oldest",
   });
 
-  const { data, isLoading, refetch } = useProducts(filters);
+  const { data, isLoading, refetch } = useProducts(filters, searchTerm);
 
   const allProducts = data?.data?.data || data?.data || [];
   const pagination = data?.data?.pagination || data?.pagination || {};
   const [toggleLoading, setToggleLoading] = useState({});
   const [tempProducts, setTempProducts] = useState(allProducts);
   const handleToggle = useToggleVisibility(setToggleLoading, setTempProducts);
+
+const normalizeProducts = (data, isSearch) => {
+  return data.map((item, index) => {
+    if (isSearch) {
+      return {
+        key: item.objectID || index,
+        productName: item.productName,
+        images: item.images || [],
+        brandArtist: item.artist || item.brandArtist || "",
+        productId: item.product || item.productId || "",
+        regularPrice: item.price || item.regularPrice || 0,
+        inStock: Boolean(item.quantity),
+        isVisible: item.isApproved ?? item.isVisible ?? false,
+      };
+    } else {
+      return {
+        key: item._id || index,
+        productName: item.productName,
+        images: item.images || [],
+        brandArtist: item.brandArtist || "",
+        productId: item.productId || "",
+        regularPrice: item.regularPrice || 0,
+        inStock: Boolean(item?.inStock),
+        isVisible: item.isVisible ?? false,
+      };
+    }
+  });
+};
+
+const structuredProducts = normalizeProducts(tempProducts, true);
+
 
   useEffect(() => {
     if (allProducts && allProducts?.length > 0) {
@@ -58,7 +89,7 @@ export default function AllProductsScreen() {
     const timer = setTimeout(() => {
       setFilters((prev) => ({
         ...prev,
-        keyword: searchTerm,
+        // keyword: searchTerm,
         page: 1,
       }));
     }, 300);
@@ -99,7 +130,6 @@ export default function AllProductsScreen() {
       await deleteProduct(param);
       setModalError(false);
       setEditModal(false);
-      // Refetch data after successful deletion
       refetch();
     } catch (errors) {
       console.log(errors);
@@ -232,8 +262,8 @@ export default function AllProductsScreen() {
     },
     {
       title: "Brand Name",
-      dataIndex: "brandArtist",
-      key: "brandArtist",
+      dataIndex: "brandArtist" || "artist",
+      key: "brandArtist" || "artist",
     },
     {
       title: "Product ID",
@@ -361,7 +391,7 @@ export default function AllProductsScreen() {
           <FlexibleDiv className="products__table__wrapper">
             <Table
               columns={productsTableColumns}
-              dataSource={tempProducts}
+              dataSource={structuredProducts}
               loading={isLoading}
               pagination={{
                 current: pagination?.currentPage || filters.page,
