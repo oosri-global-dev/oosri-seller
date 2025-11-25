@@ -7,8 +7,6 @@ import { createProduct } from "@/network/product";
 import Button from "@/components/lib/Button";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { CustomInput } from "@/components/lib/CustomInput/index.styles";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import TextEditor from "../../Product/text-editor";
 

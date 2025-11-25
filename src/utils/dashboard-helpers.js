@@ -75,3 +75,29 @@ export const dashboardTableColumns = [
   },
 ];
 
+// Export table data (placeholder - will be populated from API)
+export const dashboardTableData = [];
+
+// Export sales summary boxes
+export const salesBoxes = [
+  {
+    icon: <StackIcon size={22} color="#FB5183" />,
+    value: "0",
+    label: "Total Products",
+  },
+  {
+    icon: <BagIcon size={22} color="#FB5183" />,
+    value: "0",
+    label: "Total Sales",
+  },
+  {
+    icon: <CardIcon size={22} color="#FB5183" />,
+    value: "0",
+    label: "Total Revenue",
+  },
+  {
+    icon: <UserIcon size={22} color="#FB5183" />,
+    value: "0",
+    label: "Total Customers",
+  },
+];
