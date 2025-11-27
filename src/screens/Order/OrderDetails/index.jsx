@@ -8,33 +8,54 @@ import Picture from "@/assets/images/profile.jpg";
 import LeastPhoto from "@/assets/images/leastSellingProduct.png";
 
 
+import { useOrderDetails } from '@/hooks/useOrders';
+import { useRouter } from 'next/router';
+import dayjs from 'dayjs';
+
 export default function OrderDetails (){
+  const router = useRouter();
+  const { orderid } = router.query;
+  const { data, isLoading } = useOrderDetails(orderid);
+  const order = data?.data?.data;
+
+  console.log(orderid, "PARAMS IS HERE");
+
+  if (isLoading) {
+    return <DashboardLayout title={"Order Details"}>Loading...</DashboardLayout>;
+  }
+
+  if (!order) {
+    return <DashboardLayout title={"Order Details"}>Order not found</DashboardLayout>;
+  }
+
   return (
     <DashboardLayout title={"Order Details"}>
         <OrderDetailsWrapper>
           <FlexibleDiv gap="14px" flexWrap="noWrap" justifyContent="start" className='profile__section'>
             <img src={Picture.src} alt='profile-picture' />
             <FlexibleDiv flexDir='column'flexWrap="noWrap" alignItems="start" gap="3px">
-              <h5>Adebayo Ojo</h5>
-              <p>Order Id: 00907450392</p>
+              <h5>{order.userId?.fullName || "N/A"}</h5>
+              <p>Order Id: {order.id}</p>
             </FlexibleDiv>
           </FlexibleDiv>
           {/* Item Info */}
-          <FlexibleDiv className='item__info' justifyContent="space-between">
-            <div className='absolute__item'>
-              <img src={LeastPhoto.src} alt="gadget image" />
-              <p>Opeyemi Gadget</p>
-            </div>
-            <FlexibleDiv justifyContent="start" gap="32px" width="fit-content">
-              <img src={Picture.src} alt="Item photo" />
-              <FlexibleDiv flexDir="column" flexWrap="noWrap" alignItems="start" gap="10px" width="fit-content">
-              <h2>Infinix Smart 2 6.28’’ 4GB RAM/128 GB ROM Android 12 - Red</h2>
-              <p className='strike__through'>₦40,000</p>
-              <p>Product Id:  #00907</p>
+          {order.products?.map((product, index) => (
+            <FlexibleDiv key={index} className='item__info' justifyContent="space-between">
+              <div className='absolute__item'>
+                <img src={product.images?.[0] || LeastPhoto.src} alt="gadget image" />
+                <p>{product.productName}</p>
+              </div>
+              <FlexibleDiv justifyContent="start" gap="32px" width="fit-content">
+                <img src={product.images?.[0] || Picture.src} alt="Item photo" style={{width: '50px', height: '50px', objectFit: 'cover'}} />
+                <FlexibleDiv flexDir="column" flexWrap="noWrap" alignItems="start" gap="10px" width="fit-content">
+                <h2>{product.productName}</h2>
+                <p className='strike__through'>₦{product.price?.toLocaleString()}</p>
+                <p>Product Id:  #{product.productId?._id?.slice(-6) || "N/A"}</p>
+                </FlexibleDiv>
               </FlexibleDiv>
+              <h5>₦{product.totalPrice?.toLocaleString()}</h5>
             </FlexibleDiv>
-            <h5>₦50,000</h5>
-          </FlexibleDiv>
+          ))}
           <FlexibleDiv justifyContent="start" style={{columnGap:"50px"}}>
             {/* Delivery item 1 */}
             <FlexibleDiv className='delivery__item' gap="12px" alignItems="start" width="fit-content">
@@ -52,22 +73,22 @@ export default function OrderDetails (){
                 {/* Delivery address */}
                 <Space>
                   <h4 className="detail__info">Delivery Address:</h4>
-                  <h4 className="detail__data"> Michael John Street, Sanrab, Sabo Road Lokoja</h4>
+                  <h4 className="detail__data"> {order.deliveryAddress}</h4>
                 </Space>
                 {/* Contact Number */}
                 <Space>
                   <h4 className="detail__info">Contact Number:</h4>
-                  <h4 className="detail__data"> 07011046109</h4>
+                  <h4 className="detail__data"> {order.phoneNumber}</h4>
                 </Space>
                 {/* Status */}
                 <Space>
-                  <h4 className="detail__info">Satus:</h4>
-                  <h4 className="detail__data">Sent for pickup</h4>
+                  <h4 className="detail__info">Status:</h4>
+                  <h4 className="detail__data">{order.orderStatus}</h4>
                 </Space>
                 {/* Order Date */}
                 <Space>
                   <h4 className="detail__info">Order Date:</h4>
-                  <h4 className="detail__data"> 11th, August 2023</h4>
+                  <h4 className="detail__data"> {dayjs(order.orderDate).format("Do, MMMM YYYY")}</h4>
                 </Space>
               </FlexibleDiv>
             </FlexibleDiv>
@@ -87,17 +108,17 @@ export default function OrderDetails (){
                 {/* Product Total Amount */}
                 <Space>
                   <h4 className="detail__info">Product Total Amount:</h4>
-                  <h4 className="detail__data">N81,000</h4>
+                  <h4 className="detail__data">₦{order.totalForSeller?.toLocaleString()}</h4>
                 </Space>
                 {/* Delivery Fee*/}
                 <Space>
                   <h4 className="detail__info">Delivery Fee:</h4>
-                  <h4 className="detail__data">N500</h4>
+                  <h4 className="detail__data">₦{order.deliveryFee?.toLocaleString()}</h4>
                 </Space>
                 {/* Total Amount */}
                 <Space className='total__amount'>
                   <h4 className="detail__info">Total Amount:</h4>
-                  <h4 className="detail__data">N81,500</h4>
+                  <h4 className="detail__data">₦{order.totalAmount?.toLocaleString()}</h4>
                 </Space>
               </FlexibleDiv>
             </FlexibleDiv>

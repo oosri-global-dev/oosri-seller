@@ -6,12 +6,13 @@ import { FlexibleDiv } from '@/components/lib/Box/styles'
 import CustomMultiSearchBar  from '@/components/lib/MultiSearchBar'
 import Select from '@/components/lib/Select'
 import { Table } from 'antd'
-import { orderTableColumns, orderTableData } from '@/utils/order-helpers'
+import { orderTableColumns, useOrderTableData } from '@/utils/order-helpers'
 
 export default function OrderScreen (){
     const options=[
         { value: "This Year", label: "This Year" },
     ]
+    const { dataSource, isLoading } = useOrderTableData();
 
   return (
      <DashboardLayout  title={"Order"}>
@@ -27,8 +28,9 @@ export default function OrderScreen (){
               rowSelection={{
                   type: "checkbox",
                 }}
-                dataSource={orderTableData}
+                dataSource={dataSource}
                 columns={orderTableColumns}
+                loading={isLoading}
               />
             </div>
         </OrderWrapper> 

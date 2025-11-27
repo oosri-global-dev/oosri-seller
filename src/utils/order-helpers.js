@@ -2,6 +2,8 @@ import { Space } from "antd";
 import { FaEllipsis } from "react-icons/fa6";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import Link from "next/link";
+import { useOrders } from "@/hooks/useOrders";
+import dayjs from "dayjs";
 
 const SortSVG=()=>(
     <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -114,7 +116,7 @@ export const orderTableColumns = [
       render: (_, obj) => {
 
         const togglePopup = () => {
-            const element =document.getElementById(obj.orderId)
+            const element =document.getElementById(obj.id)
             if(element){
                 console.log(element.classList)
                 if(element.classList.length>1){
@@ -130,7 +132,7 @@ export const orderTableColumns = [
                 <p className={_.toLowerCase()==="paid"?"paid":"delivery_pay"}>{_}</p>
                 <div className="details__container">
                 <FaEllipsis onClick={togglePopup} />
-                <Link href={`/order/${obj.orderId.slice(1)}`} className="details__popup invinsible" id={obj.orderId}>
+                <Link href={`/order/${obj.id}`} className="details__popup invinsible" id={obj.id}>
                     <div>
                      <p>View Details</p>    
                     </div>
@@ -163,4 +165,23 @@ export const orderTableColumns = [
       paymentStatus: "Pay on delivery",
     },
   ];
+
+export const useOrderTableData = () => {
+  const { data, isLoading } = useOrders();
+  const orders = data?.data?.data || [];
+
+  const dataSource = orders.map((order) => ({
+    key: order.id,
+    id: order.id,
+    orderId: `#${order.id.slice(-6).toUpperCase()}`,
+    itemNum: order.products?.length || 0,
+    customer: order.userId?.fullName || "N/A",
+    amount: order.totalForSeller,
+    date: dayjs(order.orderDate).format("YYYY-MM-DD HH:mm:ss"),
+    status: order.orderStatus,
+    paymentStatus: order.paymentStatus,
+  }));
+
+  return { dataSource, isLoading };
+};
   
