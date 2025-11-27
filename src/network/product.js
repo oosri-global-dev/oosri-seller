@@ -1,4 +1,5 @@
 import { formInstance, instance } from "./axios";
+import { objectToFormData } from "@/utils/form-data-helper";
 
 export const getAllProducts = async () => {
   const data = await instance.get("/products/seller/products");
@@ -38,12 +39,36 @@ export const deleteProduct = async (params) => {
 };
 
 export const createProduct = async (payload) => {
-  const data = await formInstance.post(`/products/seller/add`, payload);
+  // Filter out null/undefined images
+  const filteredImages = payload.images?.filter(img => img != null) || [];
+  
+  // Create a new payload with filtered images
+  const cleanedPayload = {
+    ...payload,
+    images: filteredImages
+  };
+  
+  // Convert to FormData
+  const formData = objectToFormData(cleanedPayload);
+  
+  const data = await formInstance.post(`/products/seller/add`, formData);
   return data;
 };
 
 export const editProduct = async (params, payload) => {
-  const data = await formInstance.put(`/products/seller/${params}`, payload);
+  // Filter out null/undefined images if images array exists
+  if (payload.images) {
+    const filteredImages = payload.images.filter(img => img != null);
+    payload = {
+      ...payload,
+      images: filteredImages
+    };
+  }
+  
+  // Convert to FormData
+  const formData = objectToFormData(payload);
+  
+  const data = await formInstance.put(`/products/seller/${params}`, formData);
   return data;
 };
 export const toggleProductVisibility = async (id, payload) => {

@@ -12,10 +12,17 @@ export function objectToFormData(
         // Handle File objects
         formData.append(formKey, value, value.name);
       } else if (value instanceof FileList) {
-        // Handle FileList objects
+        // Handle FileList objects - append without brackets for multer compatibility
         for (let i = 0; i < value.length; i++) {
-          formData.append(`${formKey}[${i}]`, value[i], value[i].name);
+          formData.append(formKey, value[i], value[i].name);
         }
+      } else if (Array.isArray(value) && value.some(item => item instanceof File)) {
+        // Handle arrays of File objects - append without brackets for multer compatibility
+        value.forEach((file) => {
+          if (file instanceof File) {
+            formData.append(formKey, file, file.name);
+          }
+        });
       } else if (
         value &&
         typeof value === "object" &&
