@@ -102,6 +102,12 @@ export const orderTableColumns = [
           {_?.toLowerCase() === "delivered" && (
             <p className="delivered__pickup">{_}</p>
           )}
+          {_?.toLowerCase() === "pending" && (
+            <p className="pending__pickup">{_}</p>
+          )}
+          {!["sent for pickup", "delivered", "pending"].includes(_?.toLowerCase()) && (
+            <p>{_}</p>
+          )}
         </Space>
       )
     },

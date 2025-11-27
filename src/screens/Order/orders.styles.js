@@ -45,6 +45,15 @@ export const OrderWrapper=styled.div`
         text-transform:capitalize;
     }
 
+    .pending__pickup {
+        border: 1.5px solid #1890ff;
+        background: #e6f7ff;
+        padding: 5px 10px;
+        border-radius: 35px;
+        color: #1890ff;
+        text-transform:capitalize;
+    }
+
     .item__number {
         font-size: 0.9rem;
         color: #9e9e9e;
