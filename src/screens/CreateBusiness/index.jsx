@@ -8,46 +8,48 @@ import { useRouter } from "next/router";
 import CustomLoader from "@/components/lib/CustomLoader";
 import CorporateBusiness from "./sections/corporate-business";
 
+import { BsArrowLeft as LeftArrow } from "react-icons/bs";
+
 export default function CreateBusiness() {
   const {
     state: { user },
   } = useMainContext();
   const [userBusinessType, setUserBusinessType] = useState("");
-  const { push } = useRouter();
+  const { push, back } = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
-useEffect(() => {
-  if (!user?._id) {
-    push("/");
-    return;
-  }
-
-  // Only proceed if user has a valid business type
-  if (user?.businessType === "Personal" || user?.businessType === "Corporate") {
-    if (user.businessType === "Corporate") {
-      if (isEmpty(user?.corporateBusinessAccount)) {
-        setUserBusinessType("Corporate");
-        setIsLoading(false);
-        return;
-      }
-      push("/dashboard");
+  useEffect(() => {
+    if (!user?._id) {
+      push("/");
       return;
     }
 
-    // Handle Personal business type
-    if (user.businessType === "Personal") {
-      if (isEmpty(user?.personalBusinessAccount)) {
-        setUserBusinessType("Personal");
-        setIsLoading(false);
+    // Only proceed if user has a valid business type
+    if (user?.businessType === "Personal" || user?.businessType === "Corporate") {
+      if (user.businessType === "Corporate") {
+        if (isEmpty(user?.corporateBusinessAccount)) {
+          setUserBusinessType("Corporate");
+          setIsLoading(false);
+          return;
+        }
+        push("/dashboard");
         return;
       }
-      push("/dashboard");
-      return;
-    }
-  }
 
-  setIsLoading(false);
-}, [user, push]);
+      // Handle Personal business type
+      if (user.businessType === "Personal") {
+        if (isEmpty(user?.personalBusinessAccount)) {
+          setUserBusinessType("Personal");
+          setIsLoading(false);
+          return;
+        }
+        push("/dashboard");
+        return;
+      }
+    }
+
+    setIsLoading(false);
+  }, [user, push]);
 
 
   return (
@@ -57,7 +59,20 @@ useEffect(() => {
       ) : (
         <>
           <FlexibleDiv className="header__section" flexDir="column" gap="3px">
-            <h1>Create Business</h1>
+            <FlexibleDiv
+              justifyContent="start"
+              alignItems="center"
+              gap="15px"
+              width="fit-content"
+              style={{ alignSelf: "flex-start", marginBottom: "10px" }}
+            >
+              <LeftArrow
+                size={24}
+                onClick={() => back()}
+                style={{ cursor: "pointer" }}
+              />
+              <h1>Create Business</h1>
+            </FlexibleDiv>
             <span>Empower Your Business, Join Us Today</span>
           </FlexibleDiv>
           {userBusinessType === "Personal" && <PersonalBusiness />}
