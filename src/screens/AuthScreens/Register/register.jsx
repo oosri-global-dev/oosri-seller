@@ -403,7 +403,7 @@ export default function RegisterPage() {
             </FlexibleDiv>
 
             <Button
-              width="50%"
+              width="100%"
               radius="8px"
               color="var(--oosriWhite)"
               backgroundColor="var(--oosriPrimary)"
