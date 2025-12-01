@@ -17,6 +17,7 @@ import CustomLoader from "@/components/lib/CustomLoader";
 import { countries } from "@/data-helpers/auth-helpers";
 import { storeDataInCookie } from "@/data-helpers/auth-session";
 import AvatarsModal from "@/components/lib/AvatarsModal";
+import { avatarMap } from "@/components/lib/AvatarsModal/avatarMap";
 
 export default function RegisterPage() {
   const [form] = Form.useForm();
@@ -94,7 +95,7 @@ export default function RegisterPage() {
     formData.append("country", values?.country);
 
     if (avatarIndex) {
-      formData.append("profilePicture", `Avatar${avatarIndex}`);
+      formData.append("profilePicture", avatarIndex);
     } else {
       formData.append("profilePicture", imageFile);
     }
@@ -341,8 +342,7 @@ export default function RegisterPage() {
                       className="h-84"
                       id="blah"
                       src={
-                        (avatarIndex &&
-                          `https://oosri.com/profile_pictures/Avatar${avatarIndex}.jpg`) ||
+                        (avatarIndex && avatarMap[avatarIndex]) ||
                         imageObjectURL ||
                         ""
                       }

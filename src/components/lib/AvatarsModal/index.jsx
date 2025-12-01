@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "antd";
 import { CheckCircleFilled } from "@ant-design/icons";
+import { avatarMap } from "./avatarMap";
 import {
   GridContainer,
   Grid,
@@ -13,10 +14,11 @@ import {
 const AvatarsModal = ({ open, setOpen, setAvatarIndex, avatarIndex }) => {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
 
-  const avatars = Array.from({ length: 10 }, (_, i) => ({
-    id: i + 1,
-    url: `https://oosri.com/profile_pictures/Avatar${i + 1}.jpg`,
+  const avatars = Object.entries(avatarMap).map(([key, url]) => ({
+    id: key,
+    url,
   }));
+
 
   const handleSelectAvatar = (id) => {
     setAvatarIndex(id);
@@ -65,7 +67,7 @@ const AvatarsModal = ({ open, setOpen, setAvatarIndex, avatarIndex }) => {
         </Grid>
       </GridContainer>
       <SelectedAvatars>
-        Selected Avatar: {selectedAvatar ? `Avatar ${selectedAvatar}` : "None"}
+        Selected Avatar: {selectedAvatar ? selectedAvatar : "None"}
       </SelectedAvatars>
     </Modal>
   );
