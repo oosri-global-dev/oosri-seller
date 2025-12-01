@@ -33,6 +33,7 @@
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.14.7",
     "@tanstack/eslint-plugin-query": "^5.78.0",
+    "baseline-browser-mapping": "^2.8.32",
     "eslint": "^8",
     "eslint-config-next": "14.1.0"
   },

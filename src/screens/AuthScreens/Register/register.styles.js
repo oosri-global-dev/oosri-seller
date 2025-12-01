@@ -1,7 +1,9 @@
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import styled from "styled-components";
 
-export const RegisterWrapper = styled(FlexibleDiv)`
+export const RegisterWrapper = styled(FlexibleDiv).attrs({
+  flexDir: "column",
+})`
   flex-direction: column;
   gap: 35px;
   width: 65%;
