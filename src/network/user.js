@@ -39,3 +39,19 @@ export const handleFetchUser = async () => {
   );
   return data;
 };
+
+export const handleForgotPassword = async (payload) => {
+  const data = await publicInstance.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/auth/seller/forgot-password`,
+    payload
+  );
+  return data;
+};
+
+export const handleResetPassword = async (payload) => {
+  const data = await publicInstance.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/auth/seller/reset-password`,
+    payload
+  );
+  return data;
+};

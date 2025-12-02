@@ -1,17 +1,39 @@
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { ForgotPasswordWrapper } from "./forgot-password.styles";
 import { GoLock as LockIcon } from "react-icons/go";
-import { Form } from "antd";
+import { Form, message } from "antd";
 import TextField from "@/components/lib/TextField";
 import Button from "@/components/lib/Button";
 import AuthLayout from "@/components/layouts/AuthLayout/auth-layout";
+import { handleForgotPassword } from "@/network/user";
+import { useState } from "react";
 
 export default function ForgotPassword({ setStep }) {
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values) => {
-    console.log("values", values);
-    setStep(2);
+    try {
+      setLoading(true);
+      const response = await handleForgotPassword({ email: values.email });
+
+      if (response.data.success) {
+        message.success(response.data.message || "Reset code sent to your email");
+        // Store email in localStorage for the reset password step
+        localStorage.setItem("resetEmail", values.email);
+        setStep(2);
+      } else {
+        message.error(response.data.message || "Failed to send reset code");
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      message.error(
+        error.response?.data?.message ||
+        "An error occurred. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,7 +64,13 @@ export default function ForgotPassword({ setStep }) {
             flexDir="column"
           >
             <label className="input__label">Email Address</label>
-            <Form.Item name="email">
+            <Form.Item
+              name="email"
+              rules={[
+                { required: true, message: "Please enter your email" },
+                { type: "email", message: "Please enter a valid email" }
+              ]}
+            >
               <TextField type="email" borderRadius="10px" />
             </Form.Item>
             <Button
@@ -53,8 +81,10 @@ export default function ForgotPassword({ setStep }) {
               color="var(--oosriWhite)"
               radius="10px"
               margin="15px 0 0 0"
+              loading={loading}
+              disabled={loading}
             >
-              Send
+              {loading ? "Sending..." : "Send"}
             </Button>
           </FlexibleDiv>
         </Form>
