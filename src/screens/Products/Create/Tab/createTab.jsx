@@ -12,7 +12,7 @@ import TextEditor from "../../Product/text-editor";
 
 const { TextArea } = Input;
 
-export const CreateTab = ({ subCategories, category }) => {
+export const CreateTab = ({ subCategories, category, categoryName }) => {
   const [img1, setImg1] = useState();
   const [img2, setImg2] = useState();
   const [img3, setImg3] = useState();
@@ -48,39 +48,39 @@ export const CreateTab = ({ subCategories, category }) => {
   const [clearImage, setClearImg] = useState(false);
 
   const payload = {
-    category: category,
+    categoryId: category, // category is now the ObjectId from activeTab
+    subcategoryId: subCategory?.id || subCategory?._id, // Use ObjectId
     productName: productName,
     productDescription: productDescription,
     brandArtist: brandArtist,
     images: [img1, img2, img3, img4],
-    subcategory: subCategory?.value,
     salesPrice: salesPrice,
     regularPrice: regularPrice,
     productType: productType,
-    ...(category === "Sculpture" && {
+    ...(categoryName === "Sculpture" && {
       width: width,
       weight: weight,
       height: height,
       technique: technique,
     }),
-    ...(category === "Jewelry" && {
+    ...(categoryName === "Jewelry" && {
       length: length,
       diameter: diameter,
       stoneType: stoneType,
       metalType: metalType,
     }),
-    ...(category === "Paintings" && {
+    ...(categoryName === "Paintings" && {
       medium: medium,
       condition: condition,
       size: size,
     }),
-    ...(category === "Pottery" && {
+    ...(categoryName === "Pottery" && {
       height: height,
       diameter: diameter,
       clayType: clayType,
       glaze: glaze,
     }),
-    ...(category === "Textiles/Fabrics" && {
+    ...(categoryName === "Textiles/Fabrics" && {
       yard: yard,
       weight: weight,
       fabricType: fabricType,
@@ -148,12 +148,19 @@ export const CreateTab = ({ subCategories, category }) => {
   ];
 
   const handleCreateProduct = async () => {
+    const cleanDescription = await sanitizeHTML(productDescription);
+    console.log(cleanDescription)
+    console.log({
+      ...payload,
+      productDescription: cleanDescription,
+    }, "PAYLOAD");
+    const productObj = {
+      ...payload,
+      productDescription: cleanDescription
+    }
     try {
-      const cleanDescription = await sanitizeHTML(productDescription);
-      const response = await createProduct({
-        ...payload,
-        productDescription: cleanDescription,
-      });
+
+      const response = await createProduct(productObj);
       setModalError(false);
       console.log(response);
       handleModalOpen();
@@ -318,7 +325,7 @@ export const CreateTab = ({ subCategories, category }) => {
                 onChange={setProductDescription}
               />
             </div>
-            {category === "Sculpture" ? (
+            {categoryName === "Sculpture" ? (
               <>
                 {/* Weight */}
                 <div className="product__item">
@@ -372,7 +379,7 @@ export const CreateTab = ({ subCategories, category }) => {
                   />
                 </div>
               </>
-            ) : category === "Textiles/Fabrics" ? (
+            ) : categoryName === "Textiles/Fabrics" ? (
               <>
                 {/* Weight */}
                 <div className="product__item">
@@ -425,7 +432,7 @@ export const CreateTab = ({ subCategories, category }) => {
                   />
                 </div>
               </>
-            ) : category === "Pottery" ? (
+            ) : categoryName === "Pottery" ? (
               <>
                 {/* Diameter */}
                 <div className="product__item">
@@ -478,7 +485,7 @@ export const CreateTab = ({ subCategories, category }) => {
                   />
                 </div>
               </>
-            ) : category === "Paintings" ? (
+            ) : categoryName === "Paintings" ? (
               <>
                 {/* Medium */}
                 <div className="product__item">
@@ -521,7 +528,7 @@ export const CreateTab = ({ subCategories, category }) => {
                 </div>
               </>
             ) : (
-              category === "Jewelry" && (
+              categoryName === "Jewelry" && (
                 <>
                   {/* length */}
                   <div className="product__item">

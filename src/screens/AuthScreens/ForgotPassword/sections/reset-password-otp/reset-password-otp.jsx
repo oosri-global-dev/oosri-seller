@@ -1,5 +1,5 @@
 import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { CheckEmailWrapper } from "../EmailVerification/email-verification.styles";
+import { CheckEmailWrapper } from "../../../EmailVerification/email-verification.styles";
 import { GoLock as LockIcon } from "react-icons/go";
 import AuthLayout from "@/components/layouts/AuthLayout/auth-layout";
 import OtpInput from "react-otp-input";
