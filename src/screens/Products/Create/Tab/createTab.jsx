@@ -49,7 +49,7 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
 
   const payload = {
     categoryId: category, // category is now the ObjectId from activeTab
-    subcategoryId: subCategory?.id || subCategory?._id, // Use ObjectId
+    subcategoryId: subCategory?._id, // Use the preserved ObjectId
     productName: productName,
     productDescription: productDescription,
     brandArtist: brandArtist,
@@ -126,6 +126,7 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
         item.push({
           value: subCategories[index].name,
           label: subCategories[index].name,
+          _id: subCategories[index]._id || subCategories[index].id, // Preserve the ObjectId
         });
       }
       setCategoryItem(item);
