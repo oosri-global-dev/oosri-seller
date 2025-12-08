@@ -46,6 +46,7 @@ const normalizeProducts = (data, isSearch) => {
     if (isSearch) {
       return {
         key: item.objectID || index,
+        _id: item.objectID, // Preserve _id for navigation
         productName: item.productName,
         images: item.images || [],
         brandArtist: item.artist || item.brandArtist || "",
@@ -57,6 +58,7 @@ const normalizeProducts = (data, isSearch) => {
     } else {
       return {
         key: item._id || index,
+        _id: item._id, // Preserve _id for navigation
         productName: item.productName,
         images: item.images || [],
         brandArtist: item.brandArtist || "",
