@@ -47,9 +47,12 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
   const [yard, setYard] = useState("");
   const [clearImage, setClearImg] = useState(false);
 
+  // Extract subcategoryId as a primitive string to avoid object serialization issues
+  const subcategoryIdValue = subCategory?._id || subCategory?.id;
+
   const payload = {
     categoryId: category, // category is now the ObjectId from activeTab
-    subcategoryId: subCategory?._id, // Use the preserved ObjectId
+    subcategoryId: subcategoryIdValue, // Use the extracted string value
     productName: productName,
     productDescription: productDescription,
     brandArtist: brandArtist,
@@ -115,6 +118,7 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
     setMedium();
     setCondition();
     setSize();
+    setSubCategory(null); // Reset subcategory when form is cleared
     setOpenModal(false);
     setModalError(false);
     setYard(" ");
@@ -129,7 +133,9 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
           _id: subCategories[index]._id || subCategories[index].id, // Preserve the ObjectId
         });
       }
+      console.log('CategoryItem array:', item);
       setCategoryItem(item);
+      console.log('Setting initial subCategory to:', item[0]);
       setSubCategory(item[0]);
     }
   }, [subCategories]);
@@ -150,15 +156,23 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
 
   const handleCreateProduct = async () => {
     const cleanDescription = await sanitizeHTML(productDescription);
-    console.log(cleanDescription)
-    console.log({
-      ...payload,
-      productDescription: cleanDescription,
-    }, "PAYLOAD");
+
+    // Extract subcategoryId as a string to ensure it's not sent as an object
+    const subcategoryIdString = subCategory?._id || subCategory?.id || null;
+
+    console.log('SubCategory object:', subCategory);
+    console.log('Extracted subcategoryId:', subcategoryIdString);
+    console.log('Type of subcategoryId:', typeof subcategoryIdString);
+    console.log('Product object:', payload);
+
     const productObj = {
       ...payload,
+      subcategoryId: subcategoryIdString, // Override with the string value
       productDescription: cleanDescription
     }
+
+    console.log('Final productObj:', productObj);
+
     try {
 
       const response = await createProduct(productObj);
@@ -214,9 +228,12 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
               <label htmlFor="Name">Product Category</label>
               <Select
                 options={categoryItem}
-                value={subCategory}
-                onChange={(e) => {
-                  setSubCategory(e);
+                value={subCategory?.value || subCategory}
+                onChange={(value) => {
+                  // Find the full option object from categoryItem
+                  const selectedOption = categoryItem.find(item => item.value === value);
+                  console.log('Selected subcategory option:', selectedOption);
+                  setSubCategory(selectedOption);
                 }}
                 backgroundColor="#FAFAFA"
                 width="100%"

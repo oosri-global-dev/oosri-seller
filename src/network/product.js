@@ -39,18 +39,29 @@ export const deleteProduct = async (params) => {
 };
 
 export const createProduct = async (payload) => {
+  console.log('createProduct called with payload:', payload);
+
   // Filter out null/undefined images
   const filteredImages = payload.images?.filter(img => img != null) || [];
-  
+  console.log('Filtered images:', filteredImages);
+
   // Create a new payload with filtered images
   const cleanedPayload = {
     ...payload,
     images: filteredImages
   };
-  
+
+  console.log('Cleaned payload before FormData:', cleanedPayload);
+
   // Convert to FormData
   const formData = objectToFormData(cleanedPayload);
-  
+
+  // Log FormData contents
+  console.log('FormData created, entries:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value);
+  }
+
   const data = await formInstance.post(`/products/seller/add`, formData);
   return data;
 };
@@ -64,10 +75,10 @@ export const editProduct = async (params, payload) => {
       images: filteredImages
     };
   }
-  
+
   // Convert to FormData
   const formData = objectToFormData(payload);
-  
+
   const data = await formInstance.put(`/products/seller/${params}`, formData);
   return data;
 };
@@ -84,8 +95,8 @@ export const searchProduct = async (searchTerm) => {
     const response = await instance.get(`/products/seller/search?q=${searchTerm}`);
     return response;
   } catch (error) {
-     console.error("Error filtering products:", error);
+    console.error("Error filtering products:", error);
     throw error;
   }
-  
+
 } 

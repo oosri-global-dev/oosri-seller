@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "react-quill/dist/quill.snow.css";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import dynamic from "next/dynamic";
@@ -31,6 +31,11 @@ const formats = [
 
 export default function TextEditor({ onChange, value, placeholder }) {
   const [editorHtml, setEditorHtml] = useState(value || "");
+
+  // Sync internal state with value prop changes
+  useEffect(() => {
+    setEditorHtml(value || "");
+  }, [value]);
 
   const handleEditorChange = (html) => {
     setEditorHtml(html);

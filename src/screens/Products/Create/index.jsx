@@ -36,12 +36,12 @@ export default function CreateProductPage() {
 
         for (let index = 0; index < data.data.data.length; index++) {
           const cat = data.data.data[index];
-          newCategories.push(cat); // Store full object including _id
+          newCategories.push(cat);
           items.push(
             {
-              key: cat._id, // Use _id as key
+              key: cat._id,
               label: cat.name,
-              categoryId: cat._id // Store categoryId for easy access
+              categoryId: cat._id
             }
           )
         }
