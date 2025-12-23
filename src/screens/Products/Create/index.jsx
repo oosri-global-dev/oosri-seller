@@ -47,7 +47,7 @@ export default function CreateProductPage() {
         }
         setCategories(newCategories);
         setDisplayCategories(items)
-        setActiveTab(items[0]?.key) // Set to categoryId
+        setActiveTab(items[0]?.key)
         setLoading(false)
       } catch (errors) {
         console.log(errors)
