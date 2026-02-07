@@ -1,7 +1,27 @@
 import styled from "styled-components";
 import { Button } from "antd";
 
-export default styled(Button)`
+export default styled(Button).withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "width",
+      "maxWidth",
+      "margin",
+      "height",
+      "padding",
+      "borderColor",
+      "border",
+      "backgroundColor",
+      "radius",
+      "boxShadow",
+      "opacity",
+      "color",
+      "fontSize",
+      "hoverBg",
+      "hoverBorderColor",
+      "hoverColor",
+    ].includes(prop),
+})`
   width: ${({ width }) => width || "max-content"};
   width: ${({ maxWidth }) => maxWidth && maxWidth};
   margin: ${({ margin }) => margin};
@@ -25,7 +45,7 @@ export default styled(Button)`
     background: ${({ hoverBg }) => hoverBg || "var(--oosriPrimary)"};
     cursor: pointer;
     border-color: ${({ hoverBorderColor }) =>
-      hoverBorderColor || "var(--oosriPrimary) !important"};
+    hoverBorderColor || "var(--oosriPrimary) !important"};
     color: ${({ hoverColor }) => hoverColor || "var(--oosriWhite)"} !important;
     cursor: pointer !important;
   }
@@ -46,7 +66,7 @@ export default styled(Button)`
   :active {
     background: ${({ hoverBg }) => hoverBg || "transparent"};
     border-color: ${({ hoverBg, borderColor }) =>
-      hoverBg ? hoverBg : borderColor || "var(--oosriPrimary)"};
+    hoverBg ? hoverBg : borderColor || "var(--oosriPrimary)"};
 
     span,
     small {

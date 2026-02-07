@@ -70,7 +70,14 @@ const AppWrapper = ({ children }) => {
     return () => clearInterval(intervalId);
   }, [user]);
 
-  if (isLoading && getDataInCookie("access_token__seller")) {
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    // Check for token after mount to avoid hydration mismatch
+    setHasToken(!!getDataInCookie("access_token__seller"));
+  }, []);
+
+  if (isLoading && hasToken) {
     return <CustomLoader />;
   }
 
