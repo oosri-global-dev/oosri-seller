@@ -2,7 +2,7 @@ import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layo
 import { DashboardWrapper } from "./dashboard.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import Button from "@/components/lib/Button";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import "chartkick/chart.js";
 import { AreaChart } from "react-chartkick";
 import { Table } from "antd";
@@ -16,97 +16,56 @@ import { GoStack as StackIcon } from "react-icons/go";
 import { IoBagOutline as BagIcon } from "react-icons/io5";
 import { CiCreditCard1 as CardIcon } from "react-icons/ci";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import dayjs from "dayjs";
+
+const GRAPH_FILTERS = ["Daily", "Weekly", "Monthly", "Yearly"];
 
 export default function DashboardScreen() {
-  const [filters, setFilters] = useState([
-    "Daily",
-    "Weekly",
-    "Monthly",
-    "Yearly",
-  ]);
   const [selectedFilter, setSelectedFilter] = useState("Daily");
-  // const [loading, setLoading] = useState(false);
-  // const [data, setData] = useState({
-  //   averageOrderValue: 0,
-  //   payout: 0,
-  //   totalOrders: 0,
-  //   totalProducts: 0,
-  //   totalSales: 0
-  // });
+  const { data, isLoading } = useDashboardData(selectedFilter.toLowerCase());
 
-  const { data, isLoading, error } = useDashboardData(
-    selectedFilter.toLowerCase()
-  );
   const dashboardSummary = data?.overview?.data?.data || {};
-  const dashboardSalesOverview = data?.summary?.data?.data || {};
+  const dashboardSalesOverview = data?.summary?.data?.data || [];
 
-  const [graphOptions, setGraphOptions] = useState({});
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const { graphOptions, startDate, endDate } = useMemo(() => {
+    if (!dashboardSalesOverview.length) {
+      return { graphOptions: {}, startDate: "", endDate: "" };
+    }
 
-  const fetchSalesOverview = async () => {
-    const graphOptions = {};
-    try {
-      const data = dashboardSalesOverview;
-      console.log("Sales Overview Data:", data);
-      const first = new Date(data[0].period);
-      const last = new Date(data[data.length - 1].period);
-      setStartDate(
-        `${first.getDate("YYYY-MM-DD")}/${first.getUTCMonth(
-          "YYYY-MM-DD"
-        )}/${first.getFullYear()}`
-      );
-      setEndDate(
-        `${last.getDate("YYYY-MM-DD")}/${last.getUTCMonth(
-          "YYYY-MM-DD"
-        )}/${last.getFullYear()}`
-      );
-      for (let index = 0; index < data.length; index++) {
-        const date = new Date(data[index].period);
-        if (selectedFilter === "Daily") {
-          const options = { weekday: "short" };
-          const dayOfWeek = date.toLocaleDateString("en-US", options);
-          graphOptions[dayOfWeek] = data[index].totalSales;
-        } else if (selectedFilter === "Weekly") {
-          // const getWeekNumber = (d) => {
-          //   const dateCopy = new Date(d.getTime());
-          //   dateCopy.setHours(0, 0, 0, 0);
-          //   dateCopy.setDate(dateCopy.getDate() + 3 - (dateCopy.getDay() + 6) % 7);
-          //   const week1 = new Date(dateCopy.getFullYear(), 0, 4);
-          //   const diff = dateCopy - week1;
-          //   const oneDay = 1000 * 60 * 60 * 24;
-          //   const weekNumber = Math.ceil(diff / oneDay / 7);
-          //   return weekNumber;
-          // };
+    const options = {};
+    const first = dayjs(dashboardSalesOverview[0].period);
+    const last = dayjs(dashboardSalesOverview[dashboardSalesOverview.length - 1].period);
 
-          // const weekNumber = getWeekNumber(date);
-          // console.log(weekNumber)
-          // graphOptions[`Week ${weekNumber}`]=data.data.data[index].totalSales
-          const options = { weekday: "short" };
-          const dayOfWeek = date.toLocaleDateString("en-US", options);
-          graphOptions[dayOfWeek] = data[index].totalSales;
-        } else if (selectedFilter === "Monthly") {
-          const options = { month: "short" };
-          const dayOfWeek = date.toLocaleDateString("en-US", options);
-          graphOptions[dayOfWeek] = data[index].totalSales;
-        } else if (selectedFilter === "Yearly") {
-          const dayOfWeek = date.getFullYear();
-          graphOptions[dayOfWeek] = data[index].totalSales;
-        }
+    dashboardSalesOverview.forEach((item) => {
+      const date = dayjs(item.period);
+      let label;
+      switch (selectedFilter) {
+        case "Daily":
+          label = date.format("ddd");
+          break;
+        case "Weekly":
+          label = date.format("ddd"); // Same as daily in original logic
+          break;
+        case "Monthly":
+          label = date.format("MMM");
+          break;
+        case "Yearly":
+          label = date.format("YYYY");
+          break;
+        default:
+          label = date.format("YYYY-MM-DD");
       }
-      setGraphOptions(graphOptions);
-    } catch (errors) {
-      console.log(errors);
-    }
-  };
+      options[label] = item.totalSales;
+    });
 
-  useEffect(() => {
-    if (dashboardSalesOverview && dashboardSalesOverview.length > 0) {
-      fetchSalesOverview();
-    }
+    return {
+      graphOptions: options,
+      startDate: first.format("DD/MM/YYYY"),
+      endDate: last.format("DD/MM/YYYY"),
+    };
   }, [dashboardSalesOverview, selectedFilter]);
 
-  const summaryBoxes = [
+  const summaryBoxes = useMemo(() => [
     {
       icon: <StackIcon size={22} color="#FB5183" />,
       value: `${dashboardSummary.totalProducts || 0}`,
@@ -122,7 +81,7 @@ export default function DashboardScreen() {
       value: `${dashboardSummary.payout || 0}`,
       label: "Payout",
     },
-  ];
+  ], [dashboardSummary]);
 
   return (
     <>
@@ -172,7 +131,7 @@ export default function DashboardScreen() {
                   width="fit-content"
                   gap="15px"
                 >
-                  {filters.map((sgn, idx) => (
+                  {GRAPH_FILTERS.map((sgn, idx) => (
                     <Button
                       backgroundColor={
                         selectedFilter === sgn

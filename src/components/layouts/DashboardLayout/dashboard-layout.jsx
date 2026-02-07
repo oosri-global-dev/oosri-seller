@@ -1,5 +1,5 @@
 import { DBWrapper } from "./dashboard-layout.styles";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo, useCallback } from "react";
 import { Layout, Menu, theme } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
@@ -19,9 +19,20 @@ import { GoStack as StackIcon } from "react-icons/go";
 const { Header, Sider, Content } = Layout;
 import { BsArrowLeft as LeftArrow } from "react-icons/bs";
 import { MainContext } from "@/context";
-import { isEmpty, isNull } from "lodash";
+import { isEmpty } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
+import { deleteDataInCookie } from "@/data-helpers/auth-session";
+import Image from "next/image";
+
+const MENU_ITEMS_CONFIG = [
+  { key: "/dashboard", icon: <DashboardOutlined />, label: "Dashboard", href: "/dashboard" },
+  { key: "/products", icon: <StackIcon />, label: "Products", href: "/products" },
+  { key: "/order", icon: <ProductIcon />, label: "Order", href: "/order" },
+  { key: "/sales-analytics", icon: <GraphIcon />, label: "Sales Analytics", href: "/sales-analytics" },
+  { key: "/profile", icon: <BsPeopleFill />, label: "Profile", href: "/sellers-profile-page" },
+  { key: "/", icon: <LogoutIcon />, label: "Logout", isLogout: true },
+];
 
 export default function DashboardLayout({
   children,
@@ -34,68 +45,30 @@ export default function DashboardLayout({
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const { push, pathname, back } = useRouter();
-  const [current, setCurrent] = useState(
-    pathname === "/" || pathname === "" ? "/dashboard" : 
-    pathname.includes("/product")?"/products":
-    pathname.includes("/order")?"/order":pathname
-  );
+
+  const currentKey = useMemo(() => {
+    if (pathname === "/" || pathname === "") return "/dashboard";
+    if (pathname.includes("/product")) return "/products";
+    if (pathname.includes("/order")) return "/order";
+    return pathname;
+  }, [pathname]);
+
   const {
     dispatch,
     state: { user, showNoBusinessModal },
   } = useContext(MainContext);
 
-  const menuItems = [
-    {
-      key: "/dashboard",
-      icon: <DashboardOutlined />,
-      label: "Dashboard",
-      onClick: () => {
-        push("/dashboard");
-      },
-    },
-    {
-      key: "/products",
-      icon: <StackIcon />,
-      label: "Products",
-      onClick: () => {
-        push("/products");
-      },
-    },
-    {
-      key: "/order",
-      icon: <ProductIcon />,
-      label: "Order",
-      onClick: () => {
-        push("/order");
-      },
-    },
-    {
-      key: "/sales-analytics",
-      icon: <GraphIcon />,
-      label: "Sales Analytics",
-      onClick: () => {
-        push("/sales-analytics");
-      },
-    },
-    {
-      key: "/profile",
-      icon: <BsPeopleFill />,
-      label: "Profile",
-      onClick: ({ item, key }) => {
-        push("/sellers-profile-page");
-      },
-    },
-    {
-      key: "/",
-      icon: <LogoutIcon />,
-      label: "Logout",
-      onClick: ({ item, key }) => {
-        push("/");
-      },
-    },
-  ];
+  const menuItems = useMemo(() => MENU_ITEMS_CONFIG.map(item => ({
+    ...item,
+    onClick: item.isLogout
+      ? () => {
+        deleteDataInCookie("access_token__seller");
+        window.location.href = "/";
+      }
+      : () => push(item.href)
+  })), [push]);
 
-  const handleUserBusinessCheck = () => {
+  const handleUserBusinessCheck = useCallback(() => {
     if (user?.businessType === "Personal") {
       if (isEmpty(user?.personalBusinessAccount)) {
         push("/create-business");
@@ -105,7 +78,7 @@ export default function DashboardLayout({
         push("/create-business");
       }
     }
-  };
+  }, [user, push]);
 
   return (
     <DBWrapper openMenu={collapsed}>
@@ -137,8 +110,7 @@ export default function DashboardLayout({
             mode="inline"
             className="menu__wrapper"
             items={menuItems}
-            onClick={(e) => setCurrent(e.key)}
-            selectedKeys={[current]}
+            selectedKeys={[currentKey]}
           />
         </Sider>
         <Layout className="content__layout__wrapper">
@@ -160,7 +132,7 @@ export default function DashboardLayout({
                 width="fit-content"
                 gap="15px"
               >
-                {showBackBtn && <LeftArrow size={24} onClick={() => back()} style={{cursor:"pointer"}} />}
+                {showBackBtn && <LeftArrow size={24} onClick={() => back()} style={{ cursor: "pointer" }} />}
                 <FlexibleDiv flexDir="column" className="welcome__box">
                   <p className="dashboard__text">{title || "Dashboard"}</p>
                   <p className="sub__text">
@@ -170,7 +142,7 @@ export default function DashboardLayout({
                 </FlexibleDiv>
               </FlexibleDiv>
 
-              <FlexibleDiv className="header__navigations">
+              <FlexibleDiv className="header__navigations" gap="15px">
                 <SearchIcon size={25} color="#9E9E9E" />
                 <NotificationIcon size={25} color="#9E9E9E" />
                 <FlexibleDiv
@@ -178,11 +150,15 @@ export default function DashboardLayout({
                   gap="8px"
                   className="profile__nav"
                 >
-                  <img
-                    className="profile__image"
-                    src={user?.profilePicture || ProfileImage.src}
-                    alt="show-img"
-                  />
+                  <div className="profile__image__wrapper" style={{ position: 'relative', width: '45px', height: '45px', borderRadius: '50%', overflow: 'hidden' }}>
+                    <Image
+                      src={user?.profilePicture || ProfileImage.src}
+                      alt="profile"
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      priority
+                    />
+                  </div>
                   <div>
                     {user?.firstName && (
                       <h4>
@@ -209,6 +185,6 @@ export default function DashboardLayout({
           </Content>
         </Layout>
       </Layout>
-    </DBWrapper>
+    </DBWrapper >
   );
 }

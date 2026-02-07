@@ -6,7 +6,8 @@ import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { CustomInput } from "@/components/lib/CustomInput/index.styles";
 import { CustomUpload } from "@/components/lib/CustomUpload";
 import { useState } from "react";
-import { editProduct } from "@/network/product";
+import { editProduct, getUploadUrl } from "@/network/product";
+import axios from "axios";
 import Button from "@/components/lib/Button";
 import CustomLoader from "@/components/lib/CustomLoader";
 import dynamic from "next/dynamic";
@@ -115,13 +116,54 @@ export default function EditProduct({
     { value: "Antique", label: "Antique" },
   ];
 
+  const handleImageUpload = async (file) => {
+    if (!file) return null;
+
+    // Check if it's already a URL (e.g. from existing product)
+    if (typeof file === "string") return file;
+    if (!(file instanceof File) && !(file instanceof Blob)) return null;
+
+    try {
+      // 1. Get Presigned URL
+      const response = await getUploadUrl(file.name);
+      if (!response.success) throw new Error("Failed to get upload URL");
+
+      const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation } = response.data;
+
+      // 2. Prepare Form Data for Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", timestamp);
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+      formData.append("public_id", publicId);
+      formData.append("tags", tags);
+      formData.append("transformation", transformation);
+
+      // 3. Upload to Cloudinary
+      const uploadRes = await axios.post(url, formData);
+      return uploadRes.data.secure_url;
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      throw error;
+    }
+  };
+
   const handleEdit = async () => {
     setLoading(true);
     try {
       const cleanDescription = await sanitizeHTML(productDescription);
+
+      // Upload images first
+      const imageFiles = [img1, img2, img3, img4].filter(Boolean);
+      const imageUrls = await Promise.all(imageFiles.map(file => handleImageUpload(file)));
+
       const response = await editProduct(id, {
         ...payload,
         productDescription: cleanDescription,
+        images: imageUrls, // Send URLs
+        replaceImages: true // Flag to replace entire image list
       });
       setLoading(false);
       console.log(response);
