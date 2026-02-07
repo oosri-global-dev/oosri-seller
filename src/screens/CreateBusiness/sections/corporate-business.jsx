@@ -5,7 +5,7 @@ import { Form, Upload, Button as AntdButton, DatePicker, message } from "antd";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { objectToFormData } from "@/utils/form-data-helper";
 import { useState } from "react";
-import { handleCreatePersonalBusiness } from "@/network/business";
+import { getDocumentUploadUrls, handleCreateBusinessJson } from "@/network/business";
 import useNotification from "@/hooks/useNotification";
 import { useRouter } from "next/router";
 
@@ -14,53 +14,91 @@ export default function CorporateBusiness() {
   const [loading, setIsLoading] = useState(false);
   const [success, error] = useNotification();
   const { push } = useRouter();
-  const [vatFile, setVATFile] = useState(null);
-  const [companyCertFile, setCompanyCertFile] = useState(null);
-
-  const handleCreateBusiness = async (values) => {
-    // Here you would typically send the formData to your server
-    setIsLoading(true);
+  const uploadToCloudinary = async (file, uploadConfig) => {
     const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", uploadConfig.apiKey);
+    formData.append("timestamp", uploadConfig.timestamp);
+    formData.append("signature", uploadConfig.signature);
+    formData.append("public_id", uploadConfig.publicId);
+    formData.append("folder", uploadConfig.folder);
 
-    // Append simple fields
-    formData.append("companyName", values?.companyName);
-    formData.append("companyAddress", values?.companyAddress);
-    formData.append("vatNumber", values?.vatNumber);
-    formData.append("companyRegNum", values?.companyRegNum);
-    formData.append("paymentMethod", "Transfer");
-
-    // Append bank details
-    Object.entries(values.bankDetails).forEach(([key, value]) => {
-      formData.append(`bankDetails[${key}]`, value);
+    const res = await fetch(uploadConfig.url, {
+      method: "POST",
+      body: formData,
     });
 
-    // Append file if it exists
-    if (values.vatCertificate && values.vatCertificate.file) {
-      formData.append(
-        "vatCertificate",
-        values.vatCertificate.file.originFileObj
-      );
+    if (!res.ok) {
+      throw new Error("Cloudinary upload failed");
     }
 
-    if (values.companyCertificate && values.companyCertificate.file) {
-      formData.append(
-        "companyCertificate",
-        values.companyCertificate.file.originFileObj
-      );
-    }
+    const data = await res.json();
+    return data.secure_url;
+  };
 
+  const handleCreateBusiness = async (values) => {
+    setIsLoading(true);
 
     try {
-      const res = await handleCreatePersonalBusiness(formData);
+      // 1. Get presigned URLs from backend
+      const { uploadUrls } = await getDocumentUploadUrls({
+        businessType: "Corporate",
+        documents: ["vatCertificate", "companyCertificate"],
+      });
 
+      // 2. Upload files directly to Cloudinary in parallel
+      const uploadPromises = [];
+
+      const vatFileObj = values.vatCertificate?.file?.originFileObj;
+      const companyFileObj = values.companyCertificate?.file?.originFileObj;
+
+      let vatUrl = "";
+      let companyUrl = "";
+
+      const tasks = [];
+
+      if (vatFileObj) {
+        tasks.push(
+          uploadToCloudinary(vatFileObj, uploadUrls.vatCertificate).then(
+            (url) => (vatUrl = url)
+          )
+        );
+      }
+
+      if (companyFileObj) {
+        tasks.push(
+          uploadToCloudinary(companyFileObj, uploadUrls.companyCertificate).then(
+            (url) => (companyUrl = url)
+          )
+        );
+      }
+
+      await Promise.all(tasks);
+
+      // 3. Submit registration with Cloudinary URLs as JSON
+      const payload = {
+        companyName: values?.companyName,
+        companyAddress: values?.companyAddress,
+        vatNumber: values?.vatNumber,
+        companyRegNum: values?.companyRegNum,
+        paymentMethod: "Transfer",
+        bankDetails: values.bankDetails,
+        vatCertificateUrl: vatUrl,
+        companyCertificateUrl: companyUrl,
+      };
+
+      await handleCreateBusinessJson(payload);
+
+      success("Business registration successful!");
       window.location.href = "/dashboard";
     } catch (err) {
       setIsLoading(false);
+      console.error("Registration Error:", err);
       if (err?.response?.status === 500) {
         error("Internal Server Error, please try again later...");
         return;
       }
-      error(err?.response?.data?.message);
+      error(err?.response?.data?.message || err.message || "Something went wrong during registration");
     }
   };
 
@@ -214,7 +252,6 @@ export default function CorporateBusiness() {
           >
             <Upload
               {...vatCertificateUploadProps}
-              onChange={(e) => setVATFile(e)}
             >
               <AntdButton color="var(--oosriPrimary)" icon={<UploadOutlined />}>
                 Upload VAT Certificate
@@ -241,7 +278,6 @@ export default function CorporateBusiness() {
           >
             <Upload
               {...companyCertificateUploadProps}
-              onChange={(e) => setCompanyCertFile(e)}
             >
               <AntdButton color="var(--oosriPrimary)" icon={<UploadOutlined />}>
                 Upload Companay's Certificate

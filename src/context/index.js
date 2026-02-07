@@ -1,17 +1,21 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useReducer, useMemo } from "react";
 import { Reducer } from "./reducer";
 
-export const MainContext = createContext({
+const defaultInitialState = {
   user: {},
   showNoBusinessModal: false,
-});
+};
+
+export const MainContext = createContext(defaultInitialState);
 
 export const MainProvider = ({ children }) => {
-  const initialState = useContext(MainContext);
-  const [state, dispatch] = useReducer(Reducer, initialState);
+  const [state, dispatch] = useReducer(Reducer, defaultInitialState);
+
+  // Memoize the context value to prevent unnecessary re-renders of all consumers
+  const contextValue = useMemo(() => ({ state, dispatch }), [state, dispatch]);
 
   return (
-    <MainContext.Provider value={{ state, dispatch }}>
+    <MainContext.Provider value={contextValue}>
       {children}
     </MainContext.Provider>
   );

@@ -3,7 +3,8 @@ import Select from "../../../../components/lib/Select";
 import { Input, Upload } from "antd";
 import { use, useEffect, useState } from "react";
 import { CustomUpload } from "../../../../components/lib/CustomUpload";
-import { createProduct } from "@/network/product";
+import { createProduct, getUploadUrl } from "@/network/product";
+import axios from "axios";
 import Button from "@/components/lib/Button";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { CustomInput } from "@/components/lib/CustomInput/index.styles";
@@ -154,26 +155,72 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
     { value: "Antique", label: "Antique" },
   ];
 
+  const handleImageUpload = async (file) => {
+    if (!file) return null;
+
+    // Check if it's already a URL (e.g. from existing product)
+    if (typeof file === "string") return file;
+    if (!(file instanceof File) && !(file instanceof Blob)) return null;
+
+    try {
+      // 1. Get Presigned URL
+      const response = await getUploadUrl(file.name);
+      if (!response.success) throw new Error("Failed to get upload URL");
+
+      const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation } = response.data;
+
+      // 2. Prepare Form Data for Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", timestamp);
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+      formData.append("public_id", publicId);
+      formData.append("tags", tags);
+      formData.append("transformation", transformation);
+
+      // 3. Upload to Cloudinary
+      const uploadRes = await axios.post(url, formData);
+      return uploadRes.data.secure_url;
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      throw error;
+    }
+  };
+
   const handleCreateProduct = async () => {
     const cleanDescription = await sanitizeHTML(productDescription);
 
     // Extract subcategoryId as a string to ensure it's not sent as an object
     const subcategoryIdString = subCategory?._id || subCategory?.id || null;
 
-    console.log('SubCategory object:', subCategory);
-    console.log('Extracted subcategoryId:', subcategoryIdString);
-    console.log('Type of subcategoryId:', typeof subcategoryIdString);
-    console.log('Product object:', payload);
-
-    const productObj = {
-      ...payload,
-      subcategoryId: subcategoryIdString, // Override with the string value
-      productDescription: cleanDescription
-    }
-
-    console.log('Final productObj:', productObj);
+    setModalError(false); // Reset error state
 
     try {
+      // Upload images first
+      const imageFiles = [img1, img2, img3, img4].filter(img => img);
+
+      if (imageFiles.length === 0) {
+        setModalError(true);
+        setErrorText("At least one product image is required.");
+        handleModalOpen();
+        return;
+      }
+
+      // Show some loading state if possible (optional but good UX)
+      // For now just blocking
+
+      const imageUrls = await Promise.all(imageFiles.map(file => handleImageUpload(file)));
+
+      const productObj = {
+        ...payload,
+        subcategoryId: subcategoryIdString, // Override with the string value
+        productDescription: cleanDescription,
+        images: imageUrls // Send URLs
+      }
+
+      console.log('Final productObj:', productObj);
 
       const response = await createProduct(productObj);
       setModalError(false);
@@ -183,7 +230,7 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
       setModalError(true);
       handleModalOpen();
       console.log(errors);
-      setErrorText(errors.response.data.error);
+      setErrorText(errors.response?.data?.error || errors.message || "Failed to create product");
     }
   };
 

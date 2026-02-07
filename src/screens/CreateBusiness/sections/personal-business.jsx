@@ -5,7 +5,7 @@ import { Form, Upload, Button as AntdButton, DatePicker, message } from "antd";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { objectToFormData } from "@/utils/form-data-helper";
 import { useState } from "react";
-import { handleCreatePersonalBusiness } from "@/network/business";
+import { getDocumentUploadUrls, handleCreateBusinessJson } from "@/network/business";
 import useNotification from "@/hooks/useNotification";
 import { useRouter } from "next/router";
 
@@ -14,44 +14,67 @@ export default function PersonalBusiness() {
   const [loading, setIsLoading] = useState(false);
   const [success, error] = useNotification();
   const { push } = useRouter();
-  const [file, setFile] = useState(null);
 
-  const handleCreateBusiness = async (values) => {
-    // Here you would typically send the formData to your server
-    setIsLoading(true);
+  const uploadToCloudinary = async (file, uploadConfig) => {
     const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", uploadConfig.apiKey);
+    formData.append("timestamp", uploadConfig.timestamp);
+    formData.append("signature", uploadConfig.signature);
+    formData.append("public_id", uploadConfig.publicId);
+    formData.append("folder", uploadConfig.folder);
 
-    // Append simple fields
-    formData.append("dateOfBirth", values.dateOfBirth.format("YYYY-MM-DD"));
-    formData.append("residentialAddress", values.residentialAddress);
-
-    // Append file if it exists
-    if (
-      values.countryIdentificationCard &&
-      values.countryIdentificationCard.file
-    ) {
-      formData.append(
-        "countryIdentificationCard",
-        values.countryIdentificationCard.file.originFileObj
-      );
-    }
-
-    // Append bank details
-    Object.entries(values.bankDetails).forEach(([key, value]) => {
-      formData.append(`bankDetails[${key}]`, value);
+    const res = await fetch(uploadConfig.url, {
+      method: "POST",
+      body: formData,
     });
 
-    try {
-      const res = await handleCreatePersonalBusiness(formData);
+    if (!res.ok) {
+      throw new Error("Cloudinary upload failed");
+    }
 
-        window.location.href = "/dashboard";
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const handleCreateBusiness = async (values) => {
+    setIsLoading(true);
+
+    try {
+      // 1. Get presigned URL from backend
+      const { uploadUrls } = await getDocumentUploadUrls({
+        businessType: "Personal",
+        documents: ["countryIdentificationCard"],
+      });
+
+      // 2. Upload file directly to Cloudinary
+      let countryIdUrl = "";
+      const idFileObj = values.countryIdentificationCard?.file?.originFileObj;
+
+      if (idFileObj) {
+        countryIdUrl = await uploadToCloudinary(idFileObj, uploadUrls.countryIdentificationCard);
+      }
+
+      // 3. Submit registration with Cloudinary URL as JSON
+      const payload = {
+        dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"),
+        residentialAddress: values.residentialAddress,
+        bankDetails: values.bankDetails,
+        countryIdentificationCardUrl: countryIdUrl,
+      };
+
+      await handleCreateBusinessJson(payload);
+
+      success("Business registration successful!");
+      window.location.href = "/dashboard";
     } catch (err) {
       setIsLoading(false);
+      console.error("Registration Error:", err);
       if (err?.response?.status === 500) {
         error("Internal Server Error, please try again later...");
         return;
       }
-      error(err?.response?.data?.message);
+      error(err?.response?.data?.message || err.message || "Something went wrong during registration");
     }
   };
 
@@ -132,7 +155,7 @@ export default function PersonalBusiness() {
           name="countryIdentificationCard"
           rules={[{ required: true, message: "Please upload your ID card" }]}
         >
-          <Upload {...fileUploadProps} onChange={(e) => setFile(e)}>
+          <Upload {...fileUploadProps}>
             <AntdButton color="var(--oosriPrimary)" icon={<UploadOutlined />}>
               Upload ID Card
             </AntdButton>

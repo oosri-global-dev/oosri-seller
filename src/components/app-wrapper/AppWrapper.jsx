@@ -1,13 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import { MainContext } from "@/context";
-import { handleFetchUser } from "@/network/user";
 import { CURRENT_USER, NO_BUSINESS_MODAL } from "@/context/types";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { getDataInCookie } from "@/data-helpers/auth-session";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
+import { useUser } from "@/hooks/useUser";
 
-// Array of paths that should be excluded from redirection
 const excludedPaths = [
   "/otp",
   "/register",
@@ -18,67 +17,37 @@ const excludedPaths = [
 ];
 
 const AppWrapper = ({ children }) => {
-  const {
-    dispatch,
-    state: { user },
-  } = useContext(MainContext);
-  const [pageLoading, setIsPageLoading] = useState(true);
+  const { dispatch } = useContext(MainContext);
+  const { data: user, isLoading, isError, error } = useUser();
   const { pathname, push } = useRouter();
 
   useEffect(() => {
-    const userToken = getDataInCookie("access_token__seller");
+    if (user) {
+      dispatch({
+        type: CURRENT_USER,
+        payload: user,
+      });
 
-    if (
-      !userToken &&
-      !excludedPaths.some((path) => pathname.startsWith(path))
-    ) {
+      // Redirect from home to dashboard if user is logged in
+      if (pathname === "/") {
+        push("/dashboard");
+      }
+    }
+  }, [user, dispatch, pathname, push]);
+
+  useEffect(() => {
+    const userToken = getDataInCookie("access_token__seller");
+    const isExcludedPath = excludedPaths.some((path) => pathname.startsWith(path));
+
+    if (!userToken && !isExcludedPath && pathname !== "/") {
       push("/");
-      setIsPageLoading(false);
-      return;
     }
 
-    const fetchUser = async () => {
-      try {
-        const res = await handleFetchUser();
-
-        if (typeof res === "undefined") {
-          throw new Error();
-        }
-
-        dispatch({
-          type: CURRENT_USER,
-          payload: res?.data?.data,
-        });
-
-        // Check if the current path is in the excluded list
-        const isExcludedPath = excludedPaths.some((path) =>
-          pathname.startsWith(path)
-        );
-
-        if (res&&pathname === "/" && !isExcludedPath) {
-          push("/dashboard").then(() => {
-            setIsPageLoading(false);
-          });
-          return;
-        }
-        setIsPageLoading(false);
-      } catch (err) {
-        console.clear();
-        console.log(err, "err");
-        // Only redirect to home if not on an excluded path
-        if (
-          !excludedPaths.some((path) => pathname.startsWith(path)) &&
-          pathname !== "/"
-        ) {
-          window.location.href = "/";
-        } else {
-          setIsPageLoading(false);
-        }
-      }
-    };
-
-    fetchUser();
-  }, [dispatch, pathname]);
+    if (isError && !isExcludedPath && pathname !== "/") {
+      console.error("Auth error:", error);
+      push("/");
+    }
+  }, [isError, error, pathname, push]);
 
   useEffect(() => {
     // Function to check business status
@@ -101,7 +70,7 @@ const AppWrapper = ({ children }) => {
     return () => clearInterval(intervalId);
   }, [user]);
 
-  if (pageLoading) {
+  if (isLoading && getDataInCookie("access_token__seller")) {
     return <CustomLoader />;
   }
 

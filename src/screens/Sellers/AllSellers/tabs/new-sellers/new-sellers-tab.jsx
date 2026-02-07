@@ -1,11 +1,9 @@
-import Picture from "@/assets/images/profile.jpg";
-import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
 import { Table, Popover, Space, Avatar } from "antd";
 import Button from "@/components/lib/Button";
+import React, { useMemo } from "react";
 
 export default function NewSellersTab() {
-  //incase you unverify a seller later, should still be in all-sellers
-  const content = (
+  const content = useMemo(() => (
     <div className="popover__custom">
       <Button
         height="30px"
@@ -29,20 +27,17 @@ export default function NewSellersTab() {
         Unverify Seller
       </Button>
     </div>
-  );
+  ), []);
 
-  const sellersDataColumns = [
+  const sellersDataColumns = useMemo(() => [
     {
       title: "Seller Name",
       dataIndex: "sellerName",
       key: "sellerName",
-      render: (_) => (
+      render: (text, record) => (
         <Space>
-          {/* item image */}
-          <Avatar size={45} src={Picture.src} />
-          <Space direction="vertical" size={1}>
-            <p>{_}</p>
-          </Space>
+          <Avatar size={45} src={record.profilePicture || "/default-profile.jpg"} />
+          <p>{text}</p>
         </Space>
       ),
     },
@@ -70,13 +65,11 @@ export default function NewSellersTab() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (_, obj) => (
+      render: (status) => (
         <Space size="middle">
-          {_?.toLowerCase() === "verified" ? (
-            <p className="verified__text">{_}</p>
-          ) : (
-            <p>{_}</p>
-          )}
+          <p className={status?.toLowerCase() === "verified" ? "verified__text" : ""}>
+            {status}
+          </p>
         </Space>
       ),
     },
@@ -86,11 +79,11 @@ export default function NewSellersTab() {
       key: "action",
       render: () => (
         <Popover content={content} trigger="click">
-          <EllipsisIcon style={{ cursor: "pointer" }} />
+          <span style={{ cursor: "pointer" }}>•••</span>
         </Popover>
       ),
     },
-  ];
+  ], [content]);
 
   const sellersTableData = [
     {

@@ -6,7 +6,7 @@ import Button from "@/components/lib/Button";
 import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import TextField from "@/components/lib/TextField";
 import { LuArrowUpDown as FilterArrow } from "react-icons/lu";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
 import { isBusinessActive } from "@/utils/business-checker";
@@ -16,6 +16,25 @@ import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
 import { useProducts } from "@/hooks/useProducts";
 import { useToggleVisibility } from "@/hooks/useToggleVisibility";
+
+const normalizeProducts = (data) => {
+  if (!data || !Array.isArray(data)) return [];
+  return data.map((item, index) => {
+    // Determine if it's from Algolia search or regular API
+    const isSearch = !!item.objectID;
+    return {
+      key: item._id || item.objectID || index,
+      _id: item._id || item.objectID,
+      productName: item.productName,
+      images: item.images || [],
+      brandArtist: item.brandArtist || item.artist || "",
+      productId: item.productId || item.product || "",
+      regularPrice: item.regularPrice || item.price || 0,
+      inStock: Boolean(item.inStock ?? item.quantity),
+      isVisible: item.isVisible ?? item.isApproved ?? false,
+    };
+  });
+};
 
 export default function AllProductsScreen() {
   const [openModal, setOpenModal] = useState(false);
@@ -31,6 +50,7 @@ export default function AllProductsScreen() {
     maxPrice: undefined,
     limit: 10,
     sortBy: "oldest",
+    page: 1,
   });
 
   const { data, isLoading, refetch } = useProducts(filters, searchTerm);
@@ -38,47 +58,22 @@ export default function AllProductsScreen() {
   const allProducts = data?.data?.data || data?.data || [];
   const pagination = data?.data?.pagination || data?.pagination || {};
   const [toggleLoading, setToggleLoading] = useState({});
-  const [tempProducts, setTempProducts] = useState(allProducts);
-  const handleToggle = useToggleVisibility(setToggleLoading, setTempProducts);
 
-const normalizeProducts = (data, isSearch) => {
-  return data.map((item, index) => {
-    if (isSearch) {
-      return {
-        key: item.objectID || index,
-        _id: item.objectID, // Preserve _id for navigation
-        productName: item.productName,
-        images: item.images || [],
-        brandArtist: item.artist || item.brandArtist || "",
-        productId: item.product || item.productId || "",
-        regularPrice: item.price || item.regularPrice || 0,
-        inStock: Boolean(item.quantity),
-        isVisible: item.isApproved ?? item.isVisible ?? false,
-      };
-    } else {
-      return {
-        key: item._id || index,
-        _id: item._id, // Preserve _id for navigation
-        productName: item.productName,
-        images: item.images || [],
-        brandArtist: item.brandArtist || "",
-        productId: item.productId || "",
-        regularPrice: item.regularPrice || 0,
-        inStock: Boolean(item?.inStock),
-        isVisible: item.isVisible ?? false,
-      };
+  const structuredProducts = useMemo(() => normalizeProducts(allProducts), [allProducts]);
+
+  // Handle visibility toggle
+  const handleToggle = useCallback(async (checked, obj) => {
+    setToggleLoading((prev) => ({ ...prev, [obj._id]: true }));
+    try {
+      await toggleProductVisibility(obj._id, { isVisible: checked });
+      refetch();
+    } catch (error) {
+      console.error("Failed to toggle visibility:", error);
+    } finally {
+      setToggleLoading((prev) => ({ ...prev, [obj._id]: false }));
     }
-  });
-};
+  }, [refetch]);
 
-const structuredProducts = normalizeProducts(tempProducts, true);
-
-
-  useEffect(() => {
-    if (allProducts && allProducts?.length > 0) {
-      setTempProducts(allProducts);
-    }
-  }, [allProducts]);
   console.log("All Products Data:", allProducts);
 
   const { push } = useRouter();
@@ -167,84 +162,37 @@ const structuredProducts = normalizeProducts(tempProducts, true);
     </div>
   );
 
-  const filterContent = () => (
+  const filterContent = useMemo(() => (
     <div className="popover__custom">
-      <Button
-        height="30px"
-        radius="5px"
-        onClick={() => handleSortChange("newest")}
-        width="100%"
-        hoverColor="var(--oosriBlack)"
-        style={{
-          backgroundColor:
-            filters.sortBy === "newest" ? "var(--oosriPrimary)" : "transparent",
-          color:
-            filters.sortBy === "newest"
-              ? "var(--oosriWhite) !important"
-              : "var(--oosriBlack)",
-        }}
-      >
-        Newest First
-      </Button>
-      <Button
-        height="30px"
-        width="100%"
-        radius="5px"
-        onClick={() => handleSortChange("oldest")}
-        hoverColor="var(--oosriBlack)"
-        style={{
-          backgroundColor:
-            filters.sortBy === "oldest" ? "var(--oosriPrimary)" : "transparent",
-          color:
-            filters.sortBy === "oldest"
-              ? "var(--oosriWhite) !important"
-              : "var(--oosriBlack)",
-        }}
-      >
-        Oldest First
-      </Button>
-      <Button
-        height="30px"
-        width="100%"
-        radius="5px"
-        onClick={() => handleSortChange("price_asc")}
-        hoverColor="var(--oosriBlack)"
-        style={{
-          backgroundColor:
-            filters.sortBy === "price_asc"
-              ? "var(--oosriPrimary)"
-              : "transparent",
-          color:
-            filters.sortBy === "price_asc"
-              ? "var(--oosriWhite) !important"
-              : "var(--oosriBlack)",
-        }}
-      >
-        Ascending Price
-      </Button>
-      <Button
-        height="30px"
-        width="100%"
-        radius="5px"
-        onClick={() => handleSortChange("price_desc")}
-        hoverColor="var(--oosriBlack)"
-        style={{
-          backgroundColor:
-            filters.sortBy === "price_desc"
-              ? "var(--oosriPrimary)"
-              : "transparent",
-          color:
-            filters.sortBy === "price_desc"
-              ? "var(--oosriWhite) !important"
-              : "var(--oosriBlack)",
-        }}
-      >
-        Descending Price
-      </Button>
+      {[
+        { label: "Newest First", value: "newest" },
+        { label: "Oldest First", value: "oldest" },
+        { label: "Ascending Price", value: "price_asc" },
+        { label: "Descending Price", value: "price_desc" },
+      ].map((item) => (
+        <Button
+          key={item.value}
+          height="30px"
+          width="100%"
+          radius="5px"
+          onClick={() => handleSortChange(item.value)}
+          hoverColor="var(--oosriBlack)"
+          style={{
+            backgroundColor:
+              filters.sortBy === item.value ? "var(--oosriPrimary)" : "transparent",
+            color:
+              filters.sortBy === item.value
+                ? "var(--oosriWhite) !important"
+                : "var(--oosriBlack)",
+          }}
+        >
+          {item.label}
+        </Button>
+      ))}
     </div>
-  );
+  ), [filters.sortBy]);
 
-  const productsTableColumns = [
+  const productsTableColumns = useMemo(() => [
     {
       title: (
         <FlexibleDiv justifyContent="start" padding="0 0 0 40px">
@@ -264,8 +212,8 @@ const structuredProducts = normalizeProducts(tempProducts, true);
     },
     {
       title: "Brand Name",
-      dataIndex: "brandArtist" || "artist",
-      key: "brandArtist" || "artist",
+      dataIndex: "brandArtist",
+      key: "brandArtist",
     },
     {
       title: "Product ID",
@@ -276,32 +224,25 @@ const structuredProducts = normalizeProducts(tempProducts, true);
       title: "Price",
       dataIndex: "regularPrice",
       key: "regularPrice",
-      render: (_) => (
-        <Space>
-          <p>{_}</p>
-        </Space>
-      ),
     },
     {
       title: "In stock",
       dataIndex: "inStock",
       key: "inStock",
       align: "center",
+      render: (inStock) => (inStock ? "Yes" : "No"),
     },
     {
       title: "Visibility",
       dataIndex: "isVisible",
       key: "isVisible",
-      render: (isVisible, obj) => {
-        // console.log('Rendering switch for:', obj._id, isVisible);
-        return (
-          <Switch
-            checked={isVisible}
-            loading={!!toggleLoading[obj._id]}
-            onChange={(checked) => handleToggle(checked, obj)}
-          />
-        );
-      },
+      render: (isVisible, obj) => (
+        <Switch
+          checked={isVisible}
+          loading={!!toggleLoading[obj._id]}
+          onChange={(checked) => handleToggle(checked, obj)}
+        />
+      ),
     },
     {
       title: "",
@@ -313,7 +254,7 @@ const structuredProducts = normalizeProducts(tempProducts, true);
         </Popover>
       ),
     },
-  ];
+  ], [toggleLoading, handleToggle]);
 
   const closeModal = () => {
     setEditModal(true);
