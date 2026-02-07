@@ -1,7 +1,17 @@
 import styled from "styled-components";
 import { Input } from "antd";
 
-export default styled(Input)`
+export default styled(Input).withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "width",
+      "margin",
+      "bgColor",
+      "height",
+      "border",
+      "borderRadius",
+    ].includes(prop),
+})`
   width: ${({ width }) => width || "100%"};
   margin: ${({ margin }) => margin || 0};
   background: ${({ bgColor }) => bgColor || "#FAFAFA"};
@@ -15,3 +25,4 @@ export default styled(Input)`
     border-color: var(--orrsiPrimary);
   }
 `;
+

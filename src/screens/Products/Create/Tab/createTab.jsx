@@ -47,6 +47,7 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
   const [errorText, setErrorText] = useState(" ");
   const [yard, setYard] = useState("");
   const [clearImage, setClearImg] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Extract subcategoryId as a primitive string to avoid object serialization issues
   const subcategoryIdValue = subCategory?._id || subCategory?.id;
@@ -196,6 +197,7 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
     const subcategoryIdString = subCategory?._id || subCategory?.id || null;
 
     setModalError(false); // Reset error state
+    setIsSubmitting(true);
 
     try {
       // Upload images first
@@ -231,6 +233,8 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
       handleModalOpen();
       console.log(errors);
       setErrorText(errors.response?.data?.error || errors.message || "Failed to create product");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -656,7 +660,13 @@ export const CreateTab = ({ subCategories, category, categoryName }) => {
           margin="15px 0px 0px 0px"
           className="add_btn"
         >
-          <Button onClick={handleCreateProduct}>Add Product</Button>
+          <Button
+            onClick={handleCreateProduct}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            Add Product
+          </Button>
         </FlexibleDiv>
       </FlexibleDiv>
       {/* Modal */}

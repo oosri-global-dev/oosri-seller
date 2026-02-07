@@ -8,7 +8,29 @@
 import styled from "styled-components";
 
 // Flexible box  div element
-export const FlexibleDiv = styled("div")`
+export const FlexibleDiv = styled("div").withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "flex",
+      "justifyContent",
+      "alignItems",
+      "flexWrap",
+      "flexDir",
+      "width",
+      "maxWidth",
+      "minWidth",
+      "height",
+      "minHeight",
+      "margin",
+      "padding",
+      "bgColor",
+      "position",
+      "top",
+      "bottom",
+      "border",
+      "gap",
+    ].includes(prop),
+})`
   display: flex;
   flex: ${({ flex }) => flex || ""};
   justify-content: ${({ justifyContent }) => justifyContent || "center"};
@@ -31,7 +53,19 @@ export const FlexibleDiv = styled("div")`
 `;
 
 // Flexible box section element
-export const FlexibleSection = styled("section")`
+export const FlexibleSection = styled("section").withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "justifyContent",
+      "alignItems",
+      "flexWrap",
+      "flexDir",
+      "width",
+      "height",
+      "bgColor",
+      "maxWidth",
+    ].includes(prop),
+})`
   display: flex;
   justify-content: ${({ justifyContent }) => justifyContent || "center"};
   align-items: ${({ alignItems }) => alignItems || "center"};
@@ -44,7 +78,18 @@ export const FlexibleSection = styled("section")`
 `;
 
 // Flexible box section element
-export const FlexibleUL = styled("ul")`
+export const FlexibleUL = styled("ul").withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "justifyContent",
+      "alignItems",
+      "flexWrap",
+      "flexDir",
+      "width",
+      "height",
+      "bgColor",
+    ].includes(prop),
+})`
   display: flex;
   justify-content: ${({ justifyContent }) => justifyContent || "center"};
   align-items: ${({ alignItems }) => alignItems || "center"};
@@ -56,7 +101,18 @@ export const FlexibleUL = styled("ul")`
 `;
 
 // Flexible box section element
-export const FlexibleMain = styled("main")`
+export const FlexibleMain = styled("main").withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "justifyContent",
+      "alignItems",
+      "flexWrap",
+      "flexDir",
+      "width",
+      "height",
+      "bgColor",
+    ].includes(prop),
+})`
   display: flex;
   justify-content: ${({ justifyContent }) => justifyContent || "center"};
   align-items: ${({ alignItems }) => alignItems || "center"};
@@ -68,7 +124,9 @@ export const FlexibleMain = styled("main")`
 `;
 
 // Gridable div element
-export const GridableDiv = styled("div")`
+export const GridableDiv = styled("div").withConfig({
+  shouldForwardProp: (prop) => !["gridCol", "gridRow", "gap"].includes(prop),
+})`
   display: grid;
   grid-template-columns: ${({ gridCol }) => gridCol || "1fr"};
   grid-template-rows: ${({ gridRow }) => gridRow || "auto"};
@@ -76,7 +134,9 @@ export const GridableDiv = styled("div")`
 `;
 
 // Gridable section element
-export const GridSection = styled("section")`
+export const GridSection = styled("section").withConfig({
+  shouldForwardProp: (prop) => !["gridCol", "gridRow", "gap"].includes(prop),
+})`
   padding: 50px 0;
   display: grid;
   grid-template-columns: ${({ gridCol }) => gridCol || "1fr  1fr 1fr 1fr"};
@@ -85,7 +145,9 @@ export const GridSection = styled("section")`
 `;
 
 // Gridable main element
-export const GridableMain = styled("main")`
+export const GridableMain = styled("main").withConfig({
+  shouldForwardProp: (prop) => !["gridCol", "gridRow", "gap"].includes(prop),
+})`
   display: grid;
   grid-template-columns: ${({ gridCol }) => gridCol || "1fr"};
   grid-template-rows: ${({ gridRow }) => gridRow || "auto"};
@@ -93,7 +155,9 @@ export const GridableMain = styled("main")`
 `;
 
 // Gridable ul element
-export const GridUL = styled("ul")`
+export const GridUL = styled("ul").withConfig({
+  shouldForwardProp: (prop) => !["gridCol", "gridRow", "gap"].includes(prop),
+})`
   padding: 50px 0;
   display: grid;
   grid-template-columns: ${({ gridCol }) => gridCol || "1fr  1fr 1fr 1fr"};

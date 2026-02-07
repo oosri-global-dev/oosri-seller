@@ -1,7 +1,17 @@
 import styled from "styled-components";
 import { Input } from "antd";
 
-export default styled(Input.Password)`
+export default styled(Input.Password).withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "width",
+      "margin",
+      "bgColor",
+      "height",
+      "border",
+      "borderRadius",
+    ].includes(prop),
+})`
   width: ${({ width }) => width || "100%"};
   margin: ${({ margin }) => margin || 0};
   background: ${({ bgColor }) => bgColor || "transparent"};
@@ -15,3 +25,4 @@ export default styled(Input.Password)`
     border-color: var(--orrsiPrimary);
   }
 `;
+

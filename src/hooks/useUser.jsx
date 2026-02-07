@@ -1,9 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { handleFetchUser } from "@/network/user";
 import { getDataInCookie } from "@/data-helpers/auth-session";
+import { useEffect, useState } from "react";
 
 export const useUser = () => {
-    const token = getDataInCookie("access_token__seller");
+    const [token, setToken] = useState(null);
+
+    useEffect(() => {
+        setToken(getDataInCookie("access_token__seller"));
+    }, []);
 
     return useQuery({
         queryKey: ["user", token],
@@ -17,3 +22,4 @@ export const useUser = () => {
         retry: false,
     });
 };
+

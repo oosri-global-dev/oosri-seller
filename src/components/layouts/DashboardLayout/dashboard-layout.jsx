@@ -29,8 +29,8 @@ const MENU_ITEMS_CONFIG = [
   { key: "/dashboard", icon: <DashboardOutlined />, label: "Dashboard", href: "/dashboard" },
   { key: "/products", icon: <StackIcon />, label: "Products", href: "/products" },
   { key: "/order", icon: <ProductIcon />, label: "Order", href: "/order" },
-  { key: "/sales-analytics", icon: <GraphIcon />, label: "Sales Analytics", href: "/sales-analytics" },
-  { key: "/profile", icon: <BsPeopleFill />, label: "Profile", href: "/sellers-profile-page" },
+  // { key: "/sales-analytics", icon: <GraphIcon />, label: "Sales Analytics", href: "/sales-analytics" },  { key: "/profile", icon: <BsPeopleFill />, label: "Profile", href: "/sellers-profile-page" },
+  { key: "/sales-analytics", icon: <GraphIcon />, label: "Sales Analytics", href: "/sales-analytics" }, { key: "/profile", icon: <BsPeopleFill />, label: "Profile", href: "#" },
   { key: "/", icon: <LogoutIcon />, label: "Logout", isLogout: true },
 ];
 
@@ -135,10 +135,10 @@ export default function DashboardLayout({
                 {showBackBtn && <LeftArrow size={24} onClick={() => back()} style={{ cursor: "pointer" }} />}
                 <FlexibleDiv flexDir="column" className="welcome__box">
                   <p className="dashboard__text">{title || "Dashboard"}</p>
-                  <p className="sub__text">
+                  <div className="sub__text">
                     {!title && `Welcome, ${user?.firstName} ${user?.lastName}!`}
                     {titleSubText}
-                  </p>
+                  </div>
                 </FlexibleDiv>
               </FlexibleDiv>
 
