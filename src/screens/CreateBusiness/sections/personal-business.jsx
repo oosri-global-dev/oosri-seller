@@ -1,19 +1,78 @@
 import TextField from "@/components/lib/TextField";
 import { UploadOutlined } from "@ant-design/icons";
 import Button from "@/components/lib/Button";
-import { Form, Upload, Button as AntdButton, DatePicker, message } from "antd";
+import { Form, Upload, Button as AntdButton, DatePicker, message, Select, Spin } from "antd";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { objectToFormData } from "@/utils/form-data-helper";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getDocumentUploadUrls, handleCreateBusinessJson } from "@/network/business";
+import { getBanks, resolveBankAccount } from "@/network/bank";
 import useNotification from "@/hooks/useNotification";
 import { useRouter } from "next/router";
+import { debounce } from "lodash";
+
+const { Option } = Select;
 
 export default function PersonalBusiness() {
   const [form] = Form.useForm();
   const [loading, setIsLoading] = useState(false);
+  const [banks, setBanks] = useState([]);
+  const [resolvingAccount, setResolvingAccount] = useState(false);
   const [success, error] = useNotification();
   const { push } = useRouter();
+
+  useEffect(() => {
+    fetchBanks();
+  }, []);
+
+  const fetchBanks = async () => {
+    try {
+      const res = await getBanks();
+      if (res.success) {
+        setBanks(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch banks:", err);
+    }
+  };
+
+  const handleAccountVerification = async () => {
+    const bankCode = form.getFieldValue(["bankDetails", "bankCode"]);
+    const accountNumber = form.getFieldValue(["bankDetails", "accountNumber"]);
+
+    if (bankCode && accountNumber && accountNumber.length >= 10) {
+      setResolvingAccount(true);
+      try {
+        const res = await resolveBankAccount({
+          account_number: accountNumber,
+          bank_code: bankCode,
+        });
+
+        if (res.success) {
+          form.setFieldsValue({
+            bankDetails: {
+              ...form.getFieldValue("bankDetails"),
+              accountName: res.data.account_name,
+            },
+          });
+          success("Account verified successfully");
+        }
+      } catch (err) {
+        console.error("Account verification failed:", err);
+        form.setFieldsValue({
+          bankDetails: {
+            ...form.getFieldValue("bankDetails"),
+            accountName: "",
+          },
+        });
+        error("Could not verify account details. Please check your inputs.");
+      } finally {
+        setResolvingAccount(false);
+      }
+    }
+  };
+
+  const debouncedVerification = debounce(handleAccountVerification, 1000);
 
   const uploadToCloudinary = async (file, uploadConfig) => {
     const formData = new FormData();
@@ -56,10 +115,16 @@ export default function PersonalBusiness() {
       }
 
       // 3. Submit registration with Cloudinary URL as JSON
+      const mappedBankDetails = {
+        bank: banks.find(b => b.code === values.bankDetails.bankCode)?.name || "",
+        accountName: values.bankDetails.accountName,
+        accountNumber: values.bankDetails.accountNumber
+      }
+
       const payload = {
         dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"),
         residentialAddress: values.residentialAddress,
-        bankDetails: values.bankDetails,
+        bankDetails: mappedBankDetails,
         countryIdentificationCardUrl: countryIdUrl,
       };
 
@@ -177,10 +242,24 @@ export default function PersonalBusiness() {
         >
           <label>Bank Name</label>
           <Form.Item
-            name={["bankDetails", "bank"]}
-            rules={[{ required: true, message: "Please enter your bank name" }]}
+            name={["bankDetails", "bankCode"]}
+            rules={[{ required: true, message: "Please select your bank" }]}
           >
-            <TextField name="bank" type="text" maxLength={50} />
+            <Select
+              placeholder="Select Bank"
+              style={{ height: "40px" }}
+              onChange={handleAccountVerification}
+              showSearch
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {banks.map((bank) => (
+                <Option key={bank.code} value={bank.code}>
+                  {bank.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
         </FlexibleDiv>
         <FlexibleDiv
@@ -190,14 +269,17 @@ export default function PersonalBusiness() {
           className="single__input__box"
         >
           <label>Account Name</label>
-          <Form.Item
-            name={["bankDetails", "accountName"]}
-            rules={[
-              { required: true, message: "Please enter your account name" },
-            ]}
-          >
-            <TextField name="accountName" type="text" maxLength={50} />
-          </Form.Item>
+          <Spin spinning={resolvingAccount}>
+            <Form.Item
+              name={["bankDetails", "accountName"]}
+              rules={[
+                { required: true, message: "Account Name will be auto-populated" },
+              ]}
+              style={{ width: "100%" }}
+            >
+              <TextField name="accountName" type="text" maxLength={70} width="100%" readOnly disabled />
+            </Form.Item>
+          </Spin>
         </FlexibleDiv>
       </FlexibleDiv>
 
@@ -215,7 +297,12 @@ export default function PersonalBusiness() {
               { required: true, message: "Please enter your account number" },
             ]}
           >
-            <TextField name="accountNumber" type="text" maxLength={20} />
+            <TextField
+              name="accountNumber"
+              type="text"
+              maxLength={20}
+              onChange={debouncedVerification}
+            />
           </Form.Item>
         </FlexibleDiv>
       </FlexibleDiv>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CreateProductPageWrapper } from "../Create/index.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import Button from "@/components/lib/Button";
+import { ProductWrapper } from "./product.styles";
 
 export function ProductDescription({ html }) {
   return (
@@ -17,7 +18,7 @@ export const ProductDetails = ({ data, setEdit }) => {
 
   return (
     <CreateProductPageWrapper style={{ width: "100%" }}>
-      <FlexibleDiv className="tab__item">
+      <ProductWrapper className="tab__item">
         <FlexibleDiv className="container_wrapper" alignItems="start">
           {/* Left section */}
           <FlexibleDiv
@@ -89,7 +90,7 @@ export const ProductDetails = ({ data, setEdit }) => {
             </FlexibleDiv>
             {/* Discounts */}
             <div className="product__item">
-              <label htmlFor="Name">Dsicounts</label>
+              <label htmlFor="Name">Discounts</label>
               <h5>{data?.discount}</h5>
             </div>
             {/*Product Description*/}
@@ -213,7 +214,8 @@ export const ProductDetails = ({ data, setEdit }) => {
             )}
           </FlexibleDiv>
         </FlexibleDiv>
-      </FlexibleDiv>
+      </ProductWrapper>
+
       <FlexibleDiv justifyContent="end" alignItems="start">
         <Button
           className="edit__button"
@@ -224,6 +226,6 @@ export const ProductDetails = ({ data, setEdit }) => {
           Edit
         </Button>
       </FlexibleDiv>
-    </CreateProductPageWrapper>
+    </CreateProductPageWrapper >
   );
 };

@@ -29,14 +29,12 @@ const MENU_ITEMS_CONFIG = [
   { key: "/dashboard", icon: <DashboardOutlined />, label: "Dashboard", href: "/dashboard" },
   { key: "/products", icon: <StackIcon />, label: "Products", href: "/products" },
   { key: "/order", icon: <ProductIcon />, label: "Order", href: "/order" },
-  { key: "/sales-analytics", icon: <GraphIcon />, label: "Sales Analytics", href: "#" }, { key: "/profile", icon: <BsPeopleFill />, label: "Profile", href: "#" },
+  // { key: "/sales-analytics", icon: <GraphIcon />, label: "Sales Analytics", href: "#" },
   {
     key: "/profile",
     icon: <BsPeopleFill />,
     label: "Profile",
-    onClick: ({ item, key }) => {
-      push("/sellers-profile-page");
-    },
+    href: "/sellers-profile-page",
   },
   { key: "/", icon: <LogoutIcon />, label: "Logout", isLogout: true },
 ];
