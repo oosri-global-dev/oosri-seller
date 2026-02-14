@@ -124,6 +124,7 @@ export default function PersonalBusiness() {
       const payload = {
         dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"),
         residentialAddress: values.residentialAddress,
+        phoneNumber: values.phoneNumber,
         bankDetails: mappedBankDetails,
         countryIdentificationCardUrl: countryIdUrl,
       };
@@ -207,6 +208,27 @@ export default function PersonalBusiness() {
             <TextField name="residentialAddress" type="text" maxLength={100} />
           </Form.Item>
         </FlexibleDiv>
+      </FlexibleDiv>
+
+      <FlexibleDiv
+        flexDir="column"
+        alignItems="flex-start"
+        gap="5px"
+        width="100%"
+        className="single__input__box"
+      >
+        <label>Phone Number</label>
+        <Form.Item
+          name="phoneNumber"
+          rules={[
+            {
+              required: true,
+              message: "Please enter your phone number",
+            },
+          ]}
+        >
+          <TextField name="phoneNumber" type="text" maxLength={20} />
+        </Form.Item>
       </FlexibleDiv>
 
       <FlexibleDiv
