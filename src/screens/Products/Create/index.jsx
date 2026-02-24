@@ -90,7 +90,12 @@ export default function CreateProductPage() {
               {
 
               }
-              <CreateTab subCategories={subCategories} category={activeTab} categoryName={categoryName} />
+              <CreateTab
+                subCategories={subCategories}
+                category={activeTab}
+                categoryName={categoryName}
+                selectedCategory={categories.find(c => c._id === activeTab)}
+              />
 
             </CreateProductPageWrapper>
           </DashboardLayout>

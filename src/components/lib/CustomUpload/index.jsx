@@ -3,21 +3,21 @@ import PropTypes, { string } from "prop-types";
 import { CustomUploaderWrapper } from "./index.styles";
 import { IoMdAdd } from "react-icons/io";
 
-export function CustomUpload({ setFile, initialImage, editable, title, clearImage,setClearImg }) {
+export function CustomUpload({ setFile, initialImage, editable, title, clearImage, setClearImg }) {
   const [error, setError] = useState(null);
   const [imageSrc, setImageSrc] = useState(initialImage || null);
 
   useEffect(() => {
     if (clearImage) {
       if (imageSrc) {
-        URL.revokeObjectURL(imageSrc); 
+        URL.revokeObjectURL(imageSrc);
       }
       setImageSrc(null);
-      setFile(null); 
+      setFile(null);
       setClearImg(false);
     }
   }, [clearImage]);
-  
+
   const handleFileChange = (event) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
@@ -31,8 +31,8 @@ export function CustomUpload({ setFile, initialImage, editable, title, clearImag
         }
         const img = new Image();
         img.onload = function () {
-          if (img.width > 3000 || img.height > 3000) {
-            setError("Image dimensions exceed the maximum allowed size of 3000x3000 pixels.");
+          if (img.width > 8000 || img.height > 8000) {
+            setError("Image dimensions exceed the maximum allowed size of 8000x8000 pixels.");
             setFile(null);
             setImageSrc(null);
           } else {

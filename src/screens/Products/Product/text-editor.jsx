@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "react-quill/dist/quill.snow.css";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import dynamic from "next/dynamic";
+import { EditorWrapper } from "./text-editor.styles";
 
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
@@ -43,7 +44,7 @@ export default function TextEditor({ onChange, value, placeholder }) {
   };
 
   return (
-    <div>
+    <EditorWrapper>
       <ReactQuill
         value={editorHtml}
         onChange={handleEditorChange}
@@ -52,6 +53,6 @@ export default function TextEditor({ onChange, value, placeholder }) {
         theme="snow"
         placeholder={placeholder}
       />
-    </div>
+    </EditorWrapper>
   );
 }

@@ -1,5 +1,5 @@
 import { CreateProductPageWrapper } from "../Create/index.styles";
-import { FlexibleDiv } from "@/components/lib/Box/styles";
+import { FlexibleDiv, GridableDiv } from "@/components/lib/Box/styles";
 import Select from "@/components/lib/Select";
 import { Input } from "antd";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
@@ -43,27 +43,21 @@ export default function EditProduct({
   const [productType, setProductType] = useState(data.productType);
   const [regularPrice, setRegularPrice] = useState(data?.regularPrice);
   const [salesPrice, setSalesPrice] = useState(data?.salesPrice);
-  const [width, setWidth] = useState(data?.width);
-  const [height, setHeight] = useState(data.height);
-  const [technique, setTechnique] = useState(data?.technique);
-  const [length, setLength] = useState(data?.length);
-  const [fabricType, setFabricType] = useState(data?.fabricType);
-  const [clayType, setClayType] = useState(data?.clayType);
-  const [glaze, setGlaze] = useState(data?.glaze);
-  const [diameter, setDiameter] = useState(data?.diameter);
-  const [pattern, setPattern] = useState(data?.pattern);
-  const [stoneType, setStoneType] = useState(data?.stoneType);
-  const [metalType, setMetalType] = useState(data?.metalType);
-  const [medium, setMedium] = useState(data?.medium);
-  const [condition, setCondition] = useState(data?.condition);
-  const [size, setSize] = useState(data?.size);
+  const [dynamicAttributes, setDynamicAttributes] = useState(data?.attributes || {});
   const [modalError, setModalError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [stock, setStock] = useState(data?.inStock);
   const [yard, setYard] = useState(data?.yard);
 
+  const handleAttributeChange = (code, value) => {
+    setDynamicAttributes(prev => ({
+      ...prev,
+      [code]: value
+    }));
+  };
+
   const payload = {
-    category: category,
+    category: category?._id || category, // Ensure ID is sent
     productName: productName,
     productDescription: productDescription,
     brandArtist: brandArtist,
@@ -74,36 +68,7 @@ export default function EditProduct({
     regularPrice: regularPrice,
     productType: productType,
     inStock: stock,
-    ...(category === "Sculpture" && {
-      width: width,
-      weight: weight,
-      height: height,
-      technique: technique,
-    }),
-    ...(category === "Jewelry" && {
-      length: length,
-      diameter: diameter,
-      stoneType: stoneType,
-      metalType: metalType,
-    }),
-    ...(category === "Paintings" && {
-      medium: medium,
-      condition: condition,
-      size: size,
-    }),
-    ...(category === "Pottery" && {
-      height: height,
-      diameter: diameter,
-      clayType: clayType,
-      glaze: glaze,
-    }),
-    ...(category === "Textiles/Fabrics" && {
-      length: length,
-      weight: weight,
-      width: width,
-      fabricType: fabricType,
-      pattern: pattern,
-    }),
+    attributes: dynamicAttributes // Include dynamic attributes
   };
 
   const productTypeItem = [
@@ -123,12 +88,22 @@ export default function EditProduct({
     if (typeof file === "string") return file;
     if (!(file instanceof File) && !(file instanceof Blob)) return null;
 
+    // Client-side validation
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      throw new Error(`Invalid file type: ${file.type}. Allowed: jpg, png, webp`);
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      throw new Error(`File too large: ${Math.round(file.size / 1024 / 1024)}MB. Max 10MB.`);
+    }
+
     try {
       // 1. Get Presigned URL
       const response = await getUploadUrl(file.name);
       if (!response.success) throw new Error("Failed to get upload URL");
 
-      const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation } = response.data;
+      const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation, eager, allowed_formats } = response.data;
 
       // 2. Prepare Form Data for Cloudinary
       const formData = new FormData();
@@ -140,13 +115,21 @@ export default function EditProduct({
       formData.append("public_id", publicId);
       formData.append("tags", tags);
       formData.append("transformation", transformation);
+      if (eager) formData.append("eager", eager);
+      if (allowed_formats) formData.append("allowed_formats", allowed_formats);
 
       // 3. Upload to Cloudinary
-      const uploadRes = await axios.post(url, formData);
+      const uploadRes = await axios.post(url, formData, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(`Upload progress for ${file.name}: ${percentCompleted}%`);
+        }
+      });
       return uploadRes.data.secure_url;
     } catch (error) {
       console.error("Image upload failed:", error);
-      throw error;
+      const msg = error.response?.data?.error?.message || error.message || "Image upload failed";
+      throw new Error(`Failed to upload ${file.name}: ${msg}`);
     }
   };
 
@@ -345,266 +328,56 @@ export default function EditProduct({
                     onChange={setProductDescription}
                   />
                 </div>
-                {category === "Sculpture" ? (
-                  <>
-                    {/* Weight */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Weight</label>
-                      <CustomInput
-                        placeholder="Input Product Weight"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setWeight(e.target.value);
-                        }}
-                        type="number"
-                        value={weight}
-                      />
-                    </div>
-                    {/* Width */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Width</label>
-                      <CustomInput
-                        placeholder="Input Product Width"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setWidth(e.target.value);
-                        }}
-                        type="number"
-                        value={width}
-                      />
-                    </div>
-                    {/* Height */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Height</label>
-                      <CustomInput
-                        placeholder="Input Product Height"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setHeight(e.target.value);
-                        }}
-                        value={height}
-                        type="number"
-                      />
-                    </div>
-                    {/* Technique */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Technique</label>
-                      <CustomInput
-                        placeholder="Input Product Technique"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setTechnique(e.target.value);
-                        }}
-                        value={technique}
-                      />
-                    </div>
-                  </>
-                ) : category === "Textiles/Fabrics" ? (
-                  <>
-                    {/* Weight */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Weight</label>
-                      <CustomInput
-                        placeholder="Input Product Weight"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setWeight(e.target.value);
-                        }}
-                        type="number"
-                        value={weight}
-                      />
-                    </div>
-                    {/* Yard */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Yard</label>
-                      <CustomInput
-                        placeholder="Input Product Yard"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setYard(e.target.value);
-                        }}
-                        type="number"
-                        value={yard}
-                      />
-                    </div>
-                    {/* Pattern */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Pattern</label>
-                      <CustomInput
-                        placeholder="Input Product Pattern"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setPattern(e.target.value);
-                        }}
-                        value={pattern}
-                      />
-                    </div>
-                    {/* FabricType */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Fabric Type</label>
-                      <CustomInput
-                        placeholder="Input Product Fabric Type"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setFabricType(e.target.value);
-                        }}
-                        value={fabricType}
-                      />
-                    </div>
-                  </>
-                ) : category === "Pottery" ? (
-                  <>
-                    {/* Diameter */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Diameter</label>
-                      <CustomInput
-                        placeholder="Input Product Diameter"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setDiameter(e.target.value);
-                        }}
-                        type="number"
-                        value={diameter}
-                      />
-                    </div>
-                    {/* ClayType */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Clay Type</label>
-                      <CustomInput
-                        placeholder="Input Clay Type"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setClayType(e.target.value);
-                        }}
-                        value={clayType}
-                      />
-                    </div>
-                    {/* Height */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Height</label>
-                      <CustomInput
-                        placeholder="Input Product Height"
-                        backgroundColor="#FAFAFA"
-                        value={height}
-                        onChange={(e) => {
-                          setHeight(e.target.value);
-                        }}
-                        type="number"
-                      />
-                    </div>
-                    {/* Glaze */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Glaze</label>
-                      <CustomInput
-                        placeholder="Input Product Glaze"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setGlaze(e.target.value);
-                        }}
-                        value={glaze}
-                      />
-                    </div>
-                  </>
-                ) : category === "Paintings" ? (
-                  <>
-                    {/* Medium */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Medium</label>
-                      <CustomInput
-                        placeholder="Input Painting Medium"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setMedium(e.target.value);
-                        }}
-                        value={medium}
-                      />
-                    </div>
-                    {/* Condition */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Condition</label>
-                      <Select
-                        placeholder="Input Painting Condition"
-                        backgroundColor="#FAFAFA"
-                        options={conditionItem}
-                        value={condition}
-                        onChange={(e) => {
-                          setCondition(e);
-                        }}
-                      />
-                    </div>
-                    {/* Size */}
-                    <div className="product__item">
-                      <label htmlFor="Name">Size</label>
-                      <CustomInput
-                        placeholder="Input Painting Size"
-                        backgroundColor="#FAFAFA"
-                        onChange={(e) => {
-                          setSize(e.target.value);
-                        }}
-                        type="number"
-                        value={size}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  category === "Jewelry" && (
-                    <>
-                      {/* length */}
-                      <div className="product__item">
-                        <label htmlFor="Name">Length</label>
-                        <CustomInput
-                          placeholder="Input Product Length"
-                          backgroundColor="#FAFAFA"
-                          onChange={(e) => {
-                            setLength(e.target.value);
-                          }}
-                          type="number"
-                          value={length}
-                        />
-                      </div>
-                      {/* Diameter */}
-                      <div className="product__item">
-                        <label htmlFor="Name">Diameter</label>
-                        <CustomInput
-                          placeholder="Input Product Diameter"
-                          backgroundColor="#FAFAFA"
-                          onChange={(e) => {
-                            setDiameter(e.target.value);
-                          }}
-                          type="number"
-                          value={diameter}
-                        />
-                      </div>
-                      {/* stoneType */}
-                      <div className="product__item">
-                        <label htmlFor="Name">Stone Type</label>
-                        <CustomInput
-                          placeholder="Input Stone Type"
-                          backgroundColor="#FAFAFA"
-                          onChange={(e) => {
-                            setStoneType(e.target.value);
-                          }}
-                          value={stoneType}
-                        />
-                      </div>
-                      {/* Metal type */}
-                      <div className="product__item">
-                        <label htmlFor="Name">Metal Type</label>
-                        <CustomInput
-                          placeholder="Input Metal Type"
-                          backgroundColor="#FAFAFA"
-                          onChange={(e) => {
-                            setMetalType(e.target.value);
-                          }}
-                          type="number"
-                          value={metalType}
-                        />
-                      </div>
-                    </>
-                  )
-                )}
+
+
               </FlexibleDiv>
             </FlexibleDiv>
+
+            {/* Dynamic Attributes Rendering - Moved to bottom full width grid */}
+            {category?.attributes?.length > 0 && (
+              <FlexibleDiv width="100%" margin="30px 0 0 0" flexDir="column" alignItems="start">
+                <h3 style={{ marginBottom: '16px', color: '#1A1A1A', fontSize: '18px', fontWeight: '600' }}>Product Specifications</h3>
+                <GridableDiv gridCol="1fr 1fr 1fr" gap="20px" width="100%">
+                  {category.attributes.map((attrItem) => {
+                    const detail = attrItem.attributeId;
+                    if (!detail) return null;
+
+                    return (
+                      <div className="product__item" key={detail.code}>
+                        <label htmlFor={detail.code}>{detail.label}</label>
+                        {detail.type === 'select' ? (
+                          <Select
+                            placeholder={`Select ${detail.label}`}
+                            backgroundColor="#FAFAFA"
+                            width="100%"
+                            options={detail.options.map(opt => ({ value: opt, label: opt }))}
+                            value={dynamicAttributes[detail.code]}
+                            onChange={(value) => handleAttributeChange(detail.code, value)}
+                          />
+                        ) : detail.type === 'boolean' ? (
+                          <Select
+                            placeholder={`Select ${detail.label}`}
+                            backgroundColor="#FAFAFA"
+                            width="100%"
+                            options={[{ value: true, label: 'Yes' }, { value: false, label: 'No' }]}
+                            value={dynamicAttributes[detail.code]}
+                            onChange={(value) => handleAttributeChange(detail.code, value)}
+                          />
+                        ) : (
+                          <CustomInput
+                            placeholder={`Input ${detail.label}`}
+                            backgroundColor="#FAFAFA"
+                            type={detail.type === 'number' ? 'number' : 'text'}
+                            value={dynamicAttributes[detail.code] || ''}
+                            onChange={(e) => handleAttributeChange(detail.code, e.target.value)}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </GridableDiv>
+              </FlexibleDiv>
+            )}
           </FlexibleDiv>
           <FlexibleDiv justifyContent="end" alignItems="start">
             <Button

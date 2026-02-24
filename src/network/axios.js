@@ -59,6 +59,12 @@ instance.interceptors.response.use(
     ) {
       originalConfig._retry = true;
 
+      // Refresh logic is disabled. Clear token and force logout.
+      if (typeof window !== "undefined") {
+        document.cookie = "access_token__seller=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      }
+      return Promise.reject(err);
+
       //   await getRefreshToken(refreshToken, err);
     } else {
       return Promise.reject(err);
@@ -92,6 +98,12 @@ formInstance.interceptors.response.use(
     ) {
       originalConfig._retry = true;
 
+      // Refresh logic is disabled. Clear token and force logout.
+      if (typeof window !== "undefined") {
+        document.cookie = "access_token__seller=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      }
+      return Promise.reject(err);
+
       //   await getRefreshToken(refreshToken, err);
     } else {
       return Promise.reject(err);
@@ -110,13 +122,13 @@ formInstance.interceptors.response.use(
 //         },
 //       }
 //     );
-
+//
 //     sessionStorage.setItem("user_token", data?.data?.data?.tokens?.accessToken);
 //     sessionStorage.setItem(
 //       "refresh_token",
 //       data?.data?.data?.tokens?.refreshToken
 //     );
-
+//
 //     userToken = data?.data?.data?.tokens?.accessToken;
 //     return await instance(err.config);
 //   } catch (_error) {
