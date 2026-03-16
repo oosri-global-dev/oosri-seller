@@ -41,37 +41,44 @@ export default function AllProductsScreen() {
   const [tempProducts, setTempProducts] = useState(allProducts);
   const handleToggle = useToggleVisibility(setToggleLoading, setTempProducts);
 
-const normalizeProducts = (data, isSearch) => {
+const normalizeProducts = (data) => {
   return data.map((item, index) => {
-    if (isSearch) {
+    // Determine if it's an Algolia search result or a regular API result
+    const isAlgolia = !!item.objectID;
+    
+    if (isAlgolia) {
       return {
         key: item.objectID || index,
-        _id: item.objectID, // Preserve _id for navigation
+        _id: item.objectID,
         productName: item.productName,
         images: item.images || [],
         brandArtist: item.artist || item.brandArtist || "",
         productId: item.product || item.productId || "",
         regularPrice: item.price || item.regularPrice || 0,
-        inStock: Boolean(item.quantity),
+        discountPrice: item.discountPrice || null,
+        sellerPayout: item.sellerPayout || 0,
+        inStock: item.quantity ?? 0,
         isVisible: item.isApproved ?? item.isVisible ?? false,
       };
     } else {
       return {
         key: item._id || index,
-        _id: item._id, // Preserve _id for navigation
+        _id: item._id,
         productName: item.productName,
         images: item.images || [],
         brandArtist: item.brandArtist || "",
         productId: item.productId || "",
         regularPrice: item.regularPrice || 0,
-        inStock: Boolean(item?.inStock),
+        discountPrice: item.discountPrice || null,
+        sellerPayout: item.sellerPayout || 0,
+        inStock: item.inStock ?? 0,
         isVisible: item.isVisible ?? false,
       };
     }
   });
 };
 
-const structuredProducts = normalizeProducts(tempProducts, true);
+const structuredProducts = normalizeProducts(tempProducts);
 
 
   useEffect(() => {
@@ -276,17 +283,41 @@ const structuredProducts = normalizeProducts(tempProducts, true);
       title: "Price",
       dataIndex: "regularPrice",
       key: "regularPrice",
-      render: (_) => (
-        <Space>
-          <p>{_}</p>
+      render: (_, obj) => (
+        <Space direction="vertical" size={1}>
+          {obj.discountPrice ? (
+            <>
+              <p style={{ textDecoration: "line-through", color: "grey", fontSize: "12px" }}>
+                {_}
+              </p>
+              <p>{obj.discountPrice}</p>
+            </>
+          ) : (
+            <p>{_}</p>
+          )}
         </Space>
       ),
     },
     {
-      title: "In stock",
+      title: "Your Payout",
+      dataIndex: "sellerPayout",
+      key: "sellerPayout",
+      render: (_) => (
+        <Space>
+          <p style={{ color: "var(--oosriPrimary)", fontWeight: "500" }}>{_}</p>
+        </Space>
+      ),
+    },
+    {
+      title: "Stock",
       dataIndex: "inStock",
       key: "inStock",
       align: "center",
+      render: (stock) => (
+        <p style={{ color: stock > 0 ? "inherit" : "red" }}>
+          {stock > 0 ? stock : "Out of stock"}
+        </p>
+      )
     },
     {
       title: "Visibility",

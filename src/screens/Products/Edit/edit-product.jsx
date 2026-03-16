@@ -41,7 +41,8 @@ export default function EditProduct({
   const [subCategory, setSubCategory] = useState(data.subcategory);
   const [productType, setProductType] = useState(data.productType);
   const [regularPrice, setRegularPrice] = useState(data?.regularPrice);
-  const [salesPrice, setSalesPrice] = useState(data?.salesPrice);
+  const [discountPrice, setDiscountPrice] = useState(data?.discountPrice || "");
+  const [discountPercent, setDiscountPercent] = useState(data?.discount || "");
   const [width, setWidth] = useState(data?.width);
   const [height, setHeight] = useState(data.height);
   const [technique, setTechnique] = useState(data?.technique);
@@ -69,8 +70,9 @@ export default function EditProduct({
     images: [img1, img2, img3, img4].filter(Boolean),
     country: country,
     subcategory: subCategory?.value,
-    salesPrice: salesPrice,
     regularPrice: regularPrice,
+    discountPrice: discountPrice === "" ? null : Number(discountPrice),
+    discount: discountPercent === "" ? 0 : Number(discountPercent),
     productType: productType,
     inStock: stock,
     ...(category === "Sculpture" && {
@@ -138,9 +140,48 @@ export default function EditProduct({
     setEdit(false);
   };
 
-  const handleSalesPrice = (e) => {
-    setRegularPrice(e);
-    setSalesPrice(e - (e * 5) / 100);
+  const effectivePrice =
+    discountPrice && Number(discountPrice) > 0 && Number(discountPrice) < Number(regularPrice)
+      ? Number(discountPrice)
+      : Number(regularPrice || 0);
+
+  const payoutAmount = (effectivePrice * 0.85).toFixed(2);
+
+  const handleRegularPrice = (e) => {
+    const val = e.target.value;
+    setRegularPrice(val);
+    if (val && discountPercent && Number(discountPercent) > 0) {
+      setDiscountPrice((Number(val) * (1 - Number(discountPercent) / 100)).toFixed(2));
+    }
+  };
+
+  const handleDiscountPrice = (e) => {
+    const val = e.target.value;
+    setDiscountPrice(val);
+    if (val && regularPrice && Number(regularPrice) > 0) {
+      const perc = ((Number(regularPrice) - Number(val)) / Number(regularPrice)) * 100;
+      setDiscountPercent(perc.toFixed(2));
+    } else if (!val) {
+      setDiscountPercent("");
+    }
+  };
+
+  const handleDiscountPercent = (e) => {
+    const val = e.target.value;
+    setDiscountPercent(val);
+    if (val && regularPrice && Number(regularPrice) > 0) {
+      setDiscountPrice((Number(regularPrice) * (1 - Number(val) / 100)).toFixed(2));
+    } else if (!val) {
+      setDiscountPrice("");
+    }
+  };
+
+  const validateAndHandleEdit = () => {
+    if (discountPrice && regularPrice && Number(discountPrice) >= Number(regularPrice)) {
+      alert("Discount Price must be less than Regular Price.");
+      return;
+    }
+    handleEdit();
   };
 
   return (
@@ -237,25 +278,47 @@ export default function EditProduct({
                     placeholder="Input Product Price"
                     backgroundColor="#FAFAFA"
                     type="number"
-                    onChange={(e) => {
-                      handleSalesPrice(e.target.value);
-                    }}
+                    onChange={handleRegularPrice}
                     value={regularPrice}
                   />
                 </div>
-                {/* Sales Price */}
+                {/* Discount Percentage */}
                 <div className="product__item">
-                  <label htmlFor="Name">Sales Price(NGN)</label>
+                  <label htmlFor="Name">Discount (%) (Optional)</label>
                   <CustomInput
-                    placeholder="Input Product Price"
+                    placeholder="e.g. 10"
                     backgroundColor="#FAFAFA"
-                    onChange={(e) => {
-                      setSalesPrice(e.target.value);
-                    }}
+                    onChange={handleDiscountPercent}
                     type="number"
-                    value={salesPrice}
+                    value={discountPercent}
+                  />
+                </div>
+                {/* Discount Price */}
+                <div className="product__item">
+                  <label htmlFor="Name">Discount Price(NGN) (Optional)</label>
+                  <CustomInput
+                    placeholder="Input Discount Price"
+                    backgroundColor="#FAFAFA"
+                    onChange={handleDiscountPrice}
+                    type="number"
+                    value={discountPrice}
+                  />
+                  <p style={{ color: "grey", fontSize: "12px", marginTop: "4px" }}>
+                    Leave empty for no discount. Must be less than Regular Price.
+                  </p>
+                </div>
+                {/* Seller Payout */}
+                <div className="product__item">
+                  <label htmlFor="Name">Your Payout(NGN) (Estimated)</label>
+                  <CustomInput
+                    backgroundColor="#EEEEEE"
+                    type="number"
+                    value={payoutAmount}
                     disabled
                   />
+                  <p style={{ color: "var(--oosriPrimary)", fontSize: "12px", marginTop: "4px" }}>
+                    You receive 85% of the final buyer price ({effectivePrice} NGN).
+                  </p>
                 </div>
               </FlexibleDiv>
               {/* right section */}
@@ -568,7 +631,7 @@ export default function EditProduct({
             <Button
               className="edit__button"
               onClick={() => {
-                handleEdit();
+                validateAndHandleEdit();
               }}
             >
               Save Changes
