@@ -24,14 +24,12 @@ export default function LoginPage() {
 
   const handleSubmitLogin = async (values) => {
     setBtnLoading(true);
-    //all fields are already required
     try {
       const res = await handleLogin(values);
 
       setPageLoading(true);
 
       if (res?.status === 200) {
-        //set the details to context
         await dispatch({
           type: CURRENT_USER,
           payload: {
@@ -39,7 +37,6 @@ export default function LoginPage() {
           },
         });
 
-        //store in cookie
         storeDataInCookie("access_token__seller", res?.data?.token, 30);
 
         setTimeout(() => {
@@ -67,7 +64,7 @@ export default function LoginPage() {
         <FlexibleDiv
           className="form__parent__wrapper"
           flexDir="column"
-          width="42%"
+          width="100%"
           gap="40px"
         >
           <Form
@@ -130,8 +127,10 @@ export default function LoginPage() {
             >
               Login
             </Button>
+
+            {/* Fixed text */}
             <p className="already__acct">
-              I have account already{" "}
+              No account yet?{" "}
               <span onClick={() => push("/register")}>Register here</span>
             </p>
           </Form>
