@@ -39,7 +39,6 @@ export default function RegisterPage() {
   ];
 
   const handleMediaChange = (event) => {
-    //10mb check
     const maxFileLimit = 10485760;
     let file = event.target.files[0];
 
@@ -60,7 +59,6 @@ export default function RegisterPage() {
       return;
     }
 
-    //set imageURL object
     setImageObjectURL(URL.createObjectURL(event.target.files[0]));
   };
 
@@ -86,7 +84,6 @@ export default function RegisterPage() {
 
     const formData = new FormData();
 
-    //set the formData
     formData.append("firstName", values?.first_name);
     formData.append("lastName", values?.last_name);
     formData.append("email", values?.email);
@@ -100,7 +97,6 @@ export default function RegisterPage() {
       formData.append("profilePicture", imageFile);
     }
 
-    //call api
     try {
       const res = await handleRegistration(formData);
       success(`${res?.data?.message}, redirecting you to the OTP page`);
@@ -113,13 +109,11 @@ export default function RegisterPage() {
       );
 
       setTimeout(() => {
-        //Store the tokens in cookie
         window.location.href = `/check-email?email=${encodeURIComponent(
           values?.email
         )}`;
       }, 1500);
 
-      //redirect to the OTP page
       setIsLoading(false);
     } catch (err) {
       error(`${err?.response?.data?.message}`);
@@ -281,7 +275,7 @@ export default function RegisterPage() {
                 </Form.Item>
               </FlexibleDiv>
 
-              {/* business type */}
+              {/* country */}
               <FlexibleDiv
                 flexDir="column"
                 alignItems="flex-start"
@@ -298,6 +292,16 @@ export default function RegisterPage() {
                     height="40px"
                     showSearch
                     className="country__select"
+                    filterOption={(input, option) => {
+                      const country = countries.find(
+                        (c) => c.name === option?.value
+                      );
+                      const searchLower = input.toLowerCase();
+                      return (
+                        country?.name?.toLowerCase().includes(searchLower) ||
+                        country?.code?.toLowerCase().includes(searchLower)
+                      );
+                    }}
                   >
                     {countries.map((cty, idx) => (
                       <Select.Option
@@ -310,7 +314,7 @@ export default function RegisterPage() {
                           src={`https://flagsapi.com/${cty?.code}/flat/64.png`}
                           alt={`${cty?.name?.toLowerCase()}-icon`}
                         />
-                        <p>{cty.name}</p>
+                        <p>{cty.name} ({cty.code})</p>
                       </Select.Option>
                     ))}
                   </Select>
