@@ -8,3 +8,19 @@ export const handleCreatePersonalBusiness = async (payload) => {
   );
   return data;
 };
+
+export const getDocumentUploadUrls = async (payload) => {
+  const { data } = await instance.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/auth/seller/get-document-upload-urls`,
+    payload
+  );
+  return data;
+};
+
+export const handleCreateBusinessJson = async (payload) => {
+  const { data } = await instance.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/auth/seller/business-registration`,
+    payload
+  );
+  return data;
+};

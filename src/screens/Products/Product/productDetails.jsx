@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CreateProductPageWrapper } from "../Create/index.styles";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import Button from "@/components/lib/Button";
+import { ProductWrapper } from "./product.styles";
 
 export function ProductDescription({ html }) {
   return (
@@ -13,11 +14,12 @@ export function ProductDescription({ html }) {
 }
 
 export const ProductDetails = ({ data, setEdit }) => {
-  const [category, setCategory] = useState(data?.category);
+  // data.category is now an object with populated attributes
+  const category = data?.category;
 
   return (
     <CreateProductPageWrapper style={{ width: "100%" }}>
-      <FlexibleDiv className="tab__item">
+      <ProductWrapper className="tab__item">
         <FlexibleDiv className="container_wrapper" alignItems="start">
           {/* Left section */}
           <FlexibleDiv
@@ -89,7 +91,7 @@ export const ProductDetails = ({ data, setEdit }) => {
             </FlexibleDiv>
             {/* Discounts */}
             <div className="product__item">
-              <label htmlFor="Name">Dsicounts</label>
+              <label htmlFor="Name">Discounts</label>
               <h5>{data?.discount}</h5>
             </div>
             {/*Product Description*/}
@@ -98,122 +100,29 @@ export const ProductDetails = ({ data, setEdit }) => {
               {/* <h5>{data?.productDescription}</h5> */}
               <ProductDescription html={data?.productDescription} />
             </div>
-            {category === "Sculpture" ? (
-              <>
-                {/* Weight */}
-                <div className="product__item">
-                  <label htmlFor="Name">Weight</label>
-                  <h5>{data?.weight}</h5>
+            {/* Dynamic Attributes Rendering */}
+            {category?.attributes?.length > 0 && category.attributes.map((attrItem) => {
+              const detail = attrItem.attributeId;
+              if (!detail) return null;
+
+              const value = data.attributes?.[detail.code];
+              if (value === undefined || value === null || value === '') return null;
+
+              return (
+                <div className="product__item" key={detail.code}>
+                  <label htmlFor={detail.code}>{detail.label}</label>
+                  {detail.type === 'rich_text' ? (
+                    <ProductDescription html={String(value)} />
+                  ) : (
+                    <h5 width={"100%"}>{String(value)}</h5>
+                  )}
                 </div>
-                {/* Width */}
-                <div className="product__item">
-                  <label htmlFor="Name">Width</label>
-                  <h5>{data?.width}</h5>
-                </div>
-                {/* Height */}
-                <div className="product__item">
-                  <label htmlFor="Name">Height</label>
-                  <h5>{data?.height}</h5>
-                </div>
-                {/* Technique */}
-                <div className="product__item">
-                  <label htmlFor="Name">Technique</label>
-                  <h5>{data?.technique}</h5>
-                </div>
-              </>
-            ) : category === "Textiles/Fabrics" ? (
-              <>
-                {/* Weight */}
-                <div className="product__item">
-                  <label htmlFor="Name">Weight</label>
-                  <h5>{data?.weight}</h5>
-                </div>
-                {/* Yard */}
-                <div className="product__item">
-                  <label htmlFor="Name">Yard</label>
-                  <h5>{data?.yard}</h5>
-                </div>
-                {/* Pattern */}
-                <div className="product__item">
-                  <label htmlFor="Name">Pattern</label>
-                  <h5>{data?.pattern}</h5>
-                </div>
-                {/* FabricType */}
-                <div className="product__item">
-                  <label htmlFor="Name">Fabric Type</label>
-                  <h5>{data?.fabricType}</h5>
-                </div>
-              </>
-            ) : category === "Pottery" ? (
-              <>
-                {/* Diameter */}
-                <div className="product__item">
-                  <label htmlFor="Name">Diameter</label>
-                  <h5>{data?.diameter}</h5>
-                </div>
-                {/* ClayType */}
-                <div className="product__item">
-                  <label htmlFor="Name">Clay Type</label>
-                  <h5>{data?.clayType}</h5>
-                </div>
-                {/* Height */}
-                <div className="product__item">
-                  <label htmlFor="Name">Height</label>
-                  <h5>{data?.height}</h5>
-                </div>
-                {/* Glaze */}
-                <div className="product__item">
-                  <label htmlFor="Name">Glaze</label>
-                  <h5>{data?.glaze}</h5>
-                </div>
-              </>
-            ) : category === "Paintings" ? (
-              <>
-                {/* Medium */}
-                <div className="product__item">
-                  <label htmlFor="Name">Medium</label>
-                  <h5>{data?.medium}</h5>
-                </div>
-                {/* Condition */}
-                <div className="product__item">
-                  <label htmlFor="Name">Condition</label>
-                  <h5>{data?.condition}</h5>
-                </div>
-                {/* Size */}
-                <div className="product__item">
-                  <label htmlFor="Name">Size</label>
-                  <h5>{data?.size}</h5>
-                </div>
-              </>
-            ) : (
-              category === "Jewelry" && (
-                <>
-                  {/* length */}
-                  <div className="product__item">
-                    <label htmlFor="Name">Length</label>
-                    <h5>{data?.length}</h5>
-                  </div>
-                  {/* Diameter */}
-                  <div className="product__item">
-                    <label htmlFor="Name">Diameter</label>
-                    <h5>{data?.diameter}</h5>
-                  </div>
-                  {/* stoneType */}
-                  <div className="product__item">
-                    <label htmlFor="Name">Stone Type</label>
-                    <h5>{data?.stoneType}</h5>
-                  </div>
-                  {/* Metal type */}
-                  <div className="product__item">
-                    <label htmlFor="Name">Metal Type</label>
-                    <h5>{data?.metalType}</h5>
-                  </div>
-                </>
-              )
-            )}
+              );
+            })}
           </FlexibleDiv>
         </FlexibleDiv>
-      </FlexibleDiv>
+      </ProductWrapper>
+
       <FlexibleDiv justifyContent="end" alignItems="start">
         <Button
           className="edit__button"
@@ -224,6 +133,6 @@ export const ProductDetails = ({ data, setEdit }) => {
           Edit
         </Button>
       </FlexibleDiv>
-    </CreateProductPageWrapper>
+    </CreateProductPageWrapper >
   );
 };

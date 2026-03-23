@@ -6,6 +6,11 @@ export const getAllProducts = async () => {
   return data;
 };
 
+export const getUploadUrl = async (fileName) => {
+  const data = await instance.get(`/products/seller/upload-url?fileName=${fileName}`);
+  return data.data;
+};
+
 export const filterAllProducts = async (params = {}) => {
   try {
     const response = await instance.get("/products/seller/filter", {
@@ -39,47 +44,16 @@ export const deleteProduct = async (params) => {
 };
 
 export const createProduct = async (payload) => {
-  console.log('createProduct called with payload:', payload);
-
-  // Filter out null/undefined images
-  const filteredImages = payload.images?.filter(img => img != null) || [];
-  console.log('Filtered images:', filteredImages);
-
-  // Create a new payload with filtered images
-  const cleanedPayload = {
-    ...payload,
-    images: filteredImages
-  };
-
-  console.log('Cleaned payload before FormData:', cleanedPayload);
-
-  // Convert to FormData
-  const formData = objectToFormData(cleanedPayload);
-
-  // Log FormData contents
-  console.log('FormData created, entries:');
-  for (let [key, value] of formData.entries()) {
-    console.log(`  ${key}:`, value);
-  }
-
-  const data = await formInstance.post(`/products/seller/add`, formData);
+  // Payload should now contain { ...data, images: [url1, url2] }
+  // Send as JSON
+  const data = await instance.post(`/products/seller/add`, payload);
   return data;
 };
 
 export const editProduct = async (params, payload) => {
-  // Filter out null/undefined images if images array exists
-  if (payload.images) {
-    const filteredImages = payload.images.filter(img => img != null);
-    payload = {
-      ...payload,
-      images: filteredImages
-    };
-  }
-
-  // Convert to FormData
-  const formData = objectToFormData(payload);
-
-  const data = await formInstance.put(`/products/seller/${params}`, formData);
+  // Payload should now contain { ...data, images: [url1, url2], newImages: [url3] }
+  // Send as JSON
+  const data = await instance.put(`/products/seller/${params}`, payload);
   return data;
 };
 export const toggleProductVisibility = async (id, payload) => {

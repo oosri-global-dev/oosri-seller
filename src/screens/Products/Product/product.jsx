@@ -11,79 +11,79 @@ import CustomLoader from "@/components/lib/CustomLoader";
 import { ProductDetails } from "./productDetails";
 
 export default function Product() {
-  const [edit,setEdit]=useState(false)
-  const [loading,setLoading]=useState(true)
-  const[productData,setProductData]=useState()
-  const [id,setId]=useState()
-  const[subCategories,setSubCategories]=useState()
+  const [edit, setEdit] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [productData, setProductData] = useState()
+  const [id, setId] = useState()
+  const [subCategories, setSubCategories] = useState()
 
-  const fetchProductData=async ()=>{
+  const fetchProductData = async () => {
     let id = window.location.pathname
     let regex = /\/product\/([a-f0-9]{24})/;
     let match = id.match(regex);
-    try{
+    try {
       if (match) {
         id = match[1].trim();
-        console.log("Extracted ID:",id);
+        console.log("Extracted ID:", id);
       } else {
         console.log("No ID found.");
       }
-      const data= await getProduct(id)
+      const data = await getProduct(id)
       setProductData(data.data.data)
       setId(id)
       setLoading(false)
-    }catch(error){
+    } catch (error) {
       console.log(error)
     }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchProductData()
-  },[])
-  
-  useEffect(()=>{
-    const fetchCategories=async()=>{
-      try{
+  }, [])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
         const data = await getCategories()
-        const categories=data.data.data
-        const selectedCategory = categories.find((category) => category.name === productData?.category);
+        const categories = data.data.data
+        const selectedCategory = categories.find((category) => category.name === (productData?.category?.name || productData?.category));
         if (selectedCategory) {
-          const items=[]
-          const values=selectedCategory.subcategories
-          for (let index = 0; index < values.length; index++) {    
+          const items = []
+          const values = selectedCategory.subcategories
+          for (let index = 0; index < values.length; index++) {
             items.push(
               {
-                key:values[index].name,
-                label:values[index].name,
+                key: values[index].name,
+                label: values[index].name,
               }
-            ) 
+            )
           }
           setSubCategories(items)
         }
-      }catch(errors){
+      } catch (errors) {
         console.log(errors)
       }
     }
     fetchCategories()
-  },[])
+  }, [])
   return (
     <>
-    {
-      loading?
-      <CustomLoader/>
-      :
-    <DashboardLayout title={"Product Detail"} showBackBtn>
-        {edit?
-        <div>
-          <EditProduct data={productData} id={id} setEdit={setEdit} fetchData={fetchProductData} subCategories={subCategories}/>   
-        </div>
-        :
-        <ProductWrapper>
-          <ProductDetails data={productData} setEdit={setEdit} />
-        </ProductWrapper>
-        }
-    </DashboardLayout>
-    }
+      {
+        loading ?
+          <CustomLoader />
+          :
+          <DashboardLayout title={"Product Detail"} showBackBtn>
+            {edit ?
+              <div>
+                <EditProduct data={productData} id={id} setEdit={setEdit} fetchData={fetchProductData} subCategories={subCategories} />
+              </div>
+              :
+              <ProductWrapper>
+                <ProductDetails data={productData} setEdit={setEdit} />
+              </ProductWrapper>
+            }
+          </DashboardLayout>
+      }
     </>
   );
 }

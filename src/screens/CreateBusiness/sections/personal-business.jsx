@@ -1,57 +1,146 @@
 import TextField from "@/components/lib/TextField";
 import { UploadOutlined } from "@ant-design/icons";
 import Button from "@/components/lib/Button";
-import { Form, Upload, Button as AntdButton, DatePicker, message } from "antd";
+import { Form, Upload, Button as AntdButton, DatePicker, message, Select, Spin } from "antd";
 import { FlexibleDiv } from "@/components/lib/Box/styles";
 import { objectToFormData } from "@/utils/form-data-helper";
-import { useState } from "react";
-import { handleCreatePersonalBusiness } from "@/network/business";
+import { useState, useEffect } from "react";
+import { getDocumentUploadUrls, handleCreateBusinessJson } from "@/network/business";
+import { getBanks, resolveBankAccount } from "@/network/bank";
 import useNotification from "@/hooks/useNotification";
 import { useRouter } from "next/router";
+import { debounce } from "lodash";
+
+const { Option } = Select;
 
 export default function PersonalBusiness() {
   const [form] = Form.useForm();
   const [loading, setIsLoading] = useState(false);
+  const [banks, setBanks] = useState([]);
+  const [resolvingAccount, setResolvingAccount] = useState(false);
   const [success, error] = useNotification();
   const { push } = useRouter();
-  const [file, setFile] = useState(null);
 
-  const handleCreateBusiness = async (values) => {
-    // Here you would typically send the formData to your server
-    setIsLoading(true);
-    const formData = new FormData();
+  useEffect(() => {
+    fetchBanks();
+  }, []);
 
-    // Append simple fields
-    formData.append("dateOfBirth", values.dateOfBirth.format("YYYY-MM-DD"));
-    formData.append("residentialAddress", values.residentialAddress);
-
-    // Append file if it exists
-    if (
-      values.countryIdentificationCard &&
-      values.countryIdentificationCard.file
-    ) {
-      formData.append(
-        "countryIdentificationCard",
-        values.countryIdentificationCard.file.originFileObj
-      );
+  const fetchBanks = async () => {
+    try {
+      const res = await getBanks();
+      if (res.success) {
+        setBanks(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch banks:", err);
     }
+  };
 
-    // Append bank details
-    Object.entries(values.bankDetails).forEach(([key, value]) => {
-      formData.append(`bankDetails[${key}]`, value);
+  const handleAccountVerification = async () => {
+    const bankCode = form.getFieldValue(["bankDetails", "bankCode"]);
+    const accountNumber = form.getFieldValue(["bankDetails", "accountNumber"]);
+
+    if (bankCode && accountNumber && accountNumber.length >= 10) {
+      setResolvingAccount(true);
+      try {
+        const res = await resolveBankAccount({
+          account_number: accountNumber,
+          bank_code: bankCode,
+        });
+
+        if (res.success) {
+          form.setFieldsValue({
+            bankDetails: {
+              ...form.getFieldValue("bankDetails"),
+              accountName: res.data.account_name,
+            },
+          });
+          success("Account verified successfully");
+        }
+      } catch (err) {
+        console.error("Account verification failed:", err);
+        form.setFieldsValue({
+          bankDetails: {
+            ...form.getFieldValue("bankDetails"),
+            accountName: "",
+          },
+        });
+        error("Could not verify account details. Please check your inputs.");
+      } finally {
+        setResolvingAccount(false);
+      }
+    }
+  };
+
+  const debouncedVerification = debounce(handleAccountVerification, 1000);
+
+  const uploadToCloudinary = async (file, uploadConfig) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", uploadConfig.apiKey);
+    formData.append("timestamp", uploadConfig.timestamp);
+    formData.append("signature", uploadConfig.signature);
+    formData.append("public_id", uploadConfig.publicId);
+    formData.append("folder", uploadConfig.folder);
+
+    const res = await fetch(uploadConfig.url, {
+      method: "POST",
+      body: formData,
     });
 
-    try {
-      const res = await handleCreatePersonalBusiness(formData);
+    if (!res.ok) {
+      throw new Error("Cloudinary upload failed");
+    }
 
-        window.location.href = "/dashboard";
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const handleCreateBusiness = async (values) => {
+    setIsLoading(true);
+
+    try {
+      // 1. Get presigned URL from backend
+      const { uploadUrls } = await getDocumentUploadUrls({
+        businessType: "Personal",
+        documents: ["countryIdentificationCard"],
+      });
+
+      // 2. Upload file directly to Cloudinary
+      let countryIdUrl = "";
+      const idFileObj = values.countryIdentificationCard?.file?.originFileObj;
+
+      if (idFileObj) {
+        countryIdUrl = await uploadToCloudinary(idFileObj, uploadUrls.countryIdentificationCard);
+      }
+
+      // 3. Submit registration with Cloudinary URL as JSON
+      const mappedBankDetails = {
+        bank: banks.find(b => b.code === values.bankDetails.bankCode)?.name || "",
+        accountName: values.bankDetails.accountName,
+        accountNumber: values.bankDetails.accountNumber
+      }
+
+      const payload = {
+        dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"),
+        residentialAddress: values.residentialAddress,
+        phoneNumber: values.phoneNumber,
+        bankDetails: mappedBankDetails,
+        countryIdentificationCardUrl: countryIdUrl,
+      };
+
+      await handleCreateBusinessJson(payload);
+
+      success("Business registration successful!");
+      window.location.href = "/dashboard";
     } catch (err) {
       setIsLoading(false);
+      console.error("Registration Error:", err);
       if (err?.response?.status === 500) {
         error("Internal Server Error, please try again later...");
         return;
       }
-      error(err?.response?.data?.message);
+      error(err?.response?.data?.message || err.message || "Something went wrong during registration");
     }
   };
 
@@ -126,13 +215,34 @@ export default function PersonalBusiness() {
         alignItems="flex-start"
         gap="5px"
         width="100%"
+        className="single__input__box"
+      >
+        <label>Phone Number</label>
+        <Form.Item
+          name="phoneNumber"
+          rules={[
+            {
+              required: true,
+              message: "Please enter your phone number",
+            },
+          ]}
+        >
+          <TextField name="phoneNumber" type="text" maxLength={20} />
+        </Form.Item>
+      </FlexibleDiv>
+
+      <FlexibleDiv
+        flexDir="column"
+        alignItems="flex-start"
+        gap="5px"
+        width="100%"
       >
         <label>Country Identification Card</label>
         <Form.Item
           name="countryIdentificationCard"
           rules={[{ required: true, message: "Please upload your ID card" }]}
         >
-          <Upload {...fileUploadProps} onChange={(e) => setFile(e)}>
+          <Upload {...fileUploadProps}>
             <AntdButton color="var(--oosriPrimary)" icon={<UploadOutlined />}>
               Upload ID Card
             </AntdButton>
@@ -154,10 +264,24 @@ export default function PersonalBusiness() {
         >
           <label>Bank Name</label>
           <Form.Item
-            name={["bankDetails", "bank"]}
-            rules={[{ required: true, message: "Please enter your bank name" }]}
+            name={["bankDetails", "bankCode"]}
+            rules={[{ required: true, message: "Please select your bank" }]}
           >
-            <TextField name="bank" type="text" maxLength={50} />
+            <Select
+              placeholder="Select Bank"
+              style={{ height: "40px" }}
+              onChange={handleAccountVerification}
+              showSearch
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {banks.map((bank) => (
+                <Option key={bank.code} value={bank.code}>
+                  {bank.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
         </FlexibleDiv>
         <FlexibleDiv
@@ -167,14 +291,17 @@ export default function PersonalBusiness() {
           className="single__input__box"
         >
           <label>Account Name</label>
-          <Form.Item
-            name={["bankDetails", "accountName"]}
-            rules={[
-              { required: true, message: "Please enter your account name" },
-            ]}
-          >
-            <TextField name="accountName" type="text" maxLength={50} />
-          </Form.Item>
+          <Spin spinning={resolvingAccount}>
+            <Form.Item
+              name={["bankDetails", "accountName"]}
+              rules={[
+                { required: true, message: "Account Name will be auto-populated" },
+              ]}
+              style={{ width: "100%" }}
+            >
+              <TextField name="accountName" type="text" maxLength={70} width="100%" readOnly disabled />
+            </Form.Item>
+          </Spin>
         </FlexibleDiv>
       </FlexibleDiv>
 
@@ -192,7 +319,12 @@ export default function PersonalBusiness() {
               { required: true, message: "Please enter your account number" },
             ]}
           >
-            <TextField name="accountNumber" type="text" maxLength={20} />
+            <TextField
+              name="accountNumber"
+              type="text"
+              maxLength={20}
+              onChange={debouncedVerification}
+            />
           </Form.Item>
         </FlexibleDiv>
       </FlexibleDiv>
