@@ -18,8 +18,6 @@ export default function OrderDetails() {
   const { data, isLoading } = useOrderDetails(orderid);
   const order = data?.data?.data;
 
-  console.log(orderid, "PARAMS IS HERE");
-
   if (isLoading) {
     return <DashboardLayout title={"Order Details"}>Loading...</DashboardLayout>;
   }
