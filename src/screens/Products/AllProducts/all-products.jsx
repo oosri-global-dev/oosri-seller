@@ -226,7 +226,7 @@ export default function AllProductsScreen() {
       key: "regularPrice",
     },
     {
-      title: "In stock",
+      title: "Stock",
       dataIndex: "inStock",
       key: "inStock",
       align: "center",
