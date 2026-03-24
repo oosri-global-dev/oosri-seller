@@ -26,20 +26,29 @@ export default function App({ Component, pageProps }) {
   const [success, error] = useNotification();
 
   useEffect(() => {
-    const bootLoader = document.getElementById("oosri-boot-loader");
+    const bootLoader  = document.getElementById("oosri-boot-loader");
 
     if (!bootLoader) {
       return undefined;
     }
 
-    bootLoader.setAttribute("data-hidden", "true");
+    const removeBootLoader = () => {
+      bootLoader.setAttribute("data-hidden", "true");
 
-    const cleanupTimer = window.setTimeout(() => {
-      bootLoader.remove();
-    }, 200);
+      window.setTimeout(() => {
+        bootLoader.remove();
+      }, 200);
+    };
+
+    if (document.readyState === "complete") {
+      removeBootLoader();
+      return undefined;
+    }
+
+    window.addEventListener("load", removeBootLoader, { once: true });
 
     return () => {
-      window.clearTimeout(cleanupTimer);
+      window.removeEventListener("load", removeBootLoader);
     };
   }, []);
 
