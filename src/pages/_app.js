@@ -26,6 +26,24 @@ export default function App({ Component, pageProps }) {
   const [success, error] = useNotification();
 
   useEffect(() => {
+    const bootLoader = document.getElementById("oosri-boot-loader");
+
+    if (!bootLoader) {
+      return undefined;
+    }
+
+    bootLoader.setAttribute("data-hidden", "true");
+
+    const cleanupTimer = window.setTimeout(() => {
+      bootLoader.remove();
+    }, 200);
+
+    return () => {
+      window.clearTimeout(cleanupTimer);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isOnline) {
       error("You are offline.");
     }
