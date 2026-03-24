@@ -18,8 +18,6 @@ export default function OrderDetails() {
   const { data, isLoading } = useOrderDetails(orderid);
   const order = data?.data?.data;
 
-  console.log(orderid, "PARAMS IS HERE");
-
   if (isLoading) {
     return <DashboardLayout title={"Order Details"}>Loading...</DashboardLayout>;
   }
@@ -118,7 +116,11 @@ export default function OrderDetails() {
               {/* Total Amount */}
               <Space className='total__amount'>
                 <h4 className="detail__info">Total Amount:</h4>
+<<<<<<< HEAD
                 <h4 className="detail__data">₦{(order.totalForSeller + (order.deliveryFee || 0)).toLocaleString()}</h4>
+=======
+                <h4 className="detail__data">₦{order.totalAmount?.toLocaleString()}</h4>
+>>>>>>> 00fe371 (chore: update)
               </Space>
             </FlexibleDiv>
           </FlexibleDiv>
