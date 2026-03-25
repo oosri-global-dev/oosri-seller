@@ -26,6 +26,33 @@ export default function App({ Component, pageProps }) {
   const [success, error] = useNotification();
 
   useEffect(() => {
+    const bootLoader  = document.getElementById("oosri-boot-loader");
+
+    if (!bootLoader) {
+      return undefined;
+    }
+
+    const removeBootLoader = () => {
+      bootLoader.setAttribute("data-hidden", "true");
+
+      window.setTimeout(() => {
+        bootLoader.remove();
+      }, 200);
+    };
+
+    if (document.readyState === "complete") {
+      removeBootLoader();
+      return undefined;
+    }
+
+    window.addEventListener("load", removeBootLoader, { once: true });
+
+    return () => {
+      window.removeEventListener("load", removeBootLoader);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isOnline) {
       error("You are offline.");
     }
