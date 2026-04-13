@@ -20,6 +20,8 @@ const AppWrapper = ({ children }) => {
   const { dispatch } = useContext(MainContext);
   const { data: user, isLoading, isError, error } = useUser();
   const { pathname, push } = useRouter();
+  const isExcludedPath = excludedPaths.some((path) => pathname.startsWith(path));
+  const userToken = getDataInCookie("access_token__seller");
 
   useEffect(() => {
     if (user) {
@@ -36,9 +38,6 @@ const AppWrapper = ({ children }) => {
   }, [user, dispatch, pathname, push]);
 
   useEffect(() => {
-    const userToken = getDataInCookie("access_token__seller");
-    const isExcludedPath = excludedPaths.some((path) => pathname.startsWith(path));
-
     if (!userToken && !isExcludedPath && pathname !== "/") {
       push("/");
     }
@@ -47,7 +46,7 @@ const AppWrapper = ({ children }) => {
       console.error("Auth error:", error);
       push("/");
     }
-  }, [isError, error, pathname, push]);
+  }, [error, isError, isExcludedPath, pathname, push, userToken]);
 
   useEffect(() => {
     // Function to check business status
@@ -78,6 +77,10 @@ const AppWrapper = ({ children }) => {
   }, []);
 
   if (isLoading && hasToken) {
+    return <CustomLoader />;
+  }
+
+  if ((!userToken || isError) && !isExcludedPath && pathname !== "/") {
     return <CustomLoader />;
   }
 

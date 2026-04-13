@@ -1,9 +1,17 @@
-export async function sanitizeHTML(html) {
-  if (typeof window === "undefined") return html;
+import DOMPurify from "dompurify";
 
-  const DOMPurify = (await import("dompurify")).default;
+export function sanitizeHTML(html) {
+  const rawHtml = typeof html === "string" ? html : String(html || "");
 
-  return DOMPurify.sanitize(html, {
+  if (typeof window === "undefined") {
+    return rawHtml
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/\son\w+\s*=\s*(['"]).*?\1/gi, "")
+      .replace(/\son\w+\s*=\s*[^\s>]+/gi, "");
+  }
+
+  return DOMPurify.sanitize(rawHtml, {
     USE_PROFILES: { html: true },
     ALLOWED_TAGS: [
       "h1",
