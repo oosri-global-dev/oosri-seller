@@ -1,7 +1,8 @@
 import { FlexibleDiv, GridableDiv } from "../../../../components/lib/Box/styles";
 import Select from "../../../../components/lib/Select";
 import { Input, Upload } from "antd";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { CustomUpload } from "../../../../components/lib/CustomUpload";
 import { createProduct, getUploadUrl } from "@/network/product";
 import axios from "axios";
@@ -14,6 +15,7 @@ import TextEditor from "../../Product/text-editor";
 const { TextArea } = Input;
 
 export const CreateTab = ({ subCategories, category, categoryName, selectedCategory }) => {
+  const router = useRouter();
   const [img1, setImg1] = useState();
   const [img2, setImg2] = useState();
   const [img3, setImg3] = useState();
@@ -57,9 +59,6 @@ export const CreateTab = ({ subCategories, category, categoryName, selectedCateg
     discountPrice: discountPrice === "" ? null : Number(discountPrice),
     discount: discountPercent === "" ? 0 : Number(discountPercent),
     productType: productType,
-    salesPrice: salesPrice,
-    regularPrice: regularPrice,
-    productType: productType,
     attributes: dynamicAttributes // Include dynamic attributes
   };
 
@@ -75,10 +74,8 @@ export const CreateTab = ({ subCategories, category, categoryName, selectedCateg
     setWeight("");
     setProductType("");
     setRegularPrice("");
-    setSalesPrice();
-    setProductType("");
-    setRegularPrice("");
-    setSalesPrice();
+    setDiscountPrice("");
+    setDiscountPercent("");
     setDynamicAttributes({}); // Reset dynamic attributes
     setSubCategory(null); // Reset subcategory when form is cleared
     setOpenModal(false);
@@ -565,7 +562,7 @@ export const CreateTab = ({ subCategories, category, categoryName, selectedCateg
             Cancel
           </Button>
           <Button
-            onClick={() => (window.location = "/products")}
+            onClick={() => router.push("/products")}
             border="1px solid #FC5353"
             color="white"
             backgroundColor="var(--oosriPrimary)"
