@@ -11,6 +11,7 @@ import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { CustomInput } from "@/components/lib/CustomInput/index.styles";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import TextEditor from "../../Product/text-editor";
+import imageCompression from 'browser-image-compression';
 
 const { TextArea } = Input;
 
@@ -119,26 +120,42 @@ export const CreateTab = ({ subCategories, category, categoryName, selectedCateg
     if (typeof file === "string") return file;
     if (!(file instanceof File) && !(file instanceof Blob)) return null;
 
-    // Client-side validation
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    // Client-side validation - Remove strict dimensions/size, use soft boundaries
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/avif'];
     if (!validTypes.includes(file.type)) {
-      throw new Error(`Invalid file type: ${file.type}. Allowed: jpg, png, webp`);
+      throw new Error(`Invalid file type: ${file.type}. Allowed: jpg, png, webp, avif`);
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      throw new Error(`File too large: ${Math.round(file.size / 1024 / 1024)}MB. Max 10MB.`);
+    if (file.size > 80 * 1024 * 1024) { // 80MB safety cap
+      throw new Error(`File too large: ${Math.round(file.size / 1024 / 1024)}MB. Max 80MB safety limit.`);
+    }
+
+    let fileToUpload = file;
+    try {
+      // Soft client-side compression for large files
+      if (file.size > 5 * 1024 * 1024) {
+        console.log(`Compressing large image on client (${(file.size / (1024 * 1024)).toFixed(2)} MB)...`);
+        const options = {
+          maxSizeMB: 5,
+          maxWidthOrHeight: 2500,
+          useWebWorker: true
+        };
+        fileToUpload = await imageCompression(file, options);
+      }
+    } catch (compressionError) {
+      console.warn("Client-side compression failed, proceeding with original:", compressionError);
     }
 
     try {
       // 1. Get Presigned URL
-      const response = await getUploadUrl(file.name);
+      const response = await getUploadUrl(fileToUpload.name || 'image.jpg');
       if (!response.success) throw new Error("Failed to get upload URL");
 
-      const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation, eager, allowed_formats } = response.data;
+      const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation, allowed_formats } = response.data;
 
       // 2. Prepare Form Data for Cloudinary
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", fileToUpload);
       formData.append("api_key", apiKey);
       formData.append("timestamp", timestamp);
       formData.append("signature", signature);
