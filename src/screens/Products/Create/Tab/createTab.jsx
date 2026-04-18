@@ -163,7 +163,6 @@ export const CreateTab = ({ subCategories, category, categoryName, selectedCateg
       formData.append("public_id", publicId);
       formData.append("tags", tags);
       formData.append("transformation", transformation);
-      if (eager) formData.append("eager", eager);
       if (allowed_formats) formData.append("allowed_formats", allowed_formats);
 
       // 3. Upload to Cloudinary
