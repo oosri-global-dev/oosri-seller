@@ -10,6 +10,7 @@ import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { CustomInput } from "@/components/lib/CustomInput/index.styles";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import TextEditor from "../../Product/text-editor";
+import imageCompression from "browser-image-compression";
 
 const { TextArea } = Input;
 
@@ -21,6 +22,26 @@ const createSlot = () => ({
   uploading: false,
   error: null,
 });
+
+
+
+async function compressImage(file) {
+  const options = {
+    maxSizeMB: 0.5,              // target ~700KB
+    maxWidthOrHeight: 1280,      // resize large images
+    useWebWorker: true,
+    fileType: "image/webp",      // better compression
+  };
+
+  try {
+    const compressedFile = await imageCompression(file, options);
+    console.log(compressedFile, "COMPRESSED FILE")
+    return compressedFile;
+  } catch (error) {
+    console.error("Compression failed:", error);
+    return file; // fallback
+  }
+}
 
 const NUM_SLOTS = 4;
 
@@ -144,7 +165,9 @@ export const CreateTab = ({
     });
 
     try {
-      const url = await uploadToCloudinary(file, (pct) => {
+
+      const compressedFile = await compressImage(file);
+      const url = await uploadToCloudinary(compressedFile, (pct) => {
         setSlot(slotIndex, { progress: pct });
       });
 
@@ -208,8 +231,8 @@ export const CreateTab = ({
 
   const effectivePrice =
     discountPrice &&
-    Number(discountPrice) > 0 &&
-    Number(discountPrice) < Number(regularPrice)
+      Number(discountPrice) > 0 &&
+      Number(discountPrice) < Number(regularPrice)
       ? Number(discountPrice)
       : Number(regularPrice || 0);
 
@@ -324,8 +347,8 @@ export const CreateTab = ({
       setOpenModal(true);
       setErrorText(
         errors.response?.data?.error ||
-          errors.message ||
-          "Failed to create product"
+        errors.message ||
+        "Failed to create product"
       );
     } finally {
       setIsSubmitting(false);
