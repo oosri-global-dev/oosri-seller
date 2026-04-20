@@ -3,6 +3,7 @@ import { FlexibleDiv } from "@/components/lib/Box/styles";
 import Button from "@/components/lib/Button";
 import { ProductWrapper } from "./product.styles";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
+import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
 
 export function ProductDescription({ html }) {
   return (
@@ -86,7 +87,7 @@ export const ProductDetails = ({ data, setEdit }) => {
           >
             <FlexibleDiv gap="16px" justifyContent="start">
               {data.images.map((item) => {
-                return <img src={item} key={item} className="details__img" />;
+                return <img src={getOptimizedCloudinaryUrl(item, 800)} key={item} className="details__img" />;
               })}
             </FlexibleDiv>
             {/* Discounts */}
