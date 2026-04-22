@@ -21,7 +21,13 @@ const AppWrapper = ({ children }) => {
   const { data: user, isLoading, isError, error } = useUser();
   const { pathname, push } = useRouter();
   const isExcludedPath = excludedPaths.some((path) => pathname.startsWith(path));
-  const userToken = getDataInCookie("access_token__seller");
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const userToken = isMounted ? getDataInCookie("access_token__seller") : null;
 
   useEffect(() => {
     if (user) {
@@ -69,20 +75,15 @@ const AppWrapper = ({ children }) => {
     return () => clearInterval(intervalId);
   }, [user]);
 
-  const [hasToken, setHasToken] = useState(false);
-
-  useEffect(() => {
-    // Check for token after mount to avoid hydration mismatch
-    setHasToken(!!getDataInCookie("access_token__seller"));
-  }, []);
-
-  if (isLoading && hasToken) {
+  if (isLoading && isMounted && userToken) {
     return <CustomLoader />;
   }
 
   if ((!userToken || isError) && !isExcludedPath && pathname !== "/") {
     return <CustomLoader />;
   }
+
+
 
   return children;
 };

@@ -95,7 +95,7 @@ export default function EditProduct({
       throw new Error(`Invalid file type: ${file.type}. Allowed: jpg, png, webp`);
     }
 
-    if (file.size > 180 * 1024 * 1024) { // 10MB limit
+    if (file.size > 80 * 1024 * 1024) { // 10MB limit
       throw new Error(`File too large: ${Math.round(file.size / 1024 / 1024)}MB. Max 10MB.`);
     }
 
