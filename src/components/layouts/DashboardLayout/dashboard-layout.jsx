@@ -167,7 +167,7 @@ export default function DashboardLayout({
                   <div>
                     {user?.firstName && (
                       <h4>
-                        {`${user?.firstName || ""} ${user?.lastName[0] || ""}`}.
+                        {`${user?.firstName || ""} ${user?.lastName?.[0] || ""}`}.
                       </h4>
                     )}
 
