@@ -1,109 +1,17 @@
 import { FlexibleDiv, GridableDiv } from "../../../../components/lib/Box/styles";
 import Select from "../../../../components/lib/Select";
-import { Input } from "antd";
 import { useEffect, useState } from "react";
 import { CustomUpload } from "../../../../components/lib/CustomUpload";
-import { createProduct, getUploadUrl } from "@/network/product";
-import axios from "axios";
+import { createProduct } from "@/network/product";
 import Button from "@/components/lib/Button";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { CustomInput } from "@/components/lib/CustomInput/index.styles";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import TextEditor from "../../Product/text-editor";
-import imageCompression from "browser-image-compression";
-
-const { TextArea } = Input;
-
-// ── Per-image slot structure ──────────────────────────────────────────────────
-const createSlot = () => ({
-  file: null,      // File object (cleared after upload starts)
-  url: null,       // Cloudinary secure_url after upload
-  progress: 0,     // 0-100
-  uploading: false,
-  error: null,
-});
-
-
-
-async function compressImage(file) {
-  const options = {
-    maxSizeMB: 0.5,              // target ~700KB
-    maxWidthOrHeight: 1280,      // resize large images
-    useWebWorker: true,
-    fileType: "image/webp",      // better compression
-  };
-
-  try {
-    const compressedFile = await imageCompression(file, options);
-    console.log(compressedFile, "COMPRESSED FILE")
-    return compressedFile;
-  } catch (error) {
-    console.error("Compression failed:", error);
-    return file; // fallback
-  }
-}
-
-const NUM_SLOTS = 4;
-
-// ── Cloudinary upload helper ──────────────────────────────────────────────────
-/**
- * Upload a single file using a backend-issued presigned URL.
- * Calls onProgress(percent) throughout.
- * Returns the Cloudinary secure_url on success.
- * Throws with a user-friendly message on failure.
- */
-async function uploadToCloudinary(file, onProgress) {
-  // 1. Get presigned params from our backend
-  const response = await getUploadUrl(file.name);
-  if (!response.success) {
-    throw new Error(response.message || "Could not obtain upload credentials.");
-  }
-
-  const {
-    url,
-    signature,
-    timestamp,
-    apiKey,
-    publicId,
-    folder,
-    tags,
-    transformation,
-    allowed_formats,
-  } = response.data;
-
-  // 2. Build FormData — keys must exactly mirror the signed params.
-  //    Do NOT add, remove, or change any value here; doing so invalidates the
-  //    Cloudinary signature and causes the "Invalid Signature" error.
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("api_key", apiKey);
-  formData.append("timestamp", String(timestamp));
-  formData.append("signature", signature);
-  formData.append("public_id", publicId);
-  formData.append("folder", folder);
-  formData.append("tags", tags);
-  formData.append("transformation", transformation);
-  if (allowed_formats) formData.append("allowed_formats", allowed_formats);
-
-  // 3. POST to Cloudinary with progress tracking
-  try {
-    const uploadRes = await axios.post(url, formData, {
-      onUploadProgress: (evt) => {
-        if (evt.total) {
-          const pct = Math.round((evt.loaded * 100) / evt.total);
-          onProgress(pct);
-        }
-      },
-    });
-    return uploadRes.data.secure_url;
-  } catch (err) {
-    const cloudinaryMsg =
-      err.response?.data?.error?.message || err.message || "Upload failed";
-    throw new Error(`Failed to upload ${file.name}: ${cloudinaryMsg}`);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
+import {
+  createUploadSlot,
+  uploadProductImage,
+} from "@/utils/cloudinary-upload";
 
 export const CreateTab = ({
   subCategories,
@@ -113,10 +21,10 @@ export const CreateTab = ({
 }) => {
   // ── Image slots ────────────────────────────────────────────────────────────
   const [slots, setSlots] = useState([
-    createSlot(),
-    createSlot(),
-    createSlot(),
-    createSlot(),
+    createUploadSlot(),
+    createUploadSlot(),
+    createUploadSlot(),
+    createUploadSlot(),
   ]);
 
   // ── Product fields ────────────────────────────────────────────────────────
@@ -148,6 +56,19 @@ export const CreateTab = ({
 
   const handleAttributeChange = (code, value) => {
     setDynamicAttributes((prev) => ({ ...prev, [code]: value }));
+    setFormErrors((prev) => {
+      if (!prev.attributes?.[code]) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        attributes: {
+          ...prev.attributes,
+          [code]: false,
+        },
+      };
+    });
   };
 
   const subcategoryIdValue = subCategory?._id || subCategory?.id;
@@ -156,6 +77,13 @@ export const CreateTab = ({
   const handleFileSelected = async (slotIndex, file) => {
     if (!file) return;
 
+    if (formErrors.images) {
+      setFormErrors((prev) => ({
+        ...prev,
+        images: false,
+      }));
+    }
+
     // Mark slot as uploading
     setSlot(slotIndex, {
       file,
@@ -163,28 +91,39 @@ export const CreateTab = ({
       progress: 0,
       uploading: true,
       error: null,
+      warning: null,
+      stage: "compressing",
     });
 
     try {
-
-      const compressedFile = await compressImage(file);
-      const url = await uploadToCloudinary(compressedFile, (pct) => {
-        setSlot(slotIndex, { progress: pct });
+      const result = await uploadProductImage(file, {
+        onProgress: (pct) => {
+          setSlot(slotIndex, { progress: pct });
+        },
+        onStageChange: (stage) => {
+          setSlot(slotIndex, { stage });
+        },
       });
 
       setSlot(slotIndex, {
-        url,
+        url: result.secureUrl,
+        stableUrl: result.secureUrl,
         progress: 100,
         uploading: false,
         error: null,
+        warning: result.warning,
         file: null, // release reference; we have the URL
+        stage: "completed",
       });
     } catch (err) {
       setSlot(slotIndex, {
         uploading: false,
         progress: 0,
         error: err.message,
+        warning: null,
         url: null,
+        file: null,
+        stage: "failed",
       });
     }
   };
@@ -192,7 +131,12 @@ export const CreateTab = ({
   // ── Reset form ─────────────────────────────────────────────────────────────
   const resetForm = () => {
     setClearImg(true);
-    setSlots([createSlot(), createSlot(), createSlot(), createSlot()]);
+    setSlots([
+      createUploadSlot(),
+      createUploadSlot(),
+      createUploadSlot(),
+      createUploadSlot(),
+    ]);
     setProductName("");
     setProductDescription("");
     setBrandArtist("");
@@ -243,6 +187,13 @@ export const CreateTab = ({
   const handleRegularPrice = (e) => {
     const val = e.target.value;
     setRegularPrice(val);
+    if (formErrors.regularPrice || formErrors.discountPrice) {
+      setFormErrors((prev) => ({
+        ...prev,
+        regularPrice: false,
+        discountPrice: false,
+      }));
+    }
     if (val && discountPercent && Number(discountPercent) > 0) {
       setDiscountPrice(
         (Number(val) * (1 - Number(discountPercent) / 100)).toFixed(2)
@@ -253,6 +204,9 @@ export const CreateTab = ({
   const handleDiscountPrice = (e) => {
     const val = e.target.value;
     setDiscountPrice(val);
+    if (formErrors.discountPrice) {
+      setFormErrors((prev) => ({ ...prev, discountPrice: false }));
+    }
     if (val && regularPrice && Number(regularPrice) > 0) {
       const perc =
         ((Number(regularPrice) - Number(val)) / Number(regularPrice)) * 100;
@@ -265,6 +219,9 @@ export const CreateTab = ({
   const handleDiscountPercent = (e) => {
     const val = e.target.value;
     setDiscountPercent(val);
+    if (formErrors.discountPrice) {
+      setFormErrors((prev) => ({ ...prev, discountPrice: false }));
+    }
     if (val && regularPrice && Number(regularPrice) > 0) {
       setDiscountPrice(
         (Number(regularPrice) * (1 - Number(val) / 100)).toFixed(2)
@@ -289,6 +246,28 @@ export const CreateTab = ({
     if (!productType) errorsObj.productType = true;
     if (!regularPrice) errorsObj.regularPrice = true;
     if (!productDescription || productDescription.trim() === "<p><br></p>" || !cleanDescription || cleanDescription === "<p><br></p>") errorsObj.productDescription = true;
+    if (!slots.some((slot) => slot.url)) errorsObj.images = true;
+
+    const attributeErrors = {};
+    (selectedCategory?.attributes || []).forEach((attrItem) => {
+      const attr = attrItem.details;
+      if (!attr || !attrItem.isRequired) {
+        return;
+      }
+
+      const value = dynamicAttributes[attr.code];
+      const isEmptyArray = Array.isArray(value) && value.length === 0;
+      const isEmptyValue =
+        value === undefined || value === null || value === "" || isEmptyArray;
+
+      if (isEmptyValue) {
+        attributeErrors[attr.code] = true;
+      }
+    });
+
+    if (Object.keys(attributeErrors).length > 0) {
+      errorsObj.attributes = attributeErrors;
+    }
 
     if (Object.keys(errorsObj).length > 0) {
       setFormErrors(errorsObj);
@@ -317,6 +296,7 @@ export const CreateTab = ({
       const imageUrls = slots.map((s) => s.url).filter(Boolean);
 
       if (imageUrls.length === 0) {
+        setFormErrors((prev) => ({ ...prev, images: true }));
         setModalError(true);
         setErrorText("At least one product image is required.");
         setOpenModal(true);
@@ -337,6 +317,7 @@ export const CreateTab = ({
       }
 
       if (discountPrice && Number(discountPrice) >= Number(regularPrice)) {
+        setFormErrors((prev) => ({ ...prev, discountPrice: true }));
         setModalError(true);
         setErrorText("Discount Price must be less than Regular Price.");
         setOpenModal(true);
@@ -428,6 +409,11 @@ export const CreateTab = ({
                 backgroundColor="#FAFAFA"
                 width="100%"
               />
+              {formErrors.subCategory && (
+                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                  Please select a product category.
+                </p>
+              )}
             </div>
 
             {/* Brand */}
@@ -457,6 +443,11 @@ export const CreateTab = ({
                 }}
                 width="100%"
               />
+              {formErrors.productType && (
+                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                  Please select a product type.
+                </p>
+              )}
             </div>
 
             {/* Regular Price */}
@@ -476,6 +467,11 @@ export const CreateTab = ({
                   if (formErrors.regularPrice) setFormErrors((prev) => ({ ...prev, regularPrice: false }));
                 }}
               />
+              {formErrors.regularPrice && (
+                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                  Regular price is required.
+                </p>
+              )}
             </div>
 
             {/* Discount % */}
@@ -498,13 +494,24 @@ export const CreateTab = ({
                 id="discountPrice"
                 placeholder="Input Discount Price"
                 backgroundColor="#FAFAFA"
-                onChange={handleDiscountPrice}
+                style={{ border: formErrors.discountPrice ? "1px solid #FC5353" : undefined }}
+                status={formErrors.discountPrice ? "error" : undefined}
+                borderColor={formErrors.discountPrice ? "#FC5353" : undefined}
+                onChange={(e) => {
+                  handleDiscountPrice(e);
+                  if (formErrors.discountPrice) setFormErrors((prev) => ({ ...prev, discountPrice: false }));
+                }}
                 type="number"
                 value={discountPrice}
               />
               <p style={{ color: "grey", fontSize: "12px", marginTop: "4px" }}>
                 Leave empty for no discount. Must be less than Regular Price.
               </p>
+              {formErrors.discountPrice && (
+                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                  Discount price must be less than regular price.
+                </p>
+              )}
             </div>
 
             {/* Payout */}
@@ -537,7 +544,15 @@ export const CreateTab = ({
             width="100%"
           >
             {/* Image upload slots */}
-            <FlexibleDiv className="img__upload" justifyContent="start">
+            <FlexibleDiv
+              className="img__upload"
+              justifyContent="start"
+              style={{
+                outline: formErrors.images ? "1px solid #FC5353" : undefined,
+                borderRadius: formErrors.images ? "8px" : undefined,
+                padding: formErrors.images ? "8px" : undefined,
+              }}
+            >
               {/* Slot 0 & 1 — full-height */}
               <CustomUpload
                 editable
@@ -545,6 +560,8 @@ export const CreateTab = ({
                 uploadProgress={slots[0].progress}
                 uploadedUrl={slots[0].url}
                 uploadError={slots[0].error}
+                uploadWarning={slots[0].warning}
+                uploadStage={slots[0].stage}
                 uploading={slots[0].uploading}
                 clearImage={clearImage}
                 setClearImg={setClearImg}
@@ -555,6 +572,8 @@ export const CreateTab = ({
                 uploadProgress={slots[1].progress}
                 uploadedUrl={slots[1].url}
                 uploadError={slots[1].error}
+                uploadWarning={slots[1].warning}
+                uploadStage={slots[1].stage}
                 uploading={slots[1].uploading}
                 clearImage={clearImage}
                 setClearImg={setClearImg}
@@ -572,6 +591,8 @@ export const CreateTab = ({
                   uploadProgress={slots[2].progress}
                   uploadedUrl={slots[2].url}
                   uploadError={slots[2].error}
+                  uploadWarning={slots[2].warning}
+                  uploadStage={slots[2].stage}
                   uploading={slots[2].uploading}
                   clearImage={clearImage}
                   setClearImg={setClearImg}
@@ -582,12 +603,25 @@ export const CreateTab = ({
                   uploadProgress={slots[3].progress}
                   uploadedUrl={slots[3].url}
                   uploadError={slots[3].error}
+                  uploadWarning={slots[3].warning}
+                  uploadStage={slots[3].stage}
                   uploading={slots[3].uploading}
                   clearImage={clearImage}
                   setClearImg={setClearImg}
                 />
               </FlexibleDiv>
             </FlexibleDiv>
+            {formErrors.images && (
+              <p
+                style={{
+                  color: "#FC5353",
+                  fontSize: "12px",
+                  marginTop: "-12px",
+                }}
+              >
+                Please upload at least one product image.
+              </p>
+            )}
 
             {/* Upload status hint */}
             {anyUploading && (
@@ -615,6 +649,11 @@ export const CreateTab = ({
                   if (formErrors.productDescription) setFormErrors((prev) => ({ ...prev, productDescription: false }));
                 }}
               />
+              {formErrors.productDescription && (
+                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                  Product description is required.
+                </p>
+              )}
             </div>
           </FlexibleDiv>
         </FlexibleDiv>
@@ -650,6 +689,7 @@ export const CreateTab = ({
                         placeholder={`Select ${attr.label}`}
                         backgroundColor="#FAFAFA"
                         width="100%"
+                        border={formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined}
                         options={attr.options.map((opt) => ({
                           value: opt,
                           label: opt,
@@ -664,6 +704,7 @@ export const CreateTab = ({
                         placeholder={`Select ${attr.label}`}
                         backgroundColor="#FAFAFA"
                         width="100%"
+                        border={formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined}
                         options={[
                           { value: true, label: "Yes" },
                           { value: false, label: "No" },
@@ -678,11 +719,19 @@ export const CreateTab = ({
                         placeholder={`Input ${attr.label}`}
                         backgroundColor="#FAFAFA"
                         type={attr.type === "number" ? "number" : "text"}
+                        style={{ border: formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined }}
+                        status={formErrors.attributes?.[attr.code] ? "error" : undefined}
+                        borderColor={formErrors.attributes?.[attr.code] ? "#FC5353" : undefined}
                         value={dynamicAttributes[attr.code] || ""}
                         onChange={(e) =>
                           handleAttributeChange(attr.code, e.target.value)
                         }
                       />
+                    )}
+                    {formErrors.attributes?.[attr.code] && (
+                      <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                        {attr.label} is required.
+                      </p>
                     )}
                   </div>
                 );

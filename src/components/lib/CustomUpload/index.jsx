@@ -31,6 +31,8 @@ export function CustomUpload({
   uploadProgress,
   uploadedUrl,
   uploadError,
+  uploadWarning,
+  uploadStage,
   uploading,
   initialImage,
   editable,
@@ -43,8 +45,8 @@ export function CustomUpload({
   const [localPreview, setLocalPreview] = useState(null);
   const localPreviewRef = useRef(null);
 
-  // Sync with parent-provided uploadedUrl once upload succeeds
-  const previewSrc = uploadedUrl || localPreview;
+  // Prefer the latest uploaded URL, otherwise keep local preview or existing image.
+  const previewSrc = uploadedUrl || localPreview || initialImage;
 
   // ── Reset ────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -71,7 +73,7 @@ export function CustomUpload({
 
   // ── File validation & selection ──────────────────────────────────────────
   const VALID_MIME = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-  const MAX_SIZE_BYTES = 80 * 1024 * 1024; // 20 MB — generous; backend/Cloudinary will enforce further
+  const MAX_SIZE_BYTES = 80 * 1024 * 1024;
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -96,7 +98,9 @@ export function CustomUpload({
 
     // Max size check
     if (file.size > MAX_SIZE_BYTES) {
-      setLocalError(`File too large (${Math.round(file.size / 1024 / 1024)} MB). Max 20 MB.`);
+      setLocalError(
+        `File too large (${Math.round(file.size / 1024 / 1024)} MB). Max 80 MB.`
+      );
       if (setFile) setFile(null);
       return;
     }
@@ -121,6 +125,14 @@ export function CustomUpload({
   const isUploading = uploading && !uploadedUrl;
   const hasError = uploadError || localError;
   const progress = isUploading ? (uploadProgress ?? 0) : 0;
+  const stageLabel =
+    uploadStage === "compressing"
+      ? "Compressing image..."
+      : uploadStage === "signing"
+        ? "Preparing upload..."
+        : uploadStage === "uploading"
+          ? `Uploading ${progress}%`
+          : null;
 
   return (
     <CustomUploaderWrapper>
@@ -168,7 +180,7 @@ export function CustomUpload({
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="progress__label">{progress}%</p>
+            <p className="progress__label">{stageLabel || `${progress}%`}</p>
           </div>
         )}
 
@@ -187,6 +199,13 @@ export function CustomUpload({
           {hasError}
         </p>
       )}
+
+      {!hasError && uploadWarning && (
+        <p className="upload__error" role="status">
+          <MdErrorOutline style={{ verticalAlign: "middle", marginRight: 4 }} />
+          {uploadWarning}
+        </p>
+      )}
     </CustomUploaderWrapper>
   );
 }
@@ -199,6 +218,8 @@ CustomUpload.defaultProps = {
   uploadProgress: 0,
   uploadedUrl: null,
   uploadError: null,
+  uploadWarning: null,
+  uploadStage: "idle",
   onFileSelected: null,
   setFile: null,
 };
@@ -210,6 +231,8 @@ CustomUpload.propTypes = {
   uploadProgress: PropTypes.number,
   uploadedUrl: PropTypes.string,
   uploadError: PropTypes.string,
+  uploadWarning: PropTypes.string,
+  uploadStage: PropTypes.string,
   uploading: PropTypes.bool,
   initialImage: PropTypes.string,
   editable: PropTypes.bool,

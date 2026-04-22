@@ -21,7 +21,14 @@ const AppWrapper = ({ children }) => {
   const { data: user, isLoading, isError, error } = useUser();
   const { pathname, push } = useRouter();
   const isExcludedPath = excludedPaths.some((path) => pathname.startsWith(path));
-  const userToken = getDataInCookie("access_token__seller");
+  const isPublicPath = isExcludedPath || pathname === "/";
+  const [hasMounted, setHasMounted] = useState(false);
+  const [userToken, setUserToken] = useState(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+    setUserToken(getDataInCookie("access_token__seller"));
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -38,6 +45,10 @@ const AppWrapper = ({ children }) => {
   }, [user, dispatch, pathname, push]);
 
   useEffect(() => {
+    if (!hasMounted) {
+      return;
+    }
+
     if (!userToken && !isExcludedPath && pathname !== "/") {
       push("/");
     }
@@ -46,9 +57,13 @@ const AppWrapper = ({ children }) => {
       console.error("Auth error:", error);
       push("/");
     }
-  }, [error, isError, isExcludedPath, pathname, push, userToken]);
+  }, [error, hasMounted, isError, isExcludedPath, pathname, push, userToken]);
 
   useEffect(() => {
+    if (!user) {
+      return undefined;
+    }
+
     // Function to check business status
     const checkBusinessStatus = () => {
       if (!isBusinessActive(user)) {
@@ -67,20 +82,19 @@ const AppWrapper = ({ children }) => {
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, [user]);
+  }, [dispatch, user]);
 
-  const [hasToken, setHasToken] = useState(false);
-
-  useEffect(() => {
-    // Check for token after mount to avoid hydration mismatch
-    setHasToken(!!getDataInCookie("access_token__seller"));
-  }, []);
-
-  if (isLoading && hasToken) {
-    return <CustomLoader />;
+  // Keep the initial server render and first client render identical
+  // for protected routes to avoid hydration mismatches.
+  if (!hasMounted) {
+    return isPublicPath ? children : <CustomLoader />;
   }
 
-  if ((!userToken || isError) && !isExcludedPath && pathname !== "/") {
+  if (isPublicPath) {
+    return children;
+  }
+
+  if (!userToken || isLoading || isError) {
     return <CustomLoader />;
   }
 
