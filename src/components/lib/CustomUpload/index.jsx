@@ -71,7 +71,7 @@ export function CustomUpload({
 
   // ── File validation & selection ──────────────────────────────────────────
   const VALID_MIME = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-  const MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB — generous; backend/Cloudinary will enforce further
+  const MAX_SIZE_BYTES = 80 * 1024 * 1024; // 20 MB — generous; backend/Cloudinary will enforce further
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];

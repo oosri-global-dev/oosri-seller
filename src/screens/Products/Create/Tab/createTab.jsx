@@ -138,6 +138,7 @@ export const CreateTab = ({
   const [clearImage, setClearImg] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoryItem, setCategoryItem] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const setSlot = (index, patch) =>
@@ -204,6 +205,7 @@ export const CreateTab = ({
     setSubCategory(null);
     setOpenModal(false);
     setModalError(false);
+    setFormErrors({});
   };
 
   // ── Effects ────────────────────────────────────────────────────────────────
@@ -279,6 +281,23 @@ export const CreateTab = ({
       subCategory?._id || subCategory?.id || null;
 
     setModalError(false);
+    setFormErrors({});
+
+    const errorsObj = {};
+    if (!productName || !productName.trim()) errorsObj.productName = true;
+    if (!subcategoryIdString) errorsObj.subCategory = true;
+    if (!productType) errorsObj.productType = true;
+    if (!regularPrice) errorsObj.regularPrice = true;
+    if (!productDescription || productDescription.trim() === "<p><br></p>" || !cleanDescription || cleanDescription === "<p><br></p>") errorsObj.productDescription = true;
+
+    if (Object.keys(errorsObj).length > 0) {
+      setFormErrors(errorsObj);
+      setModalError(true);
+      setErrorText("Please complete all highlighted required fields before submitting.");
+      setOpenModal(true);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -379,8 +398,14 @@ export const CreateTab = ({
                   width={"100%"}
                   placeholder="Input product name"
                   backgroundColor="#FAFAFA"
+                  style={{ border: formErrors.productName ? "1px solid #FC5353" : undefined }}
+                  status={formErrors.productName ? "error" : undefined}
+                  borderColor={formErrors.productName ? "#FC5353" : undefined}
                   value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
+                  onChange={(e) => {
+                    setProductName(e.target.value);
+                    if (formErrors.productName) setFormErrors((prev) => ({ ...prev, productName: false }));
+                  }}
                 />
                 <p>Do not exceed 40 characters while entering name</p>
               </div>
@@ -391,12 +416,14 @@ export const CreateTab = ({
               <label htmlFor="subCategory">Product Category</label>
               <Select
                 options={categoryItem}
+                border={formErrors.subCategory ? "1px solid #FC5353" : undefined}
                 value={subCategory?.value || subCategory}
                 onChange={(value) => {
                   const selected = categoryItem.find(
                     (item) => item.value === value
                   );
                   setSubCategory(selected);
+                  if (formErrors.subCategory) setFormErrors((prev) => ({ ...prev, subCategory: false }));
                 }}
                 backgroundColor="#FAFAFA"
                 width="100%"
@@ -420,10 +447,14 @@ export const CreateTab = ({
               <label htmlFor="productType">Product Type</label>
               <Select
                 placeholder="Input product display type"
+                border={formErrors.productType ? "1px solid #FC5353" : undefined}
                 backgroundColor="#FAFAFA"
                 value={productType}
                 options={productTypeItem}
-                onChange={(e) => setProductType(e)}
+                onChange={(e) => {
+                  setProductType(e);
+                  if (formErrors.productType) setFormErrors((prev) => ({ ...prev, productType: false }));
+                }}
                 width="100%"
               />
             </div>
@@ -434,10 +465,16 @@ export const CreateTab = ({
               <CustomInput
                 id="regularPrice"
                 placeholder="Input Product Price"
+                style={{ border: formErrors.regularPrice ? "1px solid #FC5353" : undefined }}
+                status={formErrors.regularPrice ? "error" : undefined}
+                borderColor={formErrors.regularPrice ? "#FC5353" : undefined}
                 value={regularPrice}
                 backgroundColor="#FAFAFA"
                 type="number"
-                onChange={handleRegularPrice}
+                onChange={(e) => {
+                  handleRegularPrice(e);
+                  if (formErrors.regularPrice) setFormErrors((prev) => ({ ...prev, regularPrice: false }));
+                }}
               />
             </div>
 
@@ -571,8 +608,12 @@ export const CreateTab = ({
               <TextEditor
                 placeholder="Minimum of 1000 words"
                 width="1000px"
+                hasError={formErrors.productDescription}
                 value={productDescription}
-                onChange={setProductDescription}
+                onChange={(val) => {
+                  setProductDescription(val);
+                  if (formErrors.productDescription) setFormErrors((prev) => ({ ...prev, productDescription: false }));
+                }}
               />
             </div>
           </FlexibleDiv>

@@ -11,8 +11,8 @@ export const EditorWrapper = styled.div`
   }
 
   .ql-toolbar.ql-snow {
-    border: 1px solid #E0DED3;
-    border-bottom: 1px solid #E0DED3;
+    border: 1px solid ${({ $hasError }) => ($hasError ? "#FC5353" : "#E0DED3")};
+    border-bottom: 1px solid ${({ $hasError }) => ($hasError ? "#FC5353" : "#E0DED3")};
     border-radius: 8px 8px 0 0;
     background: #FAFAFA;
     padding: 12px;
@@ -41,7 +41,7 @@ export const EditorWrapper = styled.div`
   }
 
   .ql-container.ql-snow {
-    border: 1px solid #E0DED3;
+    border: 1px solid ${({ $hasError }) => ($hasError ? "#FC5353" : "#E0DED3")};
     border-top: none;
     border-radius: 0 0 8px 8px;
     background: #FAFAFA;
