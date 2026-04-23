@@ -1,21 +1,34 @@
+import { useEffect, useState } from "react";
 import { CreateProductPageWrapper } from "../Create/index.styles";
 import { FlexibleDiv, GridableDiv } from "@/components/lib/Box/styles";
 import Select from "@/components/lib/Select";
-import { Input } from "antd";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { CustomInput } from "@/components/lib/CustomInput/index.styles";
 import { CustomUpload } from "@/components/lib/CustomUpload";
-import { useState } from "react";
-import { editProduct, getUploadUrl } from "@/network/product";
-import axios from "axios";
+import { editProduct } from "@/network/product";
 import Button from "@/components/lib/Button";
 import CustomLoader from "@/components/lib/CustomLoader";
-import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import TextEditor from "@/screens/Products/Product/text-editor";
+import {
+  createUploadSlot,
+  uploadProductImage,
+} from "@/utils/cloudinary-upload";
 
-const { TextArea } = Input;
+const NUM_SLOTS = 4;
+
+const buildInitialSlots = (images = []) => {
+  const existingSlots = images
+    .slice(0, NUM_SLOTS)
+    .map((imageUrl) => createUploadSlot(imageUrl));
+
+  while (existingSlots.length < NUM_SLOTS) {
+    existingSlots.push(createUploadSlot());
+  }
+
+  return existingSlots;
+};
 
 export default function EditProduct({
   data,
@@ -24,189 +37,370 @@ export default function EditProduct({
   fetchData,
   subCategories,
 }) {
-  const [category, setCategory] = useState(data?.category);
-  const [images, setImages] = useState(data?.images);
-  const [img1, setImg1] = useState(data?.images[0]);
-  const [img2, setImg2] = useState(data?.images[1]);
-  const [img3, setImg3] = useState(data?.images[2]);
-  const [img4, setImg4] = useState(data?.images[3]);
-  const [productName, setProductName] = useState(data?.productName);
+  const [slots, setSlots] = useState(() => buildInitialSlots(data?.images));
+  const [productName, setProductName] = useState(data?.productName || "");
   const [productDescription, setProductDescription] = useState(
-    data?.productDescription
+    data?.productDescription || ""
   );
-  const [brandArtist, setBrandArtist] = useState(data?.brandArtist);
-  const [discount, setDiscount] = useState(data?.discount);
-  const [weight, setWeight] = useState(data?.weight);
-  const [country, setCountry] = useState(data?.country);
-  const [openModal, setOpenModal] = useState(false);
-  const [subCategory, setSubCategory] = useState(data.subcategory);
-  const [productType, setProductType] = useState(data.productType);
-  const [regularPrice, setRegularPrice] = useState(data?.regularPrice);
-  const [salesPrice, setSalesPrice] = useState(data?.salesPrice);
-  const [dynamicAttributes, setDynamicAttributes] = useState(data?.attributes || {});
+  const [brandArtist, setBrandArtist] = useState(data?.brandArtist || "");
+  const [subCategory, setSubCategory] = useState(data?.subcategory || null);
+  const [productType, setProductType] = useState(data?.productType || "simple");
+  const [regularPrice, setRegularPrice] = useState(data?.regularPrice || "");
+  const [discountPrice, setDiscountPrice] = useState(
+    data?.discountPrice ?? ""
+  );
+  const [discountPercent, setDiscountPercent] = useState(
+    data?.discount ? String(data.discount) : ""
+  );
+  const [dynamicAttributes, setDynamicAttributes] = useState(
+    data?.attributes || {}
+  );
   const [modalError, setModalError] = useState(false);
+  const [errorText, setErrorText] = useState("");
+  const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [stock, setStock] = useState(data?.inStock);
-  const [yard, setYard] = useState(data?.yard);
+  const [stock, setStock] = useState(data?.inStock || 0);
+  const [categoryItem, setCategoryItem] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
+
+  useEffect(() => {
+    if (!subCategories) {
+      return;
+    }
+
+    const item = subCategories.map((sub) => ({
+      value: sub.name,
+      label: sub.name,
+      _id: sub._id || sub.id,
+    }));
+
+    setCategoryItem(item);
+
+    if (data?.subcategory) {
+      const existingSubcategoryId =
+        data.subcategory?._id || data.subcategory?.id || data.subcategory;
+      const matchedSubcategory = item.find(
+        (sub) => sub._id === existingSubcategoryId
+      );
+
+      if (matchedSubcategory) {
+        setSubCategory(matchedSubcategory);
+      }
+    }
+  }, [data?.subcategory, subCategories]);
+
+  const setSlot = (index, patch) =>
+    setSlots((prev) =>
+      prev.map((slot, slotIndex) =>
+        slotIndex === index ? { ...slot, ...patch } : slot
+      )
+    );
+
+  const handleFileSelected = async (slotIndex, file) => {
+    if (!file) {
+      return;
+    }
+
+    if (formErrors.images) {
+      setFormErrors((prev) => ({
+        ...prev,
+        images: false,
+      }));
+    }
+
+    const previousUrl = slots[slotIndex]?.stableUrl || null;
+
+    setSlot(slotIndex, {
+      file,
+      url: null,
+      progress: 0,
+      uploading: true,
+      error: null,
+      warning: null,
+      stage: "compressing",
+    });
+
+    try {
+      const result = await uploadProductImage(file, {
+        onProgress: (progress) => {
+          setSlot(slotIndex, { progress });
+        },
+        onStageChange: (stage) => {
+          setSlot(slotIndex, { stage });
+        },
+      });
+
+      setSlot(slotIndex, {
+        file: null,
+        url: result.secureUrl,
+        stableUrl: result.secureUrl,
+        progress: 100,
+        uploading: false,
+        error: null,
+        warning: result.warning,
+        stage: "completed",
+      });
+    } catch (error) {
+      setSlot(slotIndex, {
+        file: null,
+        url: previousUrl,
+        progress: 0,
+        uploading: false,
+        error: error.message,
+        warning: null,
+        stage: "failed",
+      });
+    }
+  };
 
   const handleAttributeChange = (code, value) => {
-    setDynamicAttributes(prev => ({
+    setDynamicAttributes((prev) => ({
       ...prev,
-      [code]: value
+      [code]: value,
     }));
+
+    setFormErrors((prev) => {
+      if (!prev.attributes?.[code]) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        attributes: {
+          ...prev.attributes,
+          [code]: false,
+        },
+      };
+    });
   };
 
-  const payload = {
-    category: category?._id || category, // Ensure ID is sent
-    productName: productName,
-    productDescription: productDescription,
-    brandArtist: brandArtist,
-    images: [img1, img2, img3, img4].filter(Boolean),
-    country: country,
-    subcategory: subCategory?.value,
-    regularPrice: regularPrice,
-    discountPrice: discountPrice === "" ? null : Number(discountPrice),
-    discount: discountPercent === "" ? 0 : Number(discountPercent),
-    productType: productType,
-    inStock: stock,
-    attributes: dynamicAttributes // Include dynamic attributes
-  };
+  const validateForm = async () => {
+    const cleanDescription = await sanitizeHTML(productDescription);
+    const imageUrls = slots.map((slot) => slot.url).filter(Boolean);
+    const nextErrors = {};
+    const attributeErrors = {};
 
-  const productTypeItem = [
-    { value: "simple", label: "Simple" },
-    { value: "variable", label: "Variable" },
-  ];
-  const conditionItem = [
-    { value: "New", label: "New" },
-    { value: "Used", label: "Used" },
-    { value: "Antique", label: "Antique" },
-  ];
-
-  const handleImageUpload = async (file) => {
-    if (!file) return null;
-
-    // Check if it's already a URL (e.g. from existing product)
-    if (typeof file === "string") return file;
-    if (!(file instanceof File) && !(file instanceof Blob)) return null;
-
-    // Client-side validation
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      throw new Error(`Invalid file type: ${file.type}. Allowed: jpg, png, webp`);
+    if (!productName || !productName.trim()) {
+      nextErrors.productName = true;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      throw new Error(`File too large: ${Math.round(file.size / 1024 / 1024)}MB. Max 10MB.`);
+    if (!subCategory?._id && !subCategory?.id && !subCategory) {
+      nextErrors.subCategory = true;
     }
 
-    try {
-      // 1. Get Presigned URL
-      const response = await getUploadUrl(file.name);
-      if (!response.success) throw new Error("Failed to get upload URL");
-
-      const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation, eager, allowed_formats } = response.data;
-
-      // 2. Prepare Form Data for Cloudinary
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", apiKey);
-      formData.append("timestamp", timestamp);
-      formData.append("signature", signature);
-      formData.append("folder", folder);
-      formData.append("public_id", publicId);
-      formData.append("tags", tags);
-      formData.append("transformation", transformation);
-      if (eager) formData.append("eager", eager);
-      if (allowed_formats) formData.append("allowed_formats", allowed_formats);
-
-      // 3. Upload to Cloudinary
-      const uploadRes = await axios.post(url, formData, {
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          console.log(`Upload progress for ${file.name}: ${percentCompleted}%`);
-        }
-      });
-      return uploadRes.data.secure_url;
-    } catch (error) {
-      console.error("Image upload failed:", error);
-      const msg = error.response?.data?.error?.message || error.message || "Image upload failed";
-      throw new Error(`Failed to upload ${file.name}: ${msg}`);
+    if (!productType) {
+      nextErrors.productType = true;
     }
-  };
 
-  const handleEdit = async () => {
-    setLoading(true);
-    try {
-      const cleanDescription = await sanitizeHTML(productDescription);
-
-      // Upload images first
-      const imageFiles = [img1, img2, img3, img4].filter(Boolean);
-      const imageUrls = await Promise.all(imageFiles.map(file => handleImageUpload(file)));
-
-      const response = await editProduct(id, {
-        ...payload,
-        productDescription: cleanDescription,
-        images: imageUrls, // Send URLs
-        replaceImages: true // Flag to replace entire image list
-      });
-      setLoading(false);
-      console.log(response);
-      setOpenModal(true);
-    } catch (errors) {
-      console.log(errors);
-    } finally {
-      setLoading(false);
+    if (!regularPrice) {
+      nextErrors.regularPrice = true;
     }
+
+    if (
+      !productDescription ||
+      productDescription.trim() === "<p><br></p>" ||
+      !cleanDescription ||
+      cleanDescription === "<p><br></p>"
+    ) {
+      nextErrors.productDescription = true;
+    }
+
+    if (imageUrls.length === 0) {
+      nextErrors.images = true;
+    }
+
+    const categoryAttributes = data?.category?.attributes || [];
+    categoryAttributes.forEach((attrItem) => {
+      const detail = attrItem.attributeId;
+      if (!detail || !attrItem.isRequired) {
+        return;
+      }
+
+      const value = dynamicAttributes[detail.code];
+      const isEmptyArray = Array.isArray(value) && value.length === 0;
+      const isEmptyValue =
+        value === undefined || value === null || value === "" || isEmptyArray;
+
+      if (isEmptyValue) {
+        attributeErrors[detail.code] = true;
+      }
+    });
+
+    if (Object.keys(attributeErrors).length > 0) {
+      nextErrors.attributes = attributeErrors;
+    }
+
+    setFormErrors(nextErrors);
+
+    return {
+      cleanDescription,
+      hasErrors: Object.keys(nextErrors).length > 0,
+      imageUrls,
+    };
   };
 
   const closeModal = async () => {
-    await fetchData();
-    setEdit(false);
+    if (!modalError) {
+      await fetchData();
+      setEdit(false);
+      return;
+    }
+
+    setOpenModal(false);
   };
 
   const effectivePrice =
-    discountPrice && Number(discountPrice) > 0 && Number(discountPrice) < Number(regularPrice)
+    discountPrice &&
+    Number(discountPrice) > 0 &&
+    Number(discountPrice) < Number(regularPrice)
       ? Number(discountPrice)
       : Number(regularPrice || 0);
 
   const payoutAmount = (effectivePrice * 0.85).toFixed(2);
 
   const handleRegularPrice = (e) => {
-    const val = e.target.value;
-    setRegularPrice(val);
-    if (val && discountPercent && Number(discountPercent) > 0) {
-      setDiscountPrice((Number(val) * (1 - Number(discountPercent) / 100)).toFixed(2));
+    const value = e.target.value;
+    setRegularPrice(value);
+
+    if (formErrors.regularPrice || formErrors.discountPrice) {
+      setFormErrors((prev) => ({
+        ...prev,
+        regularPrice: false,
+        discountPrice: false,
+      }));
+    }
+
+    if (value && discountPercent && Number(discountPercent) > 0) {
+      setDiscountPrice(
+        (Number(value) * (1 - Number(discountPercent) / 100)).toFixed(2)
+      );
     }
   };
 
   const handleDiscountPrice = (e) => {
-    const val = e.target.value;
-    setDiscountPrice(val);
-    if (val && regularPrice && Number(regularPrice) > 0) {
-      const perc = ((Number(regularPrice) - Number(val)) / Number(regularPrice)) * 100;
-      setDiscountPercent(perc.toFixed(2));
-    } else if (!val) {
+    const value = e.target.value;
+    setDiscountPrice(value);
+
+    if (formErrors.discountPrice) {
+      setFormErrors((prev) => ({
+        ...prev,
+        discountPrice: false,
+      }));
+    }
+
+    if (value && regularPrice && Number(regularPrice) > 0) {
+      const percentage =
+        ((Number(regularPrice) - Number(value)) / Number(regularPrice)) * 100;
+      setDiscountPercent(percentage.toFixed(2));
+    } else if (!value) {
       setDiscountPercent("");
     }
   };
 
   const handleDiscountPercent = (e) => {
-    const val = e.target.value;
-    setDiscountPercent(val);
-    if (val && regularPrice && Number(regularPrice) > 0) {
-      setDiscountPrice((Number(regularPrice) * (1 - Number(val) / 100)).toFixed(2));
-    } else if (!val) {
+    const value = e.target.value;
+    setDiscountPercent(value);
+
+    if (formErrors.discountPrice) {
+      setFormErrors((prev) => ({
+        ...prev,
+        discountPrice: false,
+      }));
+    }
+
+    if (value && regularPrice && Number(regularPrice) > 0) {
+      setDiscountPrice(
+        (Number(regularPrice) * (1 - Number(value) / 100)).toFixed(2)
+      );
+    } else if (!value) {
       setDiscountPrice("");
     }
   };
 
-  const validateAndHandleEdit = () => {
-    if (discountPrice && regularPrice && Number(discountPrice) >= Number(regularPrice)) {
-      alert("Discount Price must be less than Regular Price.");
-      return;
+  const handleEdit = async () => {
+    setLoading(true);
+    setModalError(false);
+    setErrorText("");
+
+    try {
+      const {
+        cleanDescription,
+        hasErrors,
+        imageUrls,
+      } = await validateForm();
+
+      if (hasErrors) {
+        throw new Error(
+          "Please complete all highlighted required fields before saving."
+        );
+      }
+
+      if (slots.some((slot) => slot.uploading)) {
+        throw new Error(
+          "Please wait for image uploads to finish before saving this product."
+        );
+      }
+
+      const failedSlots = slots.filter((slot) => slot.error);
+      if (failedSlots.length > 0) {
+        throw new Error(
+          `${failedSlots.length} image(s) failed to upload. Please re-upload them before saving.`
+        );
+      }
+
+      if (
+        discountPrice &&
+        regularPrice &&
+        Number(discountPrice) >= Number(regularPrice)
+      ) {
+        setFormErrors((prev) => ({
+          ...prev,
+          discountPrice: true,
+        }));
+        throw new Error("Discount Price must be less than Regular Price.");
+      }
+      const categoryId = data?.category?._id || data?.category;
+      const subcategoryId =
+        subCategory?._id || subCategory?.id || subCategory || null;
+
+      const payload = {
+        categoryId,
+        subcategoryId,
+        productName,
+        productDescription: cleanDescription,
+        brandArtist,
+        images: imageUrls,
+        regularPrice,
+        discountPrice: discountPrice === "" ? null : Number(discountPrice),
+        discount: discountPercent === "" ? 0 : Number(discountPercent),
+        productType,
+        inStock: Number(stock) || 0,
+        attributes: dynamicAttributes,
+        replaceImages: true,
+      };
+
+      await editProduct(id, payload);
+      setOpenModal(true);
+    } catch (error) {
+      setModalError(true);
+      setErrorText(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update product"
+      );
+      setOpenModal(true);
+    } finally {
+      setLoading(false);
     }
-    handleEdit();
   };
+
+  const productTypeItem = [
+    { value: "simple", label: "Simple" },
+    { value: "variable", label: "Variable" },
+  ];
+
+  const anyUploading = slots.some((slot) => slot.uploading);
 
   return (
     <>
@@ -216,7 +410,6 @@ export default function EditProduct({
         <CreateProductPageWrapper>
           <FlexibleDiv className="tab__item">
             <FlexibleDiv className="container_wrapper" alignItems="start">
-              {/* Left section */}
               <FlexibleDiv
                 className="50%"
                 flexDir="column"
@@ -228,87 +421,131 @@ export default function EditProduct({
                   alignItems="start"
                   gap="16px"
                 >
-                  {/* Name */}
                   <div className="product__item">
-                    <label htmlFor="Name">Product Name</label>
+                    <label htmlFor="productName">Product Name</label>
                     <CustomInput
-                      width={"100%"}
+                      width="100%"
                       placeholder="Input product name"
                       backgroundColor="#FAFAFA"
+                      style={{
+                        border: formErrors.productName
+                          ? "1px solid #FC5353"
+                          : undefined,
+                      }}
+                      status={formErrors.productName ? "error" : undefined}
+                      borderColor={formErrors.productName ? "#FC5353" : undefined}
                       value={productName}
                       onChange={(e) => {
                         setProductName(e.target.value);
+                        if (formErrors.productName) {
+                          setFormErrors((prev) => ({
+                            ...prev,
+                            productName: false,
+                          }));
+                        }
                       }}
                     />
                     <p>Do not exceed 40 characters while entering name</p>
                   </div>
                 </FlexibleDiv>
-                {/* Category */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Product Category</label>
+                  <label htmlFor="subCategory">Product Category</label>
                   <Select
-                    options={subCategories}
-                    value={subCategory}
-                    onChange={(e) => {
-                      setSubCategory(e);
+                    options={categoryItem}
+                    border={formErrors.subCategory ? "1px solid #FC5353" : undefined}
+                    value={subCategory?.value || subCategory}
+                    onChange={(value) => {
+                      setSubCategory(value);
+                      if (formErrors.subCategory) {
+                        setFormErrors((prev) => ({
+                          ...prev,
+                          subCategory: false,
+                        }));
+                      }
                     }}
                     backgroundColor="#FAFAFA"
                     width="100%"
                   />
+                  {formErrors.subCategory && (
+                    <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                      Please select a product category.
+                    </p>
+                  )}
                 </div>
-                {/* Brand */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Brand</label>
+                  <label htmlFor="brandArtist">Brand</label>
                   <CustomInput
                     placeholder="Select product brand"
                     backgroundColor="#FAFAFA"
-                    onChange={(e) => {
-                      setBrandArtist(e.target.value);
-                    }}
+                    onChange={(e) => setBrandArtist(e.target.value)}
                     value={brandArtist}
                   />
                 </div>
-                {/* Quantity available */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Quantity Available (Stock)</label>
+                  <label htmlFor="stock">Quantity Available (Stock)</label>
                   <CustomInput
-                    placeholder="Input Product Price"
+                    placeholder="Input quantity available"
                     backgroundColor="#FAFAFA"
-                    onChange={(e) => {
-                      setStock(e.target.value);
-                    }}
+                    onChange={(e) => setStock(e.target.value)}
                     type="number"
                     value={stock}
                   />
                 </div>
-                {/* Product Type */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Product Type</label>
+                  <label htmlFor="productType">Product Type</label>
                   <Select
                     placeholder="Input product display type"
                     backgroundColor="#FAFAFA"
                     options={productTypeItem}
-                    onChange={(e) => {
-                      setProductType(e);
+                    border={formErrors.productType ? "1px solid #FC5353" : undefined}
+                    onChange={(value) => {
+                      setProductType(value);
+                      if (formErrors.productType) {
+                        setFormErrors((prev) => ({
+                          ...prev,
+                          productType: false,
+                        }));
+                      }
                     }}
                     width="100%"
-                    defaultValue={productType}
+                    value={productType}
                   />
+                  {formErrors.productType && (
+                    <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                      Please select a product type.
+                    </p>
+                  )}
                 </div>
-                {/* Regular Price */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Regular Price(NGN)</label>
+                  <label htmlFor="regularPrice">Regular Price(NGN)</label>
                   <CustomInput
                     placeholder="Input Product Price"
                     backgroundColor="#FAFAFA"
                     type="number"
+                    style={{
+                      border: formErrors.regularPrice
+                        ? "1px solid #FC5353"
+                        : undefined,
+                    }}
+                    status={formErrors.regularPrice ? "error" : undefined}
+                    borderColor={formErrors.regularPrice ? "#FC5353" : undefined}
                     onChange={handleRegularPrice}
                     value={regularPrice}
                   />
+                  {formErrors.regularPrice && (
+                    <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                      Regular price is required.
+                    </p>
+                  )}
                 </div>
-                {/* Discount Percentage */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Discount (%) (Optional)</label>
+                  <label htmlFor="discountPercent">Discount (%) (Optional)</label>
                   <CustomInput
                     placeholder="e.g. 10"
                     backgroundColor="#FAFAFA"
@@ -317,51 +554,97 @@ export default function EditProduct({
                     value={discountPercent}
                   />
                 </div>
-                {/* Discount Price */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Discount Price(NGN) (Optional)</label>
+                  <label htmlFor="discountPrice">
+                    Discount Price(NGN) (Optional)
+                  </label>
                   <CustomInput
                     placeholder="Input Discount Price"
                     backgroundColor="#FAFAFA"
+                    style={{
+                      border: formErrors.discountPrice
+                        ? "1px solid #FC5353"
+                        : undefined,
+                    }}
+                    status={formErrors.discountPrice ? "error" : undefined}
+                    borderColor={formErrors.discountPrice ? "#FC5353" : undefined}
                     onChange={handleDiscountPrice}
                     type="number"
                     value={discountPrice}
                   />
-                  <p style={{ color: "grey", fontSize: "12px", marginTop: "4px" }}>
+                  <p
+                    style={{
+                      color: "grey",
+                      fontSize: "12px",
+                      marginTop: "4px",
+                    }}
+                  >
                     Leave empty for no discount. Must be less than Regular Price.
                   </p>
+                  {formErrors.discountPrice && (
+                    <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                      Discount price must be less than regular price.
+                    </p>
+                  )}
                 </div>
-                {/* Seller Payout */}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Your Payout(NGN) (Estimated)</label>
+                  <label htmlFor="payoutAmount">Your Payout(NGN) (Estimated)</label>
                   <CustomInput
                     backgroundColor="#EEEEEE"
                     type="number"
                     value={payoutAmount}
                     disabled
                   />
-                  <p style={{ color: "var(--oosriPrimary)", fontSize: "12px", marginTop: "4px" }}>
+                  <p
+                    style={{
+                      color: "var(--oosriPrimary)",
+                      fontSize: "12px",
+                      marginTop: "4px",
+                    }}
+                  >
                     You receive 85% of the final buyer price ({effectivePrice} NGN).
                   </p>
                 </div>
               </FlexibleDiv>
-              {/* right section */}
+
               <FlexibleDiv
                 flexDir="column"
                 gap="24px"
                 alignItems="start"
                 width="100%"
               >
-                <FlexibleDiv className="img__upload" justifyContent="start">
+                <FlexibleDiv
+                  className="img__upload"
+                  justifyContent="start"
+                  style={{
+                    outline: formErrors.images ? "1px solid #FC5353" : undefined,
+                    borderRadius: formErrors.images ? "8px" : undefined,
+                    padding: formErrors.images ? "8px" : undefined,
+                  }}
+                >
                   <CustomUpload
                     editable
-                    setFile={setImg1}
-                    initialImage={images[0]}
+                    initialImage={data?.images?.[0]}
+                    onFileSelected={(file) => handleFileSelected(0, file)}
+                    uploadProgress={slots[0].progress}
+                    uploadedUrl={slots[0].url}
+                    uploadError={slots[0].error}
+                    uploadWarning={slots[0].warning}
+                    uploadStage={slots[0].stage}
+                    uploading={slots[0].uploading}
                   />
                   <CustomUpload
                     editable
-                    initialImage={images[1]}
-                    setFile={setImg2}
+                    initialImage={data?.images?.[1]}
+                    onFileSelected={(file) => handleFileSelected(1, file)}
+                    uploadProgress={slots[1].progress}
+                    uploadedUrl={slots[1].url}
+                    uploadError={slots[1].error}
+                    uploadWarning={slots[1].warning}
+                    uploadStage={slots[1].stage}
+                    uploading={slots[1].uploading}
                   />
                   <FlexibleDiv
                     flexDir="column"
@@ -369,70 +652,168 @@ export default function EditProduct({
                     width="fit-content"
                   >
                     <CustomUpload
-                      initialImage={images[2]}
                       editable
-                      setFile={setImg3}
+                      initialImage={data?.images?.[2]}
+                      onFileSelected={(file) => handleFileSelected(2, file)}
+                      uploadProgress={slots[2].progress}
+                      uploadedUrl={slots[2].url}
+                      uploadError={slots[2].error}
+                      uploadWarning={slots[2].warning}
+                      uploadStage={slots[2].stage}
+                      uploading={slots[2].uploading}
                     />
                     <CustomUpload
-                      initialImage={images[3]}
                       editable
-                      setFile={setImg4}
+                      initialImage={data?.images?.[3]}
+                      onFileSelected={(file) => handleFileSelected(3, file)}
+                      uploadProgress={slots[3].progress}
+                      uploadedUrl={slots[3].url}
+                      uploadError={slots[3].error}
+                      uploadWarning={slots[3].warning}
+                      uploadStage={slots[3].stage}
+                      uploading={slots[3].uploading}
                     />
                   </FlexibleDiv>
                 </FlexibleDiv>
-                {/*Product Description*/}
+                {formErrors.images && (
+                  <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "-12px" }}>
+                    Please upload at least one product image.
+                  </p>
+                )}
+
+                {anyUploading && (
+                  <p
+                    style={{
+                      color: "#3b82f6",
+                      fontSize: "13px",
+                      marginTop: "-12px",
+                    }}
+                  >
+                    Uploading images… please wait before saving.
+                  </p>
+                )}
+
                 <div className="product__item">
-                  <label htmlFor="Name">Product Description</label>
+                  <label htmlFor="productDescription">Product Description</label>
                   <TextEditor
                     placeholder="Minimum of 1000 words"
                     width="1000px"
+                    hasError={formErrors.productDescription}
                     value={productDescription}
-                    onChange={setProductDescription}
+                    onChange={(value) => {
+                      setProductDescription(value);
+                      if (formErrors.productDescription) {
+                        setFormErrors((prev) => ({
+                          ...prev,
+                          productDescription: false,
+                        }));
+                      }
+                    }}
                   />
+                  {formErrors.productDescription && (
+                    <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                      Product description is required.
+                    </p>
+                  )}
                 </div>
-
-
               </FlexibleDiv>
             </FlexibleDiv>
 
-            {/* Dynamic Attributes Rendering - Moved to bottom full width grid */}
-            {category?.attributes?.length > 0 && (
-              <FlexibleDiv width="100%" margin="30px 0 0 0" flexDir="column" alignItems="start">
-                <h3 style={{ marginBottom: '16px', color: '#1A1A1A', fontSize: '18px', fontWeight: '600' }}>Product Specifications</h3>
+            {data?.category?.attributes?.length > 0 && (
+              <FlexibleDiv
+                width="100%"
+                margin="30px 0 0 0"
+                flexDir="column"
+                alignItems="start"
+              >
+                <h3
+                  style={{
+                    marginBottom: "16px",
+                    color: "#1A1A1A",
+                    fontSize: "18px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Product Specifications
+                </h3>
                 <GridableDiv gridCol="1fr 1fr 1fr" gap="20px" width="100%">
-                  {category.attributes.map((attrItem) => {
+                  {data.category.attributes.map((attrItem) => {
                     const detail = attrItem.attributeId;
-                    if (!detail) return null;
+                    if (!detail) {
+                      return null;
+                    }
 
                     return (
                       <div className="product__item" key={detail.code}>
                         <label htmlFor={detail.code}>{detail.label}</label>
-                        {detail.type === 'select' ? (
+                        {detail.type === "select" ? (
                           <Select
                             placeholder={`Select ${detail.label}`}
                             backgroundColor="#FAFAFA"
                             width="100%"
-                            options={detail.options.map(opt => ({ value: opt, label: opt }))}
+                            border={
+                              formErrors.attributes?.[detail.code]
+                                ? "1px solid #FC5353"
+                                : undefined
+                            }
+                            options={detail.options.map((option) => ({
+                              value: option,
+                              label: option,
+                            }))}
                             value={dynamicAttributes[detail.code]}
-                            onChange={(value) => handleAttributeChange(detail.code, value)}
+                            onChange={(value) =>
+                              handleAttributeChange(detail.code, value)
+                            }
                           />
-                        ) : detail.type === 'boolean' ? (
+                        ) : detail.type === "boolean" ? (
                           <Select
                             placeholder={`Select ${detail.label}`}
                             backgroundColor="#FAFAFA"
                             width="100%"
-                            options={[{ value: true, label: 'Yes' }, { value: false, label: 'No' }]}
+                            border={
+                              formErrors.attributes?.[detail.code]
+                                ? "1px solid #FC5353"
+                                : undefined
+                            }
+                            options={[
+                              { value: true, label: "Yes" },
+                              { value: false, label: "No" },
+                            ]}
                             value={dynamicAttributes[detail.code]}
-                            onChange={(value) => handleAttributeChange(detail.code, value)}
+                            onChange={(value) =>
+                              handleAttributeChange(detail.code, value)
+                            }
                           />
                         ) : (
                           <CustomInput
                             placeholder={`Input ${detail.label}`}
                             backgroundColor="#FAFAFA"
-                            type={detail.type === 'number' ? 'number' : 'text'}
-                            value={dynamicAttributes[detail.code] || ''}
-                            onChange={(e) => handleAttributeChange(detail.code, e.target.value)}
+                            type={detail.type === "number" ? "number" : "text"}
+                            style={{
+                              border: formErrors.attributes?.[detail.code]
+                                ? "1px solid #FC5353"
+                                : undefined,
+                            }}
+                            status={
+                              formErrors.attributes?.[detail.code]
+                                ? "error"
+                                : undefined
+                            }
+                            borderColor={
+                              formErrors.attributes?.[detail.code]
+                                ? "#FC5353"
+                                : undefined
+                            }
+                            value={dynamicAttributes[detail.code] || ""}
+                            onChange={(e) =>
+                              handleAttributeChange(detail.code, e.target.value)
+                            }
                           />
+                        )}
+                        {formErrors.attributes?.[detail.code] && (
+                          <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                            {detail.label} is required.
+                          </p>
                         )}
                       </div>
                     );
@@ -441,19 +822,15 @@ export default function EditProduct({
               </FlexibleDiv>
             )}
           </FlexibleDiv>
+
           <FlexibleDiv justifyContent="end" alignItems="start">
-            <Button
-              className="edit__button"
-              onClick={() => {
-                validateAndHandleEdit();
-              }}
-            >
+            <Button className="edit__button" onClick={handleEdit}>
               Save Changes
             </Button>
           </FlexibleDiv>
 
           <StyledModal
-            maskClosable={true}
+            maskClosable
             open={openModal}
             centered
             closeIcon={null}
@@ -470,8 +847,8 @@ export default function EditProduct({
                     color: "#777777",
                   }}
                 >
-                  We ran into a problem while trying to update this product
-                  please try again
+                  {errorText ||
+                    "We ran into a problem while trying to update this product. Please try again."}
                 </p>
                 <FlexibleDiv flexWrap="nowrap" gap="24px">
                   <Button
@@ -485,9 +862,7 @@ export default function EditProduct({
                     Retry
                   </Button>
                   <Button
-                    onClick={() => {
-                      push("/products");
-                    }}
+                    onClick={() => setEdit(false)}
                     border="1px solid #FC5353"
                     color="white"
                     backgroundColor="var(--oosriPrimary)"
@@ -500,7 +875,7 @@ export default function EditProduct({
             ) : (
               <>
                 <h2 style={{ textAlign: "center" }}>
-                  Product Updated Succesfully
+                  Product Updated Successfully
                 </h2>
                 <p
                   style={{
@@ -509,19 +884,17 @@ export default function EditProduct({
                     color: "#777777",
                   }}
                 >
-                  Your Produt Data has been updated Successfully
+                  Your product data has been updated successfully.
                 </p>
                 <FlexibleDiv flexWrap="nowrap" gap="24px">
                   <Button
-                    onClick={() => {
-                      closeModal();
-                    }}
+                    onClick={closeModal}
                     border="1px solid #FC5353"
                     color="white"
                     backgroundColor="var(--oosriPrimary)"
                     width="100%"
                   >
-                    Close
+                    Continue
                   </Button>
                 </FlexibleDiv>
               </>

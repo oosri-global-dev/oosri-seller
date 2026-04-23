@@ -47,13 +47,29 @@ export default function CreateProductPage() {
         }
         setCategories(newCategories);
         setDisplayCategories(items)
-        setActiveTab(items[0]?.key)
+
+        // Set the initial active tab and immediately resolve its subcategories
+        // from the freshly-fetched data (not from state, which hasn't updated yet)
+        const firstCat = newCategories[0];
+        if (firstCat) {
+          setActiveTab(firstCat._id);
+          setCategoryName(firstCat.name);
+          if (firstCat.subcategories) {
+            const mappedSubcategories = firstCat.subcategories.map(sub => ({
+              ...sub,
+              id: sub._id,
+              value: sub.name
+            }));
+            setSubCategories(mappedSubcategories);
+          }
+        }
+
         setLoading(false)
       } catch (errors) {
-        console.log(errors)
+        console.error('Failed to load categories:', errors)
+        setLoading(false) // Stop the spinner even on error
       }
     }
-    handleSubCategories()
     fetchAllProducts()
   }, [])
 

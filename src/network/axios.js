@@ -1,14 +1,10 @@
-import { getDataInCookie } from "@/data-helpers/auth-session";
+import { deleteDataInCookie, getDataInCookie } from "@/data-helpers/auth-session";
 import axios from "axios";
 
-let userToken = null;
-let refreshToken = null;
-
-if (typeof window !== "undefined") {
-  // Perform sessionStorage action
-  userToken = getDataInCookie("access_token__seller");
-  // refreshToken = sessionStorage.getItem("refresh_token");
-}
+const getSellerAccessToken = () =>
+  typeof window !== "undefined"
+    ? getDataInCookie("access_token__seller")
+    : null;
 
 export const publicInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
@@ -21,7 +17,6 @@ export const instance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    Authorization: userToken || "",
   },
 });
 
@@ -29,14 +24,17 @@ export const formInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   headers: {
     "Content-Type": "multipart/form-data",
-    Authorization: userToken || "",
   },
 });
 
 instance.interceptors.request.use(
   async (config) => {
+    const userToken = getSellerAccessToken();
+
     if (userToken) {
-      config.headers["Authorization"] = `Bearer ${userToken}` || null; // for Spring Boot back-end
+      config.headers["Authorization"] = `Bearer ${userToken}`;
+    } else if (config.headers?.Authorization) {
+      delete config.headers.Authorization;
     }
 
     return config;
@@ -55,13 +53,12 @@ instance.interceptors.response.use(
     if (
       err?.response?.status === 401 &&
       !originalConfig._retry &&
-      !!userToken
+      !!getSellerAccessToken()
     ) {
       originalConfig._retry = true;
 
-      // Refresh logic is disabled. Clear token and force logout.
       if (typeof window !== "undefined") {
-        document.cookie = "access_token__seller=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        deleteDataInCookie("access_token__seller");
       }
       return Promise.reject(err);
 
@@ -74,8 +71,12 @@ instance.interceptors.response.use(
 
 formInstance.interceptors.request.use(
   async (config) => {
+    const userToken = getSellerAccessToken();
+
     if (userToken) {
-      config.headers["Authorization"] = `Bearer ${userToken}` || null; // for Spring Boot back-end
+      config.headers["Authorization"] = `Bearer ${userToken}`;
+    } else if (config.headers?.Authorization) {
+      delete config.headers.Authorization;
     }
 
     return config;
@@ -94,13 +95,12 @@ formInstance.interceptors.response.use(
     if (
       err?.response?.status === 401 &&
       !originalConfig._retry &&
-      !!userToken
+      !!getSellerAccessToken()
     ) {
       originalConfig._retry = true;
 
-      // Refresh logic is disabled. Clear token and force logout.
       if (typeof window !== "undefined") {
-        document.cookie = "access_token__seller=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        deleteDataInCookie("access_token__seller");
       }
       return Promise.reject(err);
 

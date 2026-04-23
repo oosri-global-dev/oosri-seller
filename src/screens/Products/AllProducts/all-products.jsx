@@ -16,6 +16,7 @@ import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
 import { useProducts } from "@/hooks/useProducts";
 import { useToggleVisibility } from "@/hooks/useToggleVisibility";
+import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
 
 const normalizeProducts = (data) => {
   if (!data || !Array.isArray(data)) return [];
@@ -203,7 +204,7 @@ export default function AllProductsScreen() {
       key: "productName",
       render: (_, obj) => (
         <Space>
-          <Avatar size={45} src={obj?.images[0]} />
+          <Avatar size={45} src={getOptimizedCloudinaryUrl(obj?.images[0], 100)} />
           <Space direction="vertical" size={1}>
             <p>{_}</p>
           </Space>

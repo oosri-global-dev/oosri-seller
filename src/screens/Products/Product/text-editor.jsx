@@ -30,7 +30,7 @@ const formats = [
   //   "image",
 ];
 
-export default function TextEditor({ onChange, value, placeholder }) {
+export default function TextEditor({ onChange, value, placeholder, hasError }) {
   const [editorHtml, setEditorHtml] = useState(value || "");
 
   // Sync internal state with value prop changes
@@ -44,7 +44,7 @@ export default function TextEditor({ onChange, value, placeholder }) {
   };
 
   return (
-    <EditorWrapper>
+    <EditorWrapper $hasError={hasError}>
       <ReactQuill
         value={editorHtml}
         onChange={handleEditorChange}

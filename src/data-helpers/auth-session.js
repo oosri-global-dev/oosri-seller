@@ -3,21 +3,29 @@
 
 export function storeDataInCookie(cName, cValue, expDays) {
   if (typeof window !== "undefined") {
-    let date = new Date();
+    const date = new Date();
     date.setTime(date.getTime() + expDays * 24 * 60 * 60 * 1000);
     const expires = "expires=" + date.toUTCString();
-    window.document.cookie = cName + "=" + cValue + "; " + expires + "; path=/";
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    window.document.cookie =
+      cName +
+      "=" +
+      encodeURIComponent(cValue) +
+      "; " +
+      expires +
+      "; path=/; SameSite=Lax" +
+      secure;
   }
 }
 
 export function getDataInCookie(cName) {
   if (typeof window !== "undefined") {
     const name = cName + "=";
-    const cDecoded = decodeURIComponent(window.document.cookie); //to be careful
+    const cDecoded = window.document.cookie;
     const cArr = cDecoded.split("; ");
     let res;
     cArr.forEach((val) => {
-      if (val.indexOf(name) === 0) res = val.substring(name.length);
+      if (val.indexOf(name) === 0) res = decodeURIComponent(val.substring(name.length));
     });
     return res;
   }
@@ -25,14 +33,14 @@ export function getDataInCookie(cName) {
 
 export function deleteDataInCookie(cName) {
   if (typeof window !== "undefined") {
-    document.cookie = `${cName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${cName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax${secure}`;
   }
 }
 
 export function deleteAllCookie() {
   if (typeof window !== "undefined") {
     document.cookie = "_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    document.cookie =
-      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    deleteDataInCookie("access_token__seller");
   }
 }
