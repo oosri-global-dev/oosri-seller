@@ -64,7 +64,7 @@ export default function App({ Component, pageProps }) {
         <AppWrapper>
           <Component {...pageProps} />
         </AppWrapper>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {process.env.NODE_ENV !== 'production' && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </MainProvider>
   );
