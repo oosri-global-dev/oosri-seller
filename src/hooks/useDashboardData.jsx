@@ -6,7 +6,6 @@ const fetchDashboardData = async (period) => {
     getDashboardSummary(),
     getDashboardOverview(period),
   ]);
-  console.log({ overview, summary });
   return { overview, summary };
 };
 

@@ -19,7 +19,7 @@ export default function OrderScreen (){
          <OrderWrapper>
           <FlexibleDiv className="flex justify-between mb-4"></FlexibleDiv>
             <FlexibleDiv className='top__section' justifyContent="space-between">
-                <CustomMultiSearchBar width="max-content" onChange={(e)=>console.log(e.target.value)} placeholder="Search by product name" />
+                <CustomMultiSearchBar width="max-content" onChange={() => {}} placeholder="Search by product name" />
                 <Select  options={options} defaultValue="This Year"/>
             </FlexibleDiv>
             <div style={{overflow:"auto"}}>
