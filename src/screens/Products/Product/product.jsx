@@ -25,16 +25,13 @@ export default function Product() {
     try {
       if (match) {
         id = match[1].trim();
-        console.log("Extracted ID:", id);
-      } else {
-        console.log("No ID found.");
       }
       const data = await getProduct(id)
       setProductData(data.data.data)
       setId(id)
       setLoading(false)
     } catch (error) {
-      console.log(error)
+      setLoading(false)
     }
   }
 
@@ -62,7 +59,7 @@ export default function Product() {
           setSubCategories(items)
         }
       } catch (errors) {
-        console.log(errors)
+        // category fetch failure leaves subcategory selector empty
       }
     }
     fetchCategories()
