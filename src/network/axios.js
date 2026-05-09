@@ -1,4 +1,11 @@
-import { deleteDataInCookie, getDataInCookie } from "@/data-helpers/auth-session";
+import {
+  deleteDataInCookie,
+  getDataInCookie,
+  storeDataInCookie,
+  storeRefreshToken,
+  getRefreshToken,
+  deleteRefreshToken,
+} from "@/data-helpers/auth-session";
 import axios from "axios";
 
 const getSellerAccessToken = () =>
@@ -27,118 +34,107 @@ export const formInstance = axios.create({
   },
 });
 
-instance.interceptors.request.use(
-  async (config) => {
-    const userToken = getSellerAccessToken();
+// Prevents multiple simultaneous refresh calls when several requests 401 at once
+let isRefreshing = false;
+let failedQueue = [];
 
-    if (userToken) {
-      config.headers["Authorization"] = `Bearer ${userToken}`;
-    } else if (config.headers?.Authorization) {
-      delete config.headers.Authorization;
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+const redirectToLogin = () => {
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    deleteDataInCookie("access_token__seller");
+    deleteRefreshToken();
+    window.location.href = "/login";
+  }
+};
+
+const attemptTokenRefresh = async (originalConfig, axiosInstance) => {
+  const storedRefreshToken = getRefreshToken();
+
+  if (!storedRefreshToken) {
+    redirectToLogin();
+    return Promise.reject(new Error("No refresh token available"));
+  }
+
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    }).then((newToken) => {
+      originalConfig.headers["Authorization"] = `Bearer ${newToken}`;
+      return axiosInstance(originalConfig);
+    });
+  }
+
+  originalConfig._retry = true;
+  isRefreshing = true;
+
+  try {
+    const { data } = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/auth/seller/refresh-token`,
+      { refreshToken: storedRefreshToken }
+    );
+
+    const newAccessToken = data.token;
+    const newRefreshToken = data.refreshToken;
+
+    storeDataInCookie("access_token__seller", newAccessToken, 1);
+    if (newRefreshToken) {
+      storeRefreshToken(newRefreshToken);
     }
 
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
+    processQueue(null, newAccessToken);
+
+    originalConfig.headers["Authorization"] = `Bearer ${newAccessToken}`;
+    return axiosInstance(originalConfig);
+  } catch (refreshError) {
+    processQueue(refreshError, null);
+    redirectToLogin();
+    return Promise.reject(refreshError);
+  } finally {
+    isRefreshing = false;
   }
-);
+};
 
-instance.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalConfig = err.config;
+const attachRequestInterceptor = (axiosInstance) => {
+  axiosInstance.interceptors.request.use(
+    (config) => {
+      const userToken = getSellerAccessToken();
+      if (userToken) {
+        config.headers["Authorization"] = `Bearer ${userToken}`;
+      } else if (config.headers?.Authorization) {
+        delete config.headers.Authorization;
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
+};
 
-    // Access Token was expired
-    if (
-      err?.response?.status === 401 &&
-      !originalConfig._retry &&
-      !!getSellerAccessToken()
-    ) {
-      originalConfig._retry = true;
-
-      if (typeof window !== "undefined") {
-        deleteDataInCookie("access_token__seller");
+const attachResponseInterceptor = (axiosInstance) => {
+  axiosInstance.interceptors.response.use(
+    (res) => res,
+    async (err) => {
+      const originalConfig = err.config;
+      if (err?.response?.status === 401 && !originalConfig._retry) {
+        return attemptTokenRefresh(originalConfig, axiosInstance);
       }
       return Promise.reject(err);
-
-      //   await getRefreshToken(refreshToken, err);
-    } else {
-      return Promise.reject(err);
     }
-  }
-);
+  );
+};
 
-formInstance.interceptors.request.use(
-  async (config) => {
-    const userToken = getSellerAccessToken();
+attachRequestInterceptor(instance);
+attachResponseInterceptor(instance);
 
-    if (userToken) {
-      config.headers["Authorization"] = `Bearer ${userToken}`;
-    } else if (config.headers?.Authorization) {
-      delete config.headers.Authorization;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-formInstance.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalConfig = err.config;
-
-    // Access Token was expired
-    if (
-      err?.response?.status === 401 &&
-      !originalConfig._retry &&
-      !!getSellerAccessToken()
-    ) {
-      originalConfig._retry = true;
-
-      if (typeof window !== "undefined") {
-        deleteDataInCookie("access_token__seller");
-      }
-      return Promise.reject(err);
-
-      //   await getRefreshToken(refreshToken, err);
-    } else {
-      return Promise.reject(err);
-    }
-  }
-);
-
-// const getRefreshToken = async (token, err) => {
-//   try {
-//     const data = await axios.post(
-//       `${process.env.NEXT_PUBLIC_BASE_URL}/auth/refresh-token`,
-//       undefined,
-//       {
-//         headers: {
-//           authorization: `Bearer ${token}`,
-//         },
-//       }
-//     );
-//
-//     sessionStorage.setItem("user_token", data?.data?.data?.tokens?.accessToken);
-//     sessionStorage.setItem(
-//       "refresh_token",
-//       data?.data?.data?.tokens?.refreshToken
-//     );
-//
-//     userToken = data?.data?.data?.tokens?.accessToken;
-//     return await instance(err.config);
-//   } catch (_error) {
-//     if (
-//       _error?.response?.status === 401 &&
-//       window.location.pathname !== "/login"
-//     ) {
-//       window.location.pathname = "/login";
-//       sessionStorage.removeItem("user_token");
-//       sessionStorage.removeItem("refresh_token");
-//     }
-//   }
-// };
+attachRequestInterceptor(formInstance);
+attachResponseInterceptor(formInstance);

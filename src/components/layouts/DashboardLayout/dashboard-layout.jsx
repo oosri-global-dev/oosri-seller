@@ -22,7 +22,8 @@ import { MainContext } from "@/context";
 import { isEmpty } from "lodash";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { deleteDataInCookie } from "@/data-helpers/auth-session";
+import { deleteDataInCookie, getRefreshToken, deleteRefreshToken } from "@/data-helpers/auth-session";
+import { handleSignOut } from "@/network/user";
 import Image from "next/image";
 
 const MENU_ITEMS_CONFIG = [
@@ -66,8 +67,13 @@ export default function DashboardLayout({
   const menuItems = useMemo(() => MENU_ITEMS_CONFIG.map(item => ({
     ...item,
     onClick: item.isLogout
-      ? () => {
+      ? async () => {
+        const rt = getRefreshToken();
         deleteDataInCookie("access_token__seller");
+        deleteRefreshToken();
+        if (rt) {
+          handleSignOut(rt).catch(() => {});
+        }
         window.location.href = "/";
       }
       : () => push(item.href)

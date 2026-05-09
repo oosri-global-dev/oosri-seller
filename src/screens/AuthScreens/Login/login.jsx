@@ -12,7 +12,7 @@ import { useContext, useState } from "react";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { MainContext, useMainContext } from "@/context";
 import { CURRENT_USER } from "@/context/types";
-import { storeDataInCookie } from "@/data-helpers/auth-session";
+import { storeDataInCookie, storeRefreshToken } from "@/data-helpers/auth-session";
 
 export default function LoginPage() {
   const [form] = Form.useForm();
@@ -37,7 +37,10 @@ export default function LoginPage() {
           },
         });
 
-        storeDataInCookie("access_token__seller", res?.data?.token, 30);
+        storeDataInCookie("access_token__seller", res?.data?.token, 1);
+        if (res?.data?.refreshToken) {
+          storeRefreshToken(res?.data?.refreshToken);
+        }
 
         setTimeout(() => {
           window.location.href = "/dashboard";

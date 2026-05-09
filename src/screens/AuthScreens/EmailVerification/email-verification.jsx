@@ -10,6 +10,7 @@ import { isEmpty } from "lodash";
 import CustomLoader from "@/components/lib/CustomLoader";
 import useNotification from "@/hooks/useNotification";
 import { handleOTP, handleResendOTP } from "@/network/user";
+import { storeDataInCookie, storeRefreshToken } from "@/data-helpers/auth-session";
 
 export default function EmailVerificationScreen() {
   const [otp, setOtp] = useState("");
@@ -29,6 +30,12 @@ export default function EmailVerificationScreen() {
 
     await handleOTP({ email: decodeURIComponent(query?.email), code: otp })
       .then((res) => {
+        if (res?.data?.token) {
+          storeDataInCookie("access_token__seller", res.data.token, 1);
+        }
+        if (res?.data?.refreshToken) {
+          storeRefreshToken(res.data.refreshToken);
+        }
         setPageLoading(true);
         setTimeout(() => {
           window.location.href = "/dashboard";
