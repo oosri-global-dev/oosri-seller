@@ -35,6 +35,7 @@ export const CreateTab = ({
   const [subCategory, setSubCategory] = useState("");
   const [productType, setProductType] = useState();
   const [regularPrice, setRegularPrice] = useState("");
+  const [inStock, setInStock] = useState("");
   const [discountPrice, setDiscountPrice] = useState("");
   const [discountPercent, setDiscountPercent] = useState("");
   const [dynamicAttributes, setDynamicAttributes] = useState({});
@@ -245,6 +246,7 @@ export const CreateTab = ({
     if (!subcategoryIdString) errorsObj.subCategory = true;
     if (!productType) errorsObj.productType = true;
     if (!regularPrice) errorsObj.regularPrice = true;
+    if (!inStock || Number(inStock) < 1) errorsObj.inStock = true;
     if (!productDescription || productDescription.trim() === "<p><br></p>" || !cleanDescription || cleanDescription === "<p><br></p>") errorsObj.productDescription = true;
     if (!slots.some((slot) => slot.url)) errorsObj.images = true;
 
@@ -333,6 +335,7 @@ export const CreateTab = ({
         brandArtist,
         images: imageUrls,          // Only Cloudinary URLs — no File objects
         regularPrice,
+        inStock: Number(inStock),
         discountPrice: discountPrice === "" ? null : Number(discountPrice),
         discount: discountPercent === "" ? 0 : Number(discountPercent),
         productType,
@@ -470,6 +473,31 @@ export const CreateTab = ({
               {formErrors.regularPrice && (
                 <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
                   Regular price is required.
+                </p>
+              )}
+            </div>
+
+            {/* Stock quantity */}
+            <div className="product__item">
+              <label htmlFor="inStock">Quantity Available (Stock)</label>
+              <CustomInput
+                id="inStock"
+                placeholder="How many units do you have?"
+                style={{ border: formErrors.inStock ? "1px solid #FC5353" : undefined }}
+                status={formErrors.inStock ? "error" : undefined}
+                borderColor={formErrors.inStock ? "#FC5353" : undefined}
+                backgroundColor="#FAFAFA"
+                type="number"
+                min={1}
+                value={inStock}
+                onChange={(e) => {
+                  setInStock(e.target.value);
+                  if (formErrors.inStock) setFormErrors((prev) => ({ ...prev, inStock: false }));
+                }}
+              />
+              {formErrors.inStock && (
+                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
+                  Stock quantity is required (minimum 1).
                 </p>
               )}
             </div>
