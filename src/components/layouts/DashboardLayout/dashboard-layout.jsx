@@ -20,7 +20,7 @@ import { BsPeopleFill as ProfileIcon } from "react-icons/bs";
 import { IoMdLogOut as LogoutIcon } from "react-icons/io";
 import { HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
 import { BsArrowLeft as BackIcon } from "react-icons/bs";
-import { FiPlus as AddIcon, FiMenu as HamburgerIcon } from "react-icons/fi";
+import { FiPlus as AddIcon, FiMenu as HamburgerIcon, FiX as CloseIcon } from "react-icons/fi";
 
 const MAIN_NAV = [
   { key: "/dashboard", icon: DashboardOutlined, label: "Dashboard", href: "/dashboard", isAntd: true },
@@ -90,24 +90,31 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
         onClose={() => dispatch({ type: NO_BUSINESS_MODAL, payload: false })}
       />
 
-      {mobileOpen && (
-        <div className="sidebar__overlay" onClick={() => setMobileOpen(false)} />
-      )}
+      <div className="sidebar__overlay" onClick={() => setMobileOpen(false)} />
 
       {/* ── Sidebar ── */}
       <aside className="sidebar">
 
-        {/* Logo + collapse */}
+        {/* Logo + collapse / mobile close */}
         <div className="sidebar__logo">
           <Link href="/dashboard" className="logo__link">
             <Image src={Logo} alt="Oosri" width={90} height={30} style={{ objectFit: "contain" }} />
           </Link>
+          {/* Desktop: collapse/expand */}
           <button
             className="collapse__btn"
             onClick={() => setCollapsed(!collapsed)}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? <MenuUnfoldOutlined style={{ fontSize: 16 }} /> : <MenuFoldOutlined style={{ fontSize: 16 }} />}
+          </button>
+          {/* Mobile: close drawer */}
+          <button
+            className="mobile__close__btn"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close menu"
+          >
+            <CloseIcon size={18} />
           </button>
         </div>
 

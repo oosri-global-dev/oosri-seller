@@ -207,6 +207,11 @@ export const DBWrapper = styled.div`
     }
   }
 
+  /* Mobile-only close button — hidden on desktop */
+  .mobile__close__btn {
+    display: none;
+  }
+
   /* ─────────────────────────────────────────────
      MOBILE OVERLAY
   ───────────────────────────────────────────── */
@@ -339,6 +344,15 @@ export const DBWrapper = styled.div`
         text-decoration: none;
         display: flex;
         flex-shrink: 0;
+
+        button:hover,
+        button:focus {
+          background: #e04040 !important;
+          border-color: #e04040 !important;
+          color: #fff !important;
+
+          span { color: #fff !important; }
+        }
       }
 
       .profile__wrap {
@@ -437,41 +451,60 @@ export const DBWrapper = styled.div`
       bottom: 0;
       width: ${SIDEBAR_WIDE}px !important;
       transform: ${({ $mobileOpen }) => $mobileOpen ? "translateX(0)" : "translateX(-100%)"};
-      transition: transform 0.28s ease;
-      z-index: 10;
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 200;
 
-      /* always show labels on mobile sidebar */
-      .nav__item { justify-content: flex-start; padding: 10px 12px; }
-      .nav__label { display: block !important; }
+      /* always show labels on mobile */
+      .nav__item         { justify-content: flex-start; padding: 10px 12px; }
+      .nav__label        { display: block !important; }
       .nav__group__label { display: block !important; }
-      .user__info { display: flex !important; }
-      .logout__btn { justify-content: flex-start; padding: 10px 12px; .nav__label { display: block !important; } }
+      .user__info        { display: flex !important; }
+      .logout__btn       { justify-content: flex-start; padding: 10px 12px; .nav__label { display: block !important; } }
+      .sidebar__logo     { padding: 0 16px !important; }
       .sidebar__logo .logo__link { opacity: 1 !important; max-width: 120px !important; }
-      .collapse__btn { display: none; }
+      .collapse__btn     { display: none; }
+
+      /* show close button */
+      .mobile__close__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.45);
+        padding: 7px;
+        border-radius: 7px;
+        flex-shrink: 0;
+        transition: color 0.15s, background 0.15s;
+
+        &:hover {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.08);
+        }
+      }
     }
 
     .sidebar__overlay {
-      display: ${({ $mobileOpen }) => $mobileOpen ? "block" : "none"};
+      display: block;
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.5);
-      z-index: 9;
+      z-index: 199;
+      opacity: ${({ $mobileOpen }) => $mobileOpen ? 1 : 0};
+      pointer-events: ${({ $mobileOpen }) => $mobileOpen ? "auto" : "none"};
+      transition: opacity 0.28s ease;
     }
 
     .top__header {
       padding: 0 16px;
+      z-index: 50;
 
-      .hamburger { display: flex; }
-
-      /* hide profile text on mobile */
+      .header__left .hamburger { display: flex; }
       .profile__wrap .profile__details { display: none; }
-
-      /* shrink Add Product button to icon only on very small screens */
     }
 
-    .content__area {
-      padding: 16px;
-    }
+    .content__area { padding: 16px; }
 
     .dashboard__footer {
       padding: 12px 16px;
@@ -482,7 +515,6 @@ export const DBWrapper = styled.div`
   }
 
   @media (max-width: 480px) {
-    /* Hide "Add Product" text label, keep icon + compact button */
     .add__product__link button span:last-child {
       display: none;
     }
