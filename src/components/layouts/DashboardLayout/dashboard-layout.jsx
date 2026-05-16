@@ -11,6 +11,9 @@ import { isEmpty } from "lodash";
 import Button from "@/components/lib/Button";
 import ProfileImage from "@/assets/images/profile.jpg";
 import Logo from "@/assets/images/logo.png";
+import { Popover, Badge } from "antd";
+import { useSellerNotifications } from "@/hooks/useSellerNotifications";
+import NotificationPanel from "@/components/lib/NotificationPanel";
 
 import { DashboardOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { GoStack as ProductsIcon } from "react-icons/go";
@@ -21,6 +24,7 @@ import { IoMdLogOut as LogoutIcon } from "react-icons/io";
 import { HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
 import { BsArrowLeft as BackIcon } from "react-icons/bs";
 import { FiPlus as AddIcon, FiMenu as HamburgerIcon, FiX as CloseIcon } from "react-icons/fi";
+import { MdVerifiedUser as KycIcon } from "react-icons/md";
 
 const MAIN_NAV = [
   { key: "/dashboard", icon: DashboardOutlined, label: "Dashboard", href: "/dashboard", isAntd: true },
@@ -30,12 +34,16 @@ const MAIN_NAV = [
 ];
 
 const ACCOUNT_NAV = [
-  { key: "/profile", icon: ProfileIcon, label: "Profile", href: "/sellers-profile-page" },
+  { key: "/profile", icon: ProfileIcon, label: "Profile",      href: "/sellers-profile-page" },
+  { key: "/kyc",     icon: KycIcon,     label: "Verification", href: "/kyc" },
 ];
 
 export default function DashboardLayout({ children, title, showBackBtn, titleSubText }) {
   const [collapsed, setCollapsed]     = useState(false);
   const [mobileOpen, setMobileOpen]   = useState(false);
+  const [notifOpen, setNotifOpen]     = useState(false);
+
+  const { notifications, unreadCount, isLoading, markRead, markAllRead, remove } = useSellerNotifications();
   const { push, pathname, back }      = useRouter();
 
   const { dispatch, state: { user, showNoBusinessModal } } = useContext(MainContext);
@@ -46,6 +54,7 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
     if (pathname.includes("/order"))   return "/order";
     if (pathname.includes("/sales") || pathname.includes("/analytics")) return "/sales-analytics";
     if (pathname.includes("/profile") || pathname.includes("/sellers-profile")) return "/profile";
+    if (pathname.includes("/kyc")) return "/kyc";
     return pathname;
   }, [pathname]);
 
@@ -184,9 +193,31 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
           </div>
 
           <div className="header__right">
-            <div className="notif__wrap">
-              <NotificationIcon size={19} />
-            </div>
+            <Popover
+              open={notifOpen}
+              onOpenChange={setNotifOpen}
+              trigger="click"
+              placement="bottomRight"
+              arrow={false}
+              content={
+                <NotificationPanel
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  isLoading={isLoading}
+                  onRead={(id) => { markRead(id); }}
+                  onMarkAllRead={() => { markAllRead(); }}
+                  onDelete={(id) => { remove(id); }}
+                />
+              }
+            >
+              <div className="notif__wrap">
+                <Badge count={unreadCount} size="small" color="#ef4444">
+                  <button className="notif__btn" aria-label="Notifications">
+                    <NotificationIcon size={19} />
+                  </button>
+                </Badge>
+              </div>
+            </Popover>
 
             <Link href="/product/create" className="add__product__link">
               <Button
