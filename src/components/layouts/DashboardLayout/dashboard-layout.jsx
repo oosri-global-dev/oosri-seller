@@ -19,10 +19,10 @@ import { DashboardOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-de
 import { GoStack as ProductsIcon } from "react-icons/go";
 import { HiOutlineShoppingBag as OrdersIcon, HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
 import { VscGraph as AnalyticsIcon } from "react-icons/vsc";
-import { BsPeopleFill as ProfileIcon, BsArrowLeft as BackIcon, BsHandshake as NegotiationIcon } from "react-icons/bs";
+import { BsPeopleFill as ProfileIcon, BsArrowLeft as BackIcon } from "react-icons/bs";
 import { IoMdLogOut as LogoutIcon } from "react-icons/io";
 import { FiPlus as AddIcon, FiMenu as HamburgerIcon, FiX as CloseIcon } from "react-icons/fi";
-import { MdVerifiedUser as KycIcon } from "react-icons/md";
+import { MdVerifiedUser as KycIcon, MdHandshake as NegotiationIcon } from "react-icons/md";
 
 const MAIN_NAV = [
   { key: "/dashboard",      icon: DashboardOutlined, label: "Dashboard",    href: "/dashboard",      isAntd: true },
