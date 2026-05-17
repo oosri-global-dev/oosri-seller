@@ -9,6 +9,7 @@ import EditProduct from "../Edit/edit-product";
 import { getCategories, getProduct } from "@/network/product";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { ProductDetails } from "./productDetails";
+import ProductDiscussionsPanel from "./community/ProductDiscussionsPanel";
 
 export default function Product() {
   const [edit, setEdit] = useState(false)
@@ -80,6 +81,7 @@ export default function Product() {
               :
               <ProductWrapper>
                 <ProductDetails data={productData} setEdit={setEdit} />
+                <ProductDiscussionsPanel productId={id} />
               </ProductWrapper>
             }
           </DashboardLayout>

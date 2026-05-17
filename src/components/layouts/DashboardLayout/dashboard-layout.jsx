@@ -29,6 +29,7 @@ const MENU_ITEMS_CONFIG = [
   { key: "/dashboard", icon: <DashboardOutlined />, label: "Dashboard", href: "/dashboard" },
   { key: "/products", icon: <StackIcon />, label: "Products", href: "/products" },
   { key: "/order", icon: <ProductIcon />, label: "Order", href: "/order" },
+  { key: "/negotiations", icon: <PaymentIcon />, label: "Negotiations", href: "/negotiations" },
   // { key: "/sales-analytics", icon: <GraphIcon />, label: "Sales Analytics", href: "#" },
   {
     key: "/profile",
