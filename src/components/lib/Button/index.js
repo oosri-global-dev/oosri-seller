@@ -32,22 +32,31 @@ export default styled(Button).withConfig({
   border: ${({ border }) => border || "1px solid transparent"};
   background: ${({ backgroundColor }) => backgroundColor || "transparent"};
   border-radius: ${({ radius }) => radius || "8px"};
-  box-shadow: ${({ boxShadow }) => boxShadow || "none"};
+  box-shadow: ${({ boxShadow }) => boxShadow || "none"} !important;
   opacity: ${({ opacity }) => opacity || "1"};
   outline: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   color: ${({ color }) => color || "var(--oosriBlack)"};
   font-weight: 600;
   font-size: ${({ fontSize }) => fontSize || "13px"};
 
-  &:hover {
-    background: ${({ hoverBg }) => hoverBg || "var(--oosriPrimary)"};
-    cursor: pointer;
-    border-color: ${({ hoverBorderColor }) =>
-    hoverBorderColor || "var(--oosriPrimary) !important"};
-    color: ${({ hoverColor }) => hoverColor || "var(--oosriWhite)"} !important;
-    cursor: pointer !important;
+  &:hover,
+  &:focus,
+  &:active,
+  &:not(:disabled):active,
+  &:not(:disabled):focus {
+    background: ${({ hoverBg }) => hoverBg || "var(--oosriPrimary)"} !important;
+    border-color: ${({ hoverBg, hoverBorderColor, borderColor }) =>
+      hoverBorderColor
+        ? hoverBorderColor
+        : hoverBg
+        ? hoverBg
+        : borderColor || "var(--oosriPrimary)"} !important;
+    color: ${({ hoverColor }) =>
+      hoverColor || "var(--oosriWhite)"} !important;
+    box-shadow: none !important;
+    outline: none !important;
   }
 
   @media (max-width: 350px) {
@@ -58,19 +67,6 @@ export default styled(Button).withConfig({
     font-size: 11px;
     color: inherit;
     margin: 0 0 -2px 4px;
-    transition: all 0.3s ease;
-    color: ${({ color }) => color || "var(--oosriPrimary)"};
-  }
-
-  :focus,
-  :active {
-    background: ${({ hoverBg }) => hoverBg || "transparent"};
-    border-color: ${({ hoverBg, borderColor }) =>
-    hoverBg ? hoverBg : borderColor || "var(--oosriPrimary)"};
-
-    span,
-    small {
-      color: ${({ borderColor }) => borderColor || "var(--oosriPrimary)"};
-    }
+    transition: all 0.2s ease;
   }
 `;
