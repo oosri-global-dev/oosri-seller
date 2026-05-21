@@ -1,223 +1,316 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
-import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { salesBoxes } from "@/utils/dashboard-helpers";
 import { SaleAnalyticsWrapper } from "./index.styles";
-import {  useState } from "react";
-import Button from "@/components/lib/Button";
+import { useState, useMemo } from "react";
+import { Table } from "antd";
+import { useRouter } from "next/router";
+import { useOrders } from "@/hooks/useOrders";
 import SalesChart from "./sales-chart";
-import Select from "@/components/lib/Select";
-import { ProductReportData } from "@/utils/sale-analytics";
-import { HiOutlineChartBar } from "react-icons/hi2";
-import CustomMultiSearchBar from "@/components/lib/MultiSearchBar";
 import PurchasingChart from "./purchasing-chart";
-import { FaArrowDown, FaArrowUp } from "react-icons/fa";
-import TopSellingProduct from "@/assets/images/topSellingProduct.png"
-import LeastSellingProduct from "@/assets/images/leastSellingProduct.png"
+import dayjs from "dayjs";
+import {
+  IoBagOutline as BagIcon,
+  IoPersonOutline as PersonIcon,
+} from "react-icons/io5";
+import { HiOutlineCurrencyDollar as RevenueIcon } from "react-icons/hi2";
+import { VscGraph as TrendIcon } from "react-icons/vsc";
+import { FaArrowUp, FaArrowDown } from "react-icons/fa";
+import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
 
-export default function SaleAnalytics(){
-  const [filters, setFilters] = useState([
-    "Daily",
-    "Weekly",
-    "Monthly",
-    "Yearly",
-  ]);
-  const[selectedFilter,setSelectedFilter]=useState("Yearly")
+const PERIODS = ["Daily", "Weekly", "Monthly", "Yearly"];
 
-  const options=[
-      { value: "This Year", label: "This Year" },
-  ]
+const getStatusClass = (status = "") => {
+  const s = status.toLowerCase();
+  if (s === "pending")       return "pending";
+  if (s === "processing")    return "processing";
+  if (s.includes("pickup"))  return "pickup";
+  if (s === "delivered")     return "delivered";
+  if (s === "cancelled")     return "cancelled";
+  return "default";
+};
 
-  const [productReport,setProductReport]=useState(false)
+export default function SaleAnalytics() {
+  const [period, setPeriod]   = useState("Monthly");
+  const { data, isLoading }   = useOrders();
+  const { push }              = useRouter();
+  const orders                = useMemo(() => data?.data?.data || [], [data]);
 
-    return(
-        <DashboardLayout title={"Sale Report"} titleSubText={"Jan 2022-Dec 2022"}>
-          <SaleAnalyticsWrapper>
-            <FlexibleDiv className="summary__wrapper" justifyContent="start" >
-              {salesBoxes.map((sgn, idx) => (
-                  <FlexibleDiv className="single__summary__box" key={idx}>
-                  <div className="icon__wrapper">{sgn.icon}</div>
-                  <div className="summary__text">
-                      <h1>{sgn.value}</h1>
-                      <p className="label__text">{sgn.label}</p>
-                  </div>
-                  </FlexibleDiv>
+  /* ── KPI metrics ── */
+  const totalRevenue   = useMemo(() => orders.reduce((s, o) => s + (o.totalForSeller || 0), 0), [orders]);
+  const totalOrders    = orders.length;
+  const uniqueCustomers = useMemo(() => new Set(orders.map((o) => o.userId?._id).filter(Boolean)).size, [orders]);
+  const avgOrder       = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  /* ── Monthly revenue for chart ── */
+  const monthlyRevenue = useMemo(() => {
+    const buckets = Array(12).fill(0);
+    orders.forEach((o) => {
+      const m = dayjs(o.orderDate).month();
+      if (m >= 0 && m <= 11) buckets[m] += o.totalForSeller || 0;
+    });
+    return buckets;
+  }, [orders]);
+
+  /* ── Top / least selling products ── */
+  const { topProduct, leastProduct } = useMemo(() => {
+    const freq = {};
+    orders.forEach((o) => {
+      o.products?.forEach((p) => {
+        const k = p.productName;
+        if (!k) return;
+        if (!freq[k]) freq[k] = { count: 0, revenue: 0, image: p.images?.[0] || null };
+        freq[k].count   += 1;
+        freq[k].revenue += p.totalPrice || 0;
+      });
+    });
+    const entries = Object.entries(freq).sort((a, b) => b[1].count - a[1].count);
+    return {
+      topProduct:   entries[0]   ? { name: entries[0][0],   ...entries[0][1] }   : null,
+      leastProduct: entries.at(-1) ? { name: entries.at(-1)[0], ...entries.at(-1)[1] } : null,
+    };
+  }, [orders]);
+
+  /* ── Recent 5 orders for the table ── */
+  const recentOrders = useMemo(() =>
+    [...orders]
+      .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+      .slice(0, 5)
+      .map((o) => ({
+        key: o.id,
+        id: o.id,
+        orderId: `#${o.id?.slice(-6).toUpperCase()}`,
+        customer: o.userId?.fullName || "N/A",
+        amount: o.totalForSeller,
+        date: o.orderDate,
+        status: o.orderStatus,
+      })),
+    [orders]
+  );
+
+  const recentColumns = [
+    {
+      title: "Order ID",
+      dataIndex: "orderId",
+      key: "orderId",
+      render: (_) => (
+        <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: "0.84rem" }}>{_}</span>
+      ),
+    },
+    {
+      title: "Customer",
+      dataIndex: "customer",
+      key: "customer",
+      render: (_) => <span style={{ fontWeight: 500 }}>{_}</span>,
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+      render: (_) => (
+        <span style={{ fontWeight: 700 }}>₦{Number(_ || 0).toLocaleString()}</span>
+      ),
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      render: (_) => (
+        <span style={{ color: "#888", fontSize: "0.82rem" }}>
+          {_ ? dayjs(_).format("MMM D, YYYY") : "—"}
+        </span>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (_) => (
+        <span className={`status__badge ${getStatusClass(_)}`}>{_ || "—"}</span>
+      ),
+    },
+  ];
+
+  const kpis = [
+    {
+      icon: <RevenueIcon size={18} />,
+      value: `₦${totalRevenue >= 1000000
+        ? `${(totalRevenue / 1000000).toFixed(1)}M`
+        : totalRevenue >= 1000
+        ? `${(totalRevenue / 1000).toFixed(0)}K`
+        : totalRevenue.toLocaleString()}`,
+      label: "Total Revenue",
+    },
+    {
+      icon: <BagIcon size={18} />,
+      value: totalOrders.toLocaleString(),
+      label: "Total Orders",
+    },
+    {
+      icon: <PersonIcon size={18} />,
+      value: uniqueCustomers.toLocaleString(),
+      label: "Unique Customers",
+    },
+    {
+      icon: <TrendIcon size={18} />,
+      value: `₦${avgOrder >= 1000
+        ? `${(avgOrder / 1000).toFixed(0)}K`
+        : avgOrder.toFixed(0)}`,
+      label: "Avg Order Value",
+    },
+  ];
+
+  return (
+    <DashboardLayout title="Analytics">
+      <SaleAnalyticsWrapper>
+
+        {/* ── KPI cards ── */}
+        <div className="kpi__grid">
+          {kpis.map((k, i) => (
+            <div className="kpi__card" key={i}>
+              <div className="kpi__top">
+                <div className="kpi__icon">{k.icon}</div>
+              </div>
+              <div className="kpi__value">{isLoading ? "—" : k.value}</div>
+              <div className="kpi__label">{k.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Revenue chart ── */}
+        <div className="chart__card">
+          <div className="chart__header">
+            <div className="chart__title">
+              <h3>Revenue Overview</h3>
+              <p>Monthly revenue for {new Date().getFullYear()}</p>
+            </div>
+            <div className="period__tabs">
+              {PERIODS.map((p) => (
+                <button
+                  key={p}
+                  className={`period__pill${period === p ? " active" : ""}`}
+                  onClick={() => setPeriod(p)}
+                >
+                  {p}
+                </button>
               ))}
-            </FlexibleDiv>
-            {/* Filter Menus */}
-             <FlexibleDiv 
-              justifyContent="end"
-              margin="80px 0px 0px 0px"
-              gap="15px"
-              >
-              {filters.map((sgn, idx) => (
-                  <Button
-                    backgroundColor={
-                      selectedFilter === sgn ? "var(--oosriPrimary)" : "#F5F5F5"
-                    }
-                    hoverBg="var(--oosriPrimary)"
-                    height="35px"
-                    radius="20px"
-                    key={idx}
-                    color={
-                      selectedFilter === sgn ? "var(--oosriWhite)" : "#757575"
-                    }
-                    onClick={() => setSelectedFilter(sgn)}
-                  >
-                    {sgn}
-                  </Button>
-                ))}
-             </FlexibleDiv>
-             {/* Chart Section */}
-             <FlexibleDiv width="100%" height="300px" className="graph__box">
-               <SalesChart />
-             </FlexibleDiv>
-             {/*Purchasing Reports */}
-             <FlexibleDiv className="table__section" justifyContent="space-around">
-              <FlexibleDiv
-                flexDir="row"
-                width="100%"
-                justifyContent="space-between"
-                padding="0 30px"
-                gap="12px"
-                className="top__recent__box"
-              >
-                <div>
-                  <h1>Purchasing Report</h1>
-                  <p>Generate sales record from product </p>
-                </div>
-                  <Select  options={options} defaultValue="This Year"/>
-              </FlexibleDiv>
-              <FlexibleDiv flexDir="row" 
-                padding="0 30px"
-                alignItems="start"
-                justifyContent="start"
-                className="recent__sale__wrapper" >
-                <FlexibleDiv justifyContent="start" flexDir="column"  alignItems="start" width="fit-content" className="item__box1 item__box" >
-                  <h2>Top SELLING PRODUCT</h2>
-                  <FlexibleDiv className="chart__box" padding="50px 50px 80px 0px" justifyContent="start" flexWrap="noWrap" gap="24px" flexDir="row">
-                    <FlexibleDiv className="image__text" justifyContent="column" flexWrap="noWrap" flexDir="row">
-                      <img className="product__image" src={TopSellingProduct.src}/>
-                      <FlexibleDiv flexDir="column" justifyContent="start" alignItems="start">
-                        <h5>Iphone XS Max</h5>
-                        <p className="percent__increase">90 sold</p>
-                      </FlexibleDiv>
-                    </FlexibleDiv>
-                    {/* Chart */}
-                    <FlexibleDiv width="50%" >
-                      <PurchasingChart increasing={true} />
-                      <FlexibleDiv flexWrap="noWrap" margin="6px 0px" gap="2px">
-                        <span className="percent__increase"> <FaArrowUp /> </span>
-                          <p className="percent__increase">2.8%</p>
-                          <p className="neutral">from last week</p>
-                      </FlexibleDiv>
-                    </FlexibleDiv>
-                  </FlexibleDiv>
-                </FlexibleDiv>
-                {/*  */}
-                <FlexibleDiv justifyContent="start" flexDir="column"  alignItems="start" width="fit-content" className="item__box2 item__box">
-                  <h2>LEAST PURCHASED</h2>
-                  <FlexibleDiv className="chart__box" padding="50px 50px 80px 0px" flexWrap="noWrap">
-                    <FlexibleDiv flexDir="row" flexWrap="noWrap" justifyContent="start" className="image__text">
-                      <img className="product__image" src={LeastSellingProduct.src} />
-                      <FlexibleDiv flexDir="column" justifyContent="start" alignItems="start">
-                        <h5>Apple Series 8 Watch</h5>
-                        <p className="percent__increase">10 sold</p>
-                      </FlexibleDiv>
-                    </FlexibleDiv>
-                    {/* Chart */}
-                    <FlexibleDiv width="50%" >
-                      <PurchasingChart />
-                      <FlexibleDiv flexWrap="noWrap" margin="6px 0px" gap="2px">
-                        <span className="percent__decrease"> <FaArrowDown /> </span>
-                          <p className="percent__decrease">2.8%</p>
-                          <p className="neutral">from last week</p>
-                      </FlexibleDiv>
-                    </FlexibleDiv>
-                  </FlexibleDiv>
-                </FlexibleDiv>
-              </FlexibleDiv>
-            </FlexibleDiv>
-            {/* Product Reports */}
-               <div className="product__report">
-                 <h1>Product Report</h1>
-                 <p>Generate sales record from product </p>
-               </div>
-             <FlexibleDiv className="table__section" justifyContent="space-around">
-              <FlexibleDiv
-                width="100%"
-                justifyContent="space-between"
-                padding="0 30px"
-                className="top__recent__box multi__select__box"
-              >
-                <FlexibleDiv className="multi__select" width="50%">
-                  <CustomMultiSearchBar Multi={true} placeholder="search by product name"/>
-                </FlexibleDiv>
-                  <FlexibleDiv
-                     gap="15px"
-                     justifyContent="end"
-                     className="btn__group"
-                     width="fit-content">
-                    {filters.map((sgn, idx) => (
-                      <Button
-                        backgroundColor={
-                          selectedFilter === sgn ? "var(--oosriPrimary)" : "#F5F5F5"
-                        }
-                        hoverBg="var(--oosriPrimary)"
-                        height="35px"
-                        radius="20px"
-                        key={idx}
-                        color={
-                          selectedFilter === sgn ? "var(--oosriWhite)" : "#757575"
-                        }
-                        onClick={() => setSelectedFilter(sgn)}
-                      >
-                        {sgn}
-                      </Button>
-                    ))}
-                  </FlexibleDiv>
-              </FlexibleDiv>
-              {/* Table Section */}
-              {productReport?
-                <FlexibleDiv flexDir="row" 
-                flexWrap="noWrap"
-                padding="0 30px"
-                className="recent__sale__wrapper" >
-                    <FlexibleDiv justifyContent="start" flexDir="column" alignItems="start">
-                      <h2 className="search__text">Iphone sales</h2>
-                      <FlexibleDiv gap="15px" className="report__table" padding="0px 10px 0px 0px">
-                        {ProductReportData.map((item)=>{
-                          return(
-                            <FlexibleDiv justifyContent="space-between" flexWrap="noWrap">
-                              <FlexibleDiv gap="15px" justifyContent="start" >
-                                <img src="https://placehold.co/40x40/png" alt="pictures" />
-                                <div>
-                                  <h5>{item.name}</h5>
-                                  <h2 style={{fontSize:"12px"}}>{item.soldNum} sold</h2>
-                                </div>
-                              </FlexibleDiv>
-                              <h5>{item.amount}</h5>
-                            </FlexibleDiv>
-                          )
-                        })}
-                      </FlexibleDiv>
-                    </FlexibleDiv>
-                  {/*  */}
-                    <FlexibleDiv flexDir="column" justifyContent="space-around" className="total__earnings" gap="5px">
-                      <p>Total Earning </p>
-                      <h3>N5,960.000</h3>
-                    </FlexibleDiv>
-                </FlexibleDiv>
-                :
-                // Empty Table
-                 <FlexibleDiv className="empty__search" gap="15px" flexDir="column" padding="30px 0px">
-                  <div>
-                    <HiOutlineChartBar />
+            </div>
+          </div>
+          <div className="chart__body">
+            <SalesChart data={monthlyRevenue} />
+          </div>
+        </div>
+
+        {/* ── Top / Least selling ── */}
+        <div className="insights__grid">
+          {/* Top selling */}
+          <div className="insight__card">
+            <div className="insight__header">
+              <h3>Top Selling Product</h3>
+            </div>
+            {topProduct ? (
+              <>
+                <div className="insight__body">
+                  <div className="insight__thumb">
+                    {topProduct.image ? (
+                      <img
+                        src={getOptimizedCloudinaryUrl(topProduct.image, 120)}
+                        alt={topProduct.name}
+                      />
+                    ) : (
+                      <span className="thumb__placeholder">
+                        {topProduct.name?.[0]?.toUpperCase() || "P"}
+                      </span>
+                    )}
                   </div>
-                  <p>Generated records will appear here</p>
-                 </FlexibleDiv>
-                }
-            </FlexibleDiv>
-          </SaleAnalyticsWrapper>
-        </DashboardLayout>
-    )
+                  <div className="insight__info">
+                    <p className="insight__name">{topProduct.name}</p>
+                    <p className="insight__sub">
+                      {topProduct.count} sold · ₦{Number(topProduct.revenue).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="insight__chart">
+                    <PurchasingChart increasing={true} />
+                  </div>
+                </div>
+                <div className="insight__trend up">
+                  <FaArrowUp size={10} />
+                  Best performer <span>this period</span>
+                </div>
+              </>
+            ) : (
+              <div className="insight__empty">No sales data yet</div>
+            )}
+          </div>
+
+          {/* Least selling */}
+          <div className="insight__card">
+            <div className="insight__header">
+              <h3>Least Sold Product</h3>
+            </div>
+            {leastProduct && leastProduct.name !== topProduct?.name ? (
+              <>
+                <div className="insight__body">
+                  <div className="insight__thumb">
+                    {leastProduct.image ? (
+                      <img
+                        src={getOptimizedCloudinaryUrl(leastProduct.image, 120)}
+                        alt={leastProduct.name}
+                      />
+                    ) : (
+                      <span className="thumb__placeholder">
+                        {leastProduct.name?.[0]?.toUpperCase() || "P"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="insight__info">
+                    <p className="insight__name">{leastProduct.name}</p>
+                    <p className="insight__sub">
+                      {leastProduct.count} sold · ₦{Number(leastProduct.revenue).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="insight__chart">
+                    <PurchasingChart increasing={false} />
+                  </div>
+                </div>
+                <div className="insight__trend down">
+                  <FaArrowDown size={10} />
+                  Needs attention <span>this period</span>
+                </div>
+              </>
+            ) : (
+              <div className="insight__empty">No sales data yet</div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Recent orders table ── */}
+        <div className="orders__card">
+          <div className="orders__header">
+            <h3>Recent Orders</h3>
+            <button className="see__all" onClick={() => push("/order")}>
+              See all →
+            </button>
+          </div>
+          <Table
+            columns={recentColumns}
+            dataSource={recentOrders}
+            loading={isLoading}
+            rowKey="id"
+            onRow={(record) => ({
+              onClick: () => push(`/order/${record.id}`),
+              style: { cursor: "pointer" },
+            })}
+            pagination={false}
+            locale={{
+              emptyText: (
+                <div style={{ padding: "32px", textAlign: "center", color: "#ccc" }}>
+                  No orders yet
+                </div>
+              ),
+            }}
+          />
+        </div>
+
+      </SaleAnalyticsWrapper>
+    </DashboardLayout>
+  );
 }
