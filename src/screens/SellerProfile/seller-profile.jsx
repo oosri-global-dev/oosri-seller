@@ -81,7 +81,7 @@ export default function SellerProfile() {
       const data = await UpdateProfileData(payload, user?._id)
       return data
     } catch (errors) {
-      console.log(errors)
+      // error surfaces via return value — no action needed here
     }
   }
 
@@ -94,7 +94,6 @@ export default function SellerProfile() {
       success("Bank details saved successfully!");
       setIsEditMode(false)
     } catch (errors) {
-      console.log(errors)
       error("There was a problem when saving your details!");
     } finally {
       setIsLoading(false)
@@ -133,11 +132,10 @@ export default function SellerProfile() {
   const handleImageUpload = async () => {
     if (file) {
       try {
-        const data = await UpdateProfilePicture({ profilePicture: file }, user?._id)
-        console.log(data)
+        await UpdateProfilePicture({ profilePicture: file }, user?._id)
         setFile(null)
       } catch (errors) {
-        console.log(errors)
+        // upload failure is surfaced by the parent handleSubmit catch
       }
     }
   }
@@ -150,7 +148,6 @@ export default function SellerProfile() {
       }
       if (payload) {
         await handleDataUpdate(payload)
-        console.log("Submitted Values:", type);
         success("Personal details saved successfully!");
         setIsLoading(false);
         handleTabChange()

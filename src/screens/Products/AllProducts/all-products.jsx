@@ -75,8 +75,6 @@ export default function AllProductsScreen() {
     }
   }, [refetch]);
 
-  console.log("All Products Data:", allProducts);
-
   const { push } = useRouter();
   const {
     dispatch,
@@ -130,7 +128,6 @@ export default function AllProductsScreen() {
       setEditModal(false);
       refetch();
     } catch (errors) {
-      console.log(errors);
       setModalError(true);
     }
   };
