@@ -1,231 +1,380 @@
-import { FlexibleDiv } from "@/components/lib/Box/styles";
 import styled from "styled-components";
 
-export const SellersProfileWrapper = styled(FlexibleDiv)`
-  .tabs__custom {
-    width: 100%;
-    margin-bottom: 15px;
+export const SellersProfileWrapper = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  max-width: 1100px;
 
-    .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-      color: var(--oosriPrimary) !important;
-    }
+  /* ── Sidebar ── */
+  .profile__sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
 
-    .ant-tabs-ink-bar {
-      background: var(--oosriPrimary);
-    }
-  }
+    .avatar__section {
+      padding: 28px 20px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #f5f5f5;
 
-  .country__select {
-  width: 100%;}
+      .avatar__wrap {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: rgba(252, 83, 83, 0.08);
+        border: 3px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 4px;
 
-  .products__table__section {
-    border: 1px solid rgba(224, 224, 224, 0.6);
-    border-radius: 8px;
-    box-sizing: border-box;
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
 
-    .search__body__section {
-      box-sizing: border-box;
-      padding: 25px 20px;
-
-      .search__section {
-        width: fit-content;
-
-        .text__field__custom {
-          border: 1px solid rgba(224, 224, 224, 0.6);
-          width: 300px;
-          margin-left: 8px;
+        .avatar__initials {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: var(--oosriPrimary);
+          line-height: 1;
         }
       }
 
-      .filter__btn__custom {
-        display: flex;
-        gap: 5px;
+      .profile__name {
+        font-size: 0.93rem;
+        font-weight: 700;
+        color: #111;
+        text-align: center;
+        margin: 0;
+        line-height: 1.3;
+      }
+
+      .profile__email {
+        font-size: 0.74rem;
+        color: #aaa;
+        text-align: center;
+        margin: 0;
+        word-break: break-all;
+      }
+
+      .biz__badge {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: rgba(252, 83, 83, 0.07);
+        color: var(--oosriPrimary);
+        border: 1px solid rgba(252, 83, 83, 0.18);
+        margin-top: 2px;
+        text-transform: capitalize;
       }
     }
 
-    .table__class {
-      width: 100%;
-
-      .verified__text {
-        color: #55d352;
-        border: 1px solid #55d352;
-        border-radius: 15px;
-        padding: 5px 10px;
-        font-size: 1rem;
-      }
-    }
-  }
-
-  .profile__details__section, .business__details__section{
-  padding:20px 0;
-  border:1px solid red;
-  border-radius: 12px;
-  border-color:var(--oosriFadedWhite)
-  }
-
-  .profile__info__wrapper {
-    width:60%;
-    h2{
-     justify-content:flex-start;
-     text-align:left;
-     width:100%;
-     padding-left:30px;
-    }
-  }
-
-  .profile__image__wrapper {
-  width:40%;
-  }
-
-  .info_cont, .business__info__wrapper {
-  padding: 20px 30px;
-
-  }
-
-  .info__inner_cont1,.info__inner_cont2, .info__inner_cont3,.info__inner_cont4 {
-  padding-bottom:40px;
-  display: flex;
-  gap:5px;
-  justify-content: space-between;
-
-  }
-  .info__inner_cont3 {
-  align-items:flex-start;
-  // padding-top:40px;
-  }
-
-  .info1, .info2 {
-  width:45%;
-  gap:5px;
-  flex-direction:column;
-  align-items:flex-start;
-  justify-content:center;
-  }
-
-  .info1 p:nth-child(1), .info2 > p:nth-child(1) {
-      font-weight:600;
-  }
- .info1 p:nth-child(2), .info2 > p:nth-child(2) {
-      color:var(--oosriFadedWhite)
-  }
-
-
-  // Business details styling
-
-  .business__details__section {
-  display: flex;
-  justify-content: space-around;
-  }
-
-  .business__info__wrapper {
-  width:50%;
-  flex-basis:80%;
-}
-
-  .business__details__form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    gap: 25px;
-  }
-
-  .single__row label {
-  font-weight: 600
-  }
-
-  .single__row p {
-  color: #777777;
-  font-size: 0.98rem}
-
-  .edit__details__cont {
-  width:50%;
-  height: 900px;
-  display: flex;
-  justifyContent: center;
-  align-items: flex-start;
-  flex-basis:20%;
-  }
-
-  // Bank details styling 
-
-  .business__info__wrapper {
-  width:50%;
-  }
-
-  .edit__bank__details__cont {
-  width: 50%;
-  height:370px;
-  display: flex;
-  }
-
-
-  // ********Media queries********
-
-  @media (max-width: 768px) {
-
-  // Personal details styling
-
-    .info__inner_cont1,.info__inner_cont2, .info__inner_cont3,.info__inner_cont4 {
-      flex-direction: column;
-      gap: 20px; 
-}
-
-    .info1, .info2 {
-      width:100%;
-      
-  }
-
-    .profile__details__section {
+    .sidebar__nav {
+      padding: 10px 8px;
       display: flex;
       flex-direction: column;
-  }
-    .profile__info__wrapper {
-      width:100%;
-  }
+      gap: 2px;
 
-  .profile__image__wrapper {
-    width:100%;
-  }
+      .nav__item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 13px;
+        border-radius: 9px;
+        border: none;
+        background: transparent;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-align: left;
+        font-family: inherit;
+        width: 100%;
 
-  // Business details styling
+        .nav__icon {
+          color: #ccc;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          transition: color 0.15s;
+        }
 
-  .input__container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  }
+        &:hover:not(.active) {
+          background: #fafafa;
+          color: #333;
+          .nav__icon { color: #999; }
+        }
 
-  .single__row {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 10px;
+        &.active {
+          background: rgba(252, 83, 83, 0.07);
+          color: var(--oosriPrimary);
+          .nav__icon { color: var(--oosriPrimary); }
+        }
+      }
     }
 
-  .business__details__section {
+    .member__since {
+      padding: 14px 20px;
+      border-top: 1px solid #f5f5f5;
+      text-align: center;
+
+      .since__label {
+        font-size: 0.68rem;
+        color: #ccc;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .since__value {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #aaa;
+      }
+    }
+  }
+
+  /* ── Content area ── */
+  .profile__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Section card ── */
+  .section__card {
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+
+    .section__header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+
+      .header__left {
+        h3 {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0 0 3px;
+        }
+        p {
+          font-size: 0.76rem;
+          color: #aaa;
+          margin: 0;
+        }
+      }
+
+      .header__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .edit__btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 14px;
+        border-radius: 8px;
+        border: 1px solid #f0f0f0;
+        background: #fafafa;
+        font-size: 0.79rem;
+        font-weight: 600;
+        color: #555;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: inherit;
+        white-space: nowrap;
+
+        &:hover:not(.save) {
+          border-color: var(--oosriPrimary);
+          color: var(--oosriPrimary);
+          background: rgba(252, 83, 83, 0.04);
+        }
+
+        &.save {
+          background: var(--oosriPrimary);
+          border-color: var(--oosriPrimary);
+          color: #fff;
+
+          &:hover { background: #e04040; }
+          &:active { background: #cc3333; }
+        }
+
+        &.cancel {
+          color: #aaa;
+          &:hover { border-color: #e0e0e0; color: #666; background: #f5f5f5; }
+        }
+      }
+    }
+
+    .section__body {
+      padding: 24px;
+    }
+  }
+
+  /* ── Avatar upload strip ── */
+  .avatar__upload__row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 0 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #f5f5f5;
+
+    .upload__meta {
+      h4 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 4px;
+      }
+      p {
+        font-size: 0.74rem;
+        color: #aaa;
+        margin: 0;
+      }
+    }
+  }
+
+  /* ── Fields grid ── */
+  .fields__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px 32px;
+  }
+
+  .field__item {
+    display: flex;
     flex-direction: column;
+    gap: 6px;
+
+    &.full__width { grid-column: 1 / -1; }
+
+    .field__label {
+      font-size: 0.69rem;
+      font-weight: 700;
+      color: #bbb;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .field__value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      line-height: 1.4;
+    }
+
+    .field__empty {
+      font-size: 0.85rem;
+      color: #ccc;
+      font-style: italic;
+    }
+
+    .country__row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      img {
+        width: 18px;
+        height: 13px;
+        object-fit: cover;
+        border-radius: 2px;
+      }
+    }
   }
 
-  .business__info__wrapper {
-        width:100%;
-}
+  /* ── Resolve status ── */
+  .resolve__hint {
+    font-size: 0.74rem;
+    margin-top: 3px;
 
-.edit__details__cont {
-  height: 100%;
+    &.resolving { color: #3b82f6; }
+    &.resolved  { color: #16a34a; }
   }
 
-  // Bank details styling
-  .business__info__wrapper {
-  width:100%;
+  /* ── Document uploads ── */
+  .docs__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding-top: 4px;
+
+    .doc__item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .doc__label {
+        font-size: 0.69rem;
+        font-weight: 700;
+        color: #bbb;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
   }
 
-  .edit__bank__details__cont {
-  height:100%;
-  width: 100%;
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    flex-direction: column;
+
+    .profile__sidebar {
+      width: 100%;
+
+      .sidebar__nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 10px 10px;
+        gap: 4px;
+      }
+
+      .member__since { display: none; }
+    }
   }
 
-}
+  @media (max-width: 640px) {
+    .fields__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .docs__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section__card {
+      .section__header { padding: 14px 16px; }
+      .section__body   { padding: 16px; }
+    }
+
+    .avatar__upload__row { flex-direction: column; align-items: flex-start; }
+  }
 `;

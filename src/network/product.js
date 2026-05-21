@@ -20,7 +20,6 @@ export const filterAllProducts = async (params = {}) => {
         limit: params.limit || 10,
       },
     });
-    console.log("Filtered Products Data:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error filtering products:", error);

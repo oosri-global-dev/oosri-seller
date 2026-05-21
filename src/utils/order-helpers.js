@@ -124,7 +124,6 @@ export const orderTableColumns = [
         const togglePopup = () => {
             const element =document.getElementById(obj.id)
             if(element){
-                console.log(element.classList)
                 if(element.classList.length>1){
                     element.classList.remove("invinsible")
                 }else{

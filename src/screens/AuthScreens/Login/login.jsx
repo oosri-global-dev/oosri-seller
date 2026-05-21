@@ -12,7 +12,8 @@ import { useContext, useState } from "react";
 import CustomLoader from "@/components/lib/CustomLoader";
 import { MainContext, useMainContext } from "@/context";
 import { CURRENT_USER } from "@/context/types";
-import { storeDataInCookie, storeRefreshToken } from "@/data-helpers/auth-session";
+import { storeDataInCookie } from "@/data-helpers/auth-session";
+import { IoStorefrontOutline } from "react-icons/io5";
 
 export default function LoginPage() {
   const [form] = Form.useForm();
@@ -39,7 +40,7 @@ export default function LoginPage() {
 
         storeDataInCookie("access_token__seller", res?.data?.token, 1);
         if (res?.data?.refreshToken) {
-          storeRefreshToken(res?.data?.refreshToken);
+          storeDataInCookie("refresh_token__seller", res?.data?.refreshToken, 30);
         }
 
         setTimeout(() => {
@@ -59,9 +60,14 @@ export default function LoginPage() {
     >
       {pageLoading && <CustomLoader />}
       <LoginWrapper>
-        <h1 className="header__text">Login</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+          <span style={{ display: "block", width: 32, height: 2, background: "var(--oosriPrimary)", flexShrink: 0, borderRadius: 2 }} />
+          <IoStorefrontOutline size={14} color="var(--oosriPrimary)" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "var(--oosriPrimary)", letterSpacing: "0.16em", textTransform: "uppercase" }}>Seller Portal</span>
+        </div>
+        <h1 className="header__text">Welcome Back</h1>
         <p className="sub__text">
-          Welcome back, Seller! Please log in to manage your online store.
+          Log in to your seller account to manage your store, orders, and products.
         </p>
 
         <FlexibleDiv
