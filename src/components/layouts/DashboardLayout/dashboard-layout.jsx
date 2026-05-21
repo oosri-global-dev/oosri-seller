@@ -17,20 +17,18 @@ import NotificationPanel from "@/components/lib/NotificationPanel";
 
 import { DashboardOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { GoStack as ProductsIcon } from "react-icons/go";
-import { HiOutlineShoppingBag as OrdersIcon } from "react-icons/hi2";
+import { HiOutlineShoppingBag as OrdersIcon, HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
 import { VscGraph as AnalyticsIcon } from "react-icons/vsc";
-import { BsPeopleFill as ProfileIcon } from "react-icons/bs";
+import { BsPeopleFill as ProfileIcon, BsArrowLeft as BackIcon } from "react-icons/bs";
 import { IoMdLogOut as LogoutIcon } from "react-icons/io";
-import { HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
-import { BsArrowLeft as BackIcon } from "react-icons/bs";
 import { FiPlus as AddIcon, FiMenu as HamburgerIcon, FiX as CloseIcon } from "react-icons/fi";
 import { MdVerifiedUser as KycIcon } from "react-icons/md";
 
 const MAIN_NAV = [
-  { key: "/dashboard", icon: DashboardOutlined, label: "Dashboard", href: "/dashboard", isAntd: true },
-  { key: "/products",  icon: ProductsIcon,       label: "Products",  href: "/products" },
-  { key: "/order",     icon: OrdersIcon,          label: "Orders",    href: "/order" },
-  { key: "/sales-analytics", icon: AnalyticsIcon, label: "Analytics", href: "/sales-analytics" },
+  { key: "/dashboard",      icon: DashboardOutlined, label: "Dashboard",    href: "/dashboard",      isAntd: true },
+  { key: "/products",       icon: ProductsIcon,      label: "Products",     href: "/products" },
+  { key: "/order",          icon: OrdersIcon,        label: "Orders",       href: "/order" },
+  { key: "/sales-analytics", icon: AnalyticsIcon,   label: "Analytics",    href: "/sales-analytics" },
 ];
 
 const ACCOUNT_NAV = [
