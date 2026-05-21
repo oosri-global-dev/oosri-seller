@@ -1,15 +1,13 @@
 import TextField from "@/components/lib/TextField";
-import { UploadOutlined } from "@ant-design/icons";
 import Button from "@/components/lib/Button";
-import { Form, Upload, Button as AntdButton, DatePicker, message, Select, Spin } from "antd";
-import { FlexibleDiv } from "@/components/lib/Box/styles";
-import { objectToFormData } from "@/utils/form-data-helper";
+import { Form, Upload, DatePicker, message, Select, Spin } from "antd";
 import { useState, useEffect } from "react";
 import { getDocumentUploadUrls, handleCreateBusinessJson } from "@/network/business";
 import { getBanks, resolveBankAccount } from "@/network/bank";
 import useNotification from "@/hooks/useNotification";
-import { useRouter } from "next/router";
 import { debounce } from "lodash";
+import { MdOutlineUploadFile as UploadFileIcon } from "react-icons/md";
+import { FiCheckCircle as CheckIcon } from "react-icons/fi";
 
 const { Option } = Select;
 
@@ -18,8 +16,9 @@ export default function PersonalBusiness() {
   const [loading, setIsLoading] = useState(false);
   const [banks, setBanks] = useState([]);
   const [resolvingAccount, setResolvingAccount] = useState(false);
+  const [accountResolved, setAccountResolved] = useState(false);
+  const [idFileName, setIdFileName] = useState("");
   const [success, error] = useNotification();
-  const { push } = useRouter();
 
   useEffect(() => {
     fetchBanks();
@@ -28,9 +27,7 @@ export default function PersonalBusiness() {
   const fetchBanks = async () => {
     try {
       const res = await getBanks();
-      if (res.success) {
-        setBanks(res.data);
-      }
+      if (res.success) setBanks(res.data);
     } catch (err) {
       console.error("Failed to fetch banks:", err);
     }
@@ -42,12 +39,12 @@ export default function PersonalBusiness() {
 
     if (bankCode && accountNumber && accountNumber.length >= 10) {
       setResolvingAccount(true);
+      setAccountResolved(false);
       try {
         const res = await resolveBankAccount({
           account_number: accountNumber,
           bank_code: bankCode,
         });
-
         if (res.success) {
           form.setFieldsValue({
             bankDetails: {
@@ -55,6 +52,7 @@ export default function PersonalBusiness() {
               accountName: res.data.account_name,
             },
           });
+          setAccountResolved(true);
           success("Account verified successfully");
         }
       } catch (err) {
@@ -65,6 +63,7 @@ export default function PersonalBusiness() {
             accountName: "",
           },
         });
+        setAccountResolved(false);
         error("Could not verify account details. Please check your inputs.");
       } finally {
         setResolvingAccount(false);
@@ -82,60 +81,43 @@ export default function PersonalBusiness() {
     formData.append("signature", uploadConfig.signature);
     formData.append("public_id", uploadConfig.publicId);
     formData.append("folder", uploadConfig.folder);
-
-    const res = await fetch(uploadConfig.url, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!res.ok) {
-      throw new Error("Cloudinary upload failed");
-    }
-
-    const data = await res.json();
-    return data.secure_url;
+    const res = await fetch(uploadConfig.url, { method: "POST", body: formData });
+    if (!res.ok) throw new Error("Cloudinary upload failed");
+    return (await res.json()).secure_url;
   };
 
   const handleCreateBusiness = async (values) => {
     setIsLoading(true);
-
     try {
-      // 1. Get presigned URL from backend
       const { uploadUrls } = await getDocumentUploadUrls({
         businessType: "Personal",
         documents: ["countryIdentificationCard"],
       });
 
-      // 2. Upload file directly to Cloudinary
       let countryIdUrl = "";
       const idFileObj = values.countryIdentificationCard?.file?.originFileObj;
-
       if (idFileObj) {
         countryIdUrl = await uploadToCloudinary(idFileObj, uploadUrls.countryIdentificationCard);
       }
 
-      // 3. Submit registration with Cloudinary URL as JSON
       const mappedBankDetails = {
-        bank: banks.find(b => b.code === values.bankDetails.bankCode)?.name || "",
+        bank: banks.find((b) => b.code === values.bankDetails.bankCode)?.name || "",
         accountName: values.bankDetails.accountName,
-        accountNumber: values.bankDetails.accountNumber
-      }
+        accountNumber: values.bankDetails.accountNumber,
+      };
 
-      const payload = {
+      await handleCreateBusinessJson({
         dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"),
         residentialAddress: values.residentialAddress,
         phoneNumber: values.phoneNumber,
         bankDetails: mappedBankDetails,
         countryIdentificationCardUrl: countryIdUrl,
-      };
-
-      await handleCreateBusinessJson(payload);
+      });
 
       success("Business registration successful!");
       window.location.href = "/dashboard";
     } catch (err) {
       setIsLoading(false);
-      console.error("Registration Error:", err);
       if (err?.response?.status === 500) {
         error("Internal Server Error, please try again later...");
         return;
@@ -148,195 +130,193 @@ export default function PersonalBusiness() {
     name: "countryIdentificationCard",
     accept: ".pdf,.jpg,.jpeg,.png",
     maxCount: 1,
+    showUploadList: false,
     beforeUpload: (file) => {
-      const isValidType = [
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-      ].includes(file.type);
+      const isValidType = ["application/pdf", "image/jpeg", "image/png"].includes(file.type);
       if (!isValidType) {
         message.error("You can only upload PDF or Image files!");
+        return false;
       }
       const isLt4M = file.size / 1024 / 1024 < 4;
       if (!isLt4M) {
         message.error("File must be smaller than 4MB!");
+        return false;
       }
-      return isValidType && isLt4M;
+      setIdFileName(file.name);
+      return false;
     },
   };
 
   return (
-    <Form form={form} onFinish={handleCreateBusiness} className="form__wrapper">
-      <FlexibleDiv
-        flexDir="row"
-        justifyContent="space-between"
-        width="100%"
-        className="single__row"
-      >
-        <FlexibleDiv
-          flexDir="column"
-          alignItems="flex-start"
-          gap="5px"
-          className="single__input__box"
-        >
-          <label>Date of Birth</label>
-          <Form.Item
-            name="dateOfBirth"
-            rules={[
-              { required: true, message: "Please select your date of birth" },
-            ]}
-          >
-            <DatePicker style={{ width: "100%", height: "40px" }} />
-          </Form.Item>
-        </FlexibleDiv>
-        <FlexibleDiv
-          flexDir="column"
-          alignItems="flex-start"
-          gap="5px"
-          className="single__input__box"
-        >
-          <label>Residential Address</label>
-          <Form.Item
-            name="residentialAddress"
-            rules={[
-              {
-                required: true,
-                message: "Please enter your residential address",
-              },
-            ]}
-          >
-            <TextField name="residentialAddress" type="text" maxLength={100} />
-          </Form.Item>
-        </FlexibleDiv>
-      </FlexibleDiv>
+    <Form form={form} onFinish={handleCreateBusiness}>
 
-      <FlexibleDiv
-        flexDir="column"
-        alignItems="flex-start"
-        gap="5px"
-        width="100%"
-        className="single__input__box"
-      >
-        <label>Phone Number</label>
-        <Form.Item
-          name="phoneNumber"
-          rules={[
-            {
-              required: true,
-              message: "Please enter your phone number",
-            },
-          ]}
-        >
-          <TextField name="phoneNumber" type="text" maxLength={20} />
-        </Form.Item>
-      </FlexibleDiv>
+      {/* Personal Information */}
+      <div className="form__card">
+        <div className="card__header">
+          <h3>Personal Information</h3>
+          <p>Basic details to identify your account</p>
+        </div>
+        <div className="card__body">
+          <div className="fields__grid">
+            <div className="field__wrap">
+              <label>Date of Birth</label>
+              <Form.Item
+                name="dateOfBirth"
+                rules={[{ required: true, message: "Please select your date of birth" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <DatePicker style={{ width: "100%", height: "40px" }} />
+              </Form.Item>
+            </div>
+            <div className="field__wrap">
+              <label>Phone Number</label>
+              <Form.Item
+                name="phoneNumber"
+                rules={[{ required: true, message: "Please enter your phone number" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <TextField name="phoneNumber" type="text" maxLength={20} />
+              </Form.Item>
+            </div>
+            <div className="field__wrap full__col">
+              <label>Residential Address</label>
+              <Form.Item
+                name="residentialAddress"
+                rules={[{ required: true, message: "Please enter your residential address" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <TextField name="residentialAddress" type="text" maxLength={100} />
+              </Form.Item>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <FlexibleDiv
-        flexDir="column"
-        alignItems="flex-start"
-        gap="5px"
-        width="100%"
-      >
-        <label>Country Identification Card</label>
-        <Form.Item
-          name="countryIdentificationCard"
-          rules={[{ required: true, message: "Please upload your ID card" }]}
-        >
-          <Upload {...fileUploadProps}>
-            <AntdButton color="var(--oosriPrimary)" icon={<UploadOutlined />}>
-              Upload ID Card
-            </AntdButton>
-          </Upload>
-        </Form.Item>
-      </FlexibleDiv>
-
-      <FlexibleDiv
-        flexDir="row"
-        justifyContent="space-between"
-        width="100%"
-        className="single__row"
-      >
-        <FlexibleDiv
-          flexDir="column"
-          alignItems="flex-start"
-          gap="5px"
-          className="single__input__box"
-        >
-          <label>Bank Name</label>
-          <Form.Item
-            name={["bankDetails", "bankCode"]}
-            rules={[{ required: true, message: "Please select your bank" }]}
-          >
-            <Select
-              placeholder="Select Bank"
-              style={{ height: "40px" }}
-              onChange={handleAccountVerification}
-              showSearch
-              filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            >
-              {banks.map((bank) => (
-                <Option key={bank.code} value={bank.code}>
-                  {bank.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </FlexibleDiv>
-        <FlexibleDiv
-          flexDir="column"
-          alignItems="flex-start"
-          gap="5px"
-          className="single__input__box"
-        >
-          <label>Account Name</label>
-          <Spin spinning={resolvingAccount}>
+      {/* Identity Verification */}
+      <div className="form__card">
+        <div className="card__header">
+          <h3>Identity Verification</h3>
+          <p>Upload a valid government-issued ID (PDF, JPG or PNG · Max 4MB)</p>
+        </div>
+        <div className="card__body">
+          <div className="field__wrap">
+            <label>Country Identification Card</label>
             <Form.Item
-              name={["bankDetails", "accountName"]}
-              rules={[
-                { required: true, message: "Account Name will be auto-populated" },
-              ]}
-              style={{ width: "100%" }}
+              name="countryIdentificationCard"
+              rules={[{ required: true, message: "Please upload your ID card" }]}
+              style={{ marginBottom: 0 }}
             >
-              <TextField name="accountName" type="text" maxLength={70} width="100%" readOnly disabled />
+              <Upload {...fileUploadProps}>
+                <div className={`upload__area${idFileName ? " has__file" : ""}`}>
+                  {idFileName ? (
+                    <>
+                      <CheckIcon size={24} style={{ color: "#16a34a" }} />
+                      <p className="upload__file__name">{idFileName}</p>
+                      <p className="upload__hint">Click to change file</p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="upload__icon">
+                        <UploadFileIcon size={28} />
+                      </span>
+                      <p className="upload__title">Click to upload ID Card</p>
+                      <p className="upload__hint">PDF, JPG or PNG · Max 4MB</p>
+                    </>
+                  )}
+                </div>
+              </Upload>
             </Form.Item>
-          </Spin>
-        </FlexibleDiv>
-      </FlexibleDiv>
+          </div>
+        </div>
+      </div>
 
-      <FlexibleDiv flexDir="row" justifyContent="space-between" width="100%">
-        <FlexibleDiv
-          flexDir="column"
-          alignItems="flex-start"
-          gap="5px"
-          className="single__input__box"
-        >
-          <label>Account Number</label>
-          <Form.Item
-            name={["bankDetails", "accountNumber"]}
-            rules={[
-              { required: true, message: "Please enter your account number" },
-            ]}
-          >
-            <TextField
-              name="accountNumber"
-              type="text"
-              maxLength={20}
-              onChange={debouncedVerification}
-            />
-          </Form.Item>
-        </FlexibleDiv>
-      </FlexibleDiv>
+      {/* Bank Details */}
+      <div className="form__card">
+        <div className="card__header">
+          <h3>Bank Details</h3>
+          <p>Your payout account for sales proceeds</p>
+        </div>
+        <div className="card__body">
+          <div className="fields__grid">
+            <div className="field__wrap">
+              <label>Bank Name</label>
+              <Form.Item
+                name={["bankDetails", "bankCode"]}
+                rules={[{ required: true, message: "Please select your bank" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <Select
+                  placeholder="Select Bank"
+                  style={{ height: "40px" }}
+                  onChange={handleAccountVerification}
+                  showSearch
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }
+                >
+                  {banks.map((bank) => (
+                    <Option key={bank.code} value={bank.code}>
+                      {bank.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </div>
+            <div className="field__wrap">
+              <label>Account Number</label>
+              <Form.Item
+                name={["bankDetails", "accountNumber"]}
+                rules={[{ required: true, message: "Please enter your account number" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <TextField
+                  name="accountNumber"
+                  type="text"
+                  maxLength={20}
+                  onChange={debouncedVerification}
+                />
+              </Form.Item>
+            </div>
+            <div className="field__wrap full__col">
+              <label>Account Name</label>
+              {resolvingAccount && (
+                <p className="resolve__hint resolving">Verifying account…</p>
+              )}
+              {accountResolved && !resolvingAccount && (
+                <p className="resolve__hint resolved">Account verified</p>
+              )}
+              <Spin spinning={resolvingAccount}>
+                <Form.Item
+                  name={["bankDetails", "accountName"]}
+                  rules={[{ required: true, message: "Account name will be auto-populated after verification" }]}
+                  style={{ marginBottom: 0 }}
+                >
+                  <TextField
+                    name="accountName"
+                    type="text"
+                    maxLength={70}
+                    width="100%"
+                    readOnly
+                    disabled
+                  />
+                </Form.Item>
+              </Spin>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <Form.Item>
+      <Form.Item style={{ marginBottom: 0 }}>
         <Button
           htmlType="submit"
           backgroundColor="var(--oosriPrimary)"
-          color="#ffff"
+          color="#fff"
+          width="100%"
+          height="44px"
+          hoverBg="#e04040"
           loading={loading}
         >
-          Create Business
+          Create Business Account
         </Button>
       </Form.Item>
     </Form>
