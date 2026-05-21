@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint src/ --ext .js,.jsx",
+    "lint:fix": "eslint src/ --ext .js,.jsx --fix"
   },
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
@@ -39,5 +40,8 @@
     "eslint-config-next": "14.1.0"
   },
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.9.0"
+  }
 }
