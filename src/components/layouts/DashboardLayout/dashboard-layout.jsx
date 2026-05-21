@@ -6,7 +6,8 @@ import Link from "next/link";
 import { MainContext } from "@/context";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { deleteDataInCookie } from "@/data-helpers/auth-session";
+import { deleteDataInCookie, getRefreshToken, deleteRefreshToken } from "@/data-helpers/auth-session";
+import { handleSignOut } from "@/network/user";
 import { isEmpty } from "lodash";
 import Button from "@/components/lib/Button";
 import ProfileImage from "@/assets/images/profile.jpg";
@@ -57,7 +58,12 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
   }, [pathname]);
 
   const handleLogout = useCallback(() => {
+    const rt = getRefreshToken();
     deleteDataInCookie("access_token__seller");
+    deleteRefreshToken();
+    if (rt) {
+      handleSignOut(rt).catch(() => {});
+    }
     window.location.href = "/";
   }, []);
 

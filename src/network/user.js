@@ -55,3 +55,13 @@ export const handleResetPassword = async (payload) => {
   );
   return data;
 };
+
+export const handleRefreshToken = async (refreshToken) => {
+  const data = await publicInstance.post(`/auth/seller/refresh-token`, { refreshToken });
+  return data;
+};
+
+export const handleSignOut = async (refreshToken) => {
+  const data = await publicInstance.post(`/auth/seller/sign-out`, { refreshToken });
+  return data;
+};
