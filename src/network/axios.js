@@ -1,10 +1,16 @@
 import { deleteDataInCookie, getDataInCookie } from "@/data-helpers/auth-session";
 import axios from "axios";
 
+const ACCESS_TOKEN_KEY = "access_token__seller";
+
 const getSellerAccessToken = () =>
-  typeof window !== "undefined"
-    ? getDataInCookie("access_token__seller")
-    : null;
+  typeof window !== "undefined" ? getDataInCookie(ACCESS_TOKEN_KEY) : null;
+
+const redirectToLogin = () => {
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.replace("/login");
+  }
+};
 
 export const publicInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
@@ -27,118 +33,37 @@ export const formInstance = axios.create({
   },
 });
 
-instance.interceptors.request.use(
-  async (config) => {
-    const userToken = getSellerAccessToken();
-
-    if (userToken) {
-      config.headers["Authorization"] = `Bearer ${userToken}`;
-    } else if (config.headers?.Authorization) {
-      delete config.headers.Authorization;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+const attachToken = (config) => {
+  const token = getSellerAccessToken();
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete config.headers["Authorization"];
   }
-);
+  return config;
+};
 
-instance.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalConfig = err.config;
+instance.interceptors.request.use(attachToken, (error) => Promise.reject(error));
+formInstance.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 
-    // Access Token was expired
-    if (
-      err?.response?.status === 401 &&
-      !originalConfig._retry &&
-      !!getSellerAccessToken()
-    ) {
-      originalConfig._retry = true;
+// On 401, clear the stale token and send the user back to login.
+// A proper silent refresh requires a backend /auth/seller/refresh-token endpoint
+// which does not yet exist — this is a tracked follow-up task.
+const handle401 = (err) => {
+  const originalConfig = err?.config;
 
-      if (typeof window !== "undefined") {
-        deleteDataInCookie("access_token__seller");
-      }
-      return Promise.reject(err);
-
-      //   await getRefreshToken(refreshToken, err);
-    } else {
-      return Promise.reject(err);
-    }
+  if (
+    err?.response?.status === 401 &&
+    originalConfig &&
+    !originalConfig._retry
+  ) {
+    originalConfig._retry = true;
+    deleteDataInCookie(ACCESS_TOKEN_KEY);
+    redirectToLogin();
   }
-);
 
-formInstance.interceptors.request.use(
-  async (config) => {
-    const userToken = getSellerAccessToken();
+  return Promise.reject(err);
+};
 
-    if (userToken) {
-      config.headers["Authorization"] = `Bearer ${userToken}`;
-    } else if (config.headers?.Authorization) {
-      delete config.headers.Authorization;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-formInstance.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalConfig = err.config;
-
-    // Access Token was expired
-    if (
-      err?.response?.status === 401 &&
-      !originalConfig._retry &&
-      !!getSellerAccessToken()
-    ) {
-      originalConfig._retry = true;
-
-      if (typeof window !== "undefined") {
-        deleteDataInCookie("access_token__seller");
-      }
-      return Promise.reject(err);
-
-      //   await getRefreshToken(refreshToken, err);
-    } else {
-      return Promise.reject(err);
-    }
-  }
-);
-
-// const getRefreshToken = async (token, err) => {
-//   try {
-//     const data = await axios.post(
-//       `${process.env.NEXT_PUBLIC_BASE_URL}/auth/refresh-token`,
-//       undefined,
-//       {
-//         headers: {
-//           authorization: `Bearer ${token}`,
-//         },
-//       }
-//     );
-//
-//     sessionStorage.setItem("user_token", data?.data?.data?.tokens?.accessToken);
-//     sessionStorage.setItem(
-//       "refresh_token",
-//       data?.data?.data?.tokens?.refreshToken
-//     );
-//
-//     userToken = data?.data?.data?.tokens?.accessToken;
-//     return await instance(err.config);
-//   } catch (_error) {
-//     if (
-//       _error?.response?.status === 401 &&
-//       window.location.pathname !== "/login"
-//     ) {
-//       window.location.pathname = "/login";
-//       sessionStorage.removeItem("user_token");
-//       sessionStorage.removeItem("refresh_token");
-//     }
-//   }
-// };
+instance.interceptors.response.use((res) => res, handle401);
+formInstance.interceptors.response.use((res) => res, handle401);
