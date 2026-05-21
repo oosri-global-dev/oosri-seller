@@ -131,6 +131,7 @@ export default function PersonalBusiness() {
     accept: ".pdf,.jpg,.jpeg,.png",
     maxCount: 1,
     showUploadList: false,
+    customRequest: ({ onSuccess }) => setTimeout(() => onSuccess("ok"), 0),
     beforeUpload: (file) => {
       const isValidType = ["application/pdf", "image/jpeg", "image/png"].includes(file.type);
       if (!isValidType) {
@@ -143,7 +144,7 @@ export default function PersonalBusiness() {
         return false;
       }
       setIdFileName(file.name);
-      return false;
+      return true;
     },
   };
 

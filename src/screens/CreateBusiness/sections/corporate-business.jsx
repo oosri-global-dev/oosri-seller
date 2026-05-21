@@ -154,6 +154,7 @@ export default function CorporateBusiness() {
     accept: ".pdf,.jpg,.jpeg,.png",
     maxCount: 1,
     showUploadList: false,
+    customRequest: ({ onSuccess }) => setTimeout(() => onSuccess("ok"), 0),
     beforeUpload: (file) => {
       const isValidType = ["application/pdf", "image/jpeg", "image/png"].includes(file.type);
       if (!isValidType) {
@@ -166,7 +167,7 @@ export default function CorporateBusiness() {
         return false;
       }
       setFileName(file.name);
-      return false;
+      return true;
     },
   });
 
