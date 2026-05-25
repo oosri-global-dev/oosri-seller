@@ -15,10 +15,11 @@ export const useProducts = (filters = {}, searchTerm = "") => {
       if (isSearching) {
         return searchProduct(searchTerm);
       }
-      return filterAllProducts(filters); 
+      return filterAllProducts(filters);
     },
     keepPreviousData: true,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -28,7 +29,8 @@ export const useProduct = (productId) => {
     queryKey: ["product", productId],
     queryFn: () => getProduct(productId),
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
     gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 };

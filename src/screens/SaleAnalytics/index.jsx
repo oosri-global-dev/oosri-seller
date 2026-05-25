@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { Table } from "antd";
 import { useRouter } from "next/router";
 import { useOrders } from "@/hooks/useOrders";
+import { useQuery } from "@tanstack/react-query";
+import { getDashboardOverview, getDashboardSummary } from "@/network/dashboard";
 import SalesChart from "./sales-chart";
 import PurchasingChart from "./purchasing-chart";
 import dayjs from "dayjs";
@@ -17,6 +19,9 @@ import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
 
 const PERIODS = ["Daily", "Weekly", "Monthly", "Yearly"];
+const PERIOD_MAP = { Daily: "daily", Weekly: "weekly", Monthly: "monthly", Yearly: "yearly" };
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const getStatusClass = (status = "") => {
   const s = status.toLowerCase();
@@ -29,26 +34,69 @@ const getStatusClass = (status = "") => {
 };
 
 export default function SaleAnalytics() {
-  const [period, setPeriod]   = useState("Monthly");
-  const { data, isLoading }   = useOrders();
-  const { push }              = useRouter();
-  const orders                = useMemo(() => data?.data?.data || [], [data]);
+  const [period, setPeriod] = useState("Monthly");
+  const { data: ordersData, isLoading: ordersLoading } = useOrders();
+  const { push } = useRouter();
+  const orders = useMemo(() => ordersData?.data?.data || [], [ordersData]);
 
-  /* ── KPI metrics ── */
-  const totalRevenue   = useMemo(() => orders.reduce((s, o) => s + (o.totalForSeller || 0), 0), [orders]);
-  const totalOrders    = orders.length;
+  /* ── KPI summary from backend ── */
+  const { data: summaryData, isLoading: summaryLoading } = useQuery({
+    queryKey: ["seller-dashboard-summary"],
+    queryFn: getDashboardSummary,
+    staleTime: 1000 * 60 * 2,
+  });
+  const summary = summaryData?.data?.data || summaryData?.data || {};
+
+  /* ── Period-sensitive revenue chart from backend ── */
+  const apiPeriod = PERIOD_MAP[period];
+  const { data: overviewData, isLoading: overviewLoading } = useQuery({
+    queryKey: ["seller-dashboard-overview", apiPeriod],
+    queryFn: () => getDashboardOverview(apiPeriod),
+    staleTime: 1000 * 60 * 2,
+  });
+
+  /* ── Shape chart data per period ── */
+  const chartData = useMemo(() => {
+    const raw = overviewData?.data?.data || [];
+    if (!raw.length) return { labels: [], values: [] };
+
+    if (apiPeriod === "monthly") {
+      const labels = MONTHS;
+      const values = Array(12).fill(0);
+      raw.forEach((d) => {
+        const month = parseInt(d.period?.split("-")[1], 10) - 1;
+        if (month >= 0 && month <= 11) values[month] = d.totalSales || 0;
+      });
+      return { labels, values };
+    }
+
+    if (apiPeriod === "daily") {
+      return { labels: ["Today"], values: [raw[0]?.totalSales || 0] };
+    }
+
+    if (apiPeriod === "weekly") {
+      const labels = raw.map((d) => dayjs(d.period).format("ddd D"));
+      const values = raw.map((d) => d.totalSales || 0);
+      return { labels, values };
+    }
+
+    if (apiPeriod === "yearly") {
+      const labels = raw.map((d) => d.period);
+      const values = raw.map((d) => d.totalSales || 0);
+      return { labels, values };
+    }
+
+    return { labels: [], values: [] };
+  }, [overviewData, apiPeriod]);
+
+  const isChartLoading = overviewLoading;
+
+  /* ── KPI metrics (backend summary preferred; fallback to local orders) ── */
+  const localRevenue = useMemo(() => orders.reduce((s, o) => s + (o.totalForSeller || 0), 0), [orders]);
   const uniqueCustomers = useMemo(() => new Set(orders.map((o) => o.userId?._id).filter(Boolean)).size, [orders]);
-  const avgOrder       = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-  /* ── Monthly revenue for chart ── */
-  const monthlyRevenue = useMemo(() => {
-    const buckets = Array(12).fill(0);
-    orders.forEach((o) => {
-      const m = dayjs(o.orderDate).month();
-      if (m >= 0 && m <= 11) buckets[m] += o.totalForSeller || 0;
-    });
-    return buckets;
-  }, [orders]);
+  const totalRevenue = summary.totalSales ?? localRevenue;
+  const totalOrders  = summary.totalOrders ?? orders.length;
+  const avgOrder     = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   /* ── Top / least selling products ── */
   const { topProduct, leastProduct } = useMemo(() => {
@@ -180,7 +228,12 @@ export default function SaleAnalytics() {
           <div className="chart__header">
             <div className="chart__title">
               <h3>Revenue Overview</h3>
-              <p>Monthly revenue for {new Date().getFullYear()}</p>
+              <p>
+                {period === "Monthly" && `Monthly revenue for ${new Date().getFullYear()}`}
+                {period === "Daily"   && "Today's revenue"}
+                {period === "Weekly"  && "Last 7 days"}
+                {period === "Yearly"  && "Year-on-year revenue"}
+              </p>
             </div>
             <div className="period__tabs">
               {PERIODS.map((p) => (
@@ -195,7 +248,13 @@ export default function SaleAnalytics() {
             </div>
           </div>
           <div className="chart__body">
-            <SalesChart data={monthlyRevenue} />
+            {isChartLoading ? (
+              <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", color: "#ccc", fontSize: "0.85rem" }}>
+                Loading…
+              </div>
+            ) : (
+              <SalesChart data={chartData.values} labels={chartData.labels} />
+            )}
           </div>
         </div>
 

@@ -12,12 +12,16 @@ function timeAgo(dateStr) {
 }
 
 const TYPE_CONFIG = {
-  kyc_approved: { color: '#16a34a', bg: '#f0fdf4', label: 'KYC' },
-  kyc_rejected: { color: '#dc2626', bg: '#fef2f2', label: 'KYC' },
-  new_order:    { color: '#2563eb', bg: '#eff6ff', label: 'Order' },
-  order_update: { color: '#0891b2', bg: '#ecfeff', label: 'Order' },
-  payout:       { color: '#d97706', bg: '#fffbeb', label: 'Payout' },
-  system:       { color: '#6b7280', bg: '#f9fafb', label: 'System' },
+  kyc_approved:      { color: '#16a34a', bg: '#f0fdf4', label: 'KYC' },
+  kyc_rejected:      { color: '#dc2626', bg: '#fef2f2', label: 'KYC' },
+  new_order:         { color: '#2563eb', bg: '#eff6ff', label: 'Order' },
+  order_update:      { color: '#0891b2', bg: '#ecfeff', label: 'Order' },
+  payout:            { color: '#d97706', bg: '#fffbeb', label: 'Payout' },
+  new_review:        { color: '#7c3aed', bg: '#f5f3ff', label: 'Review' },
+  product_approved:  { color: '#16a34a', bg: '#f0fdf4', label: 'Product' },
+  product_rejected:  { color: '#dc2626', bg: '#fef2f2', label: 'Product' },
+  return_request:    { color: '#ea580c', bg: '#fff7ed', label: 'Return' },
+  system:            { color: '#6b7280', bg: '#f9fafb', label: 'System' },
 };
 
 function NotificationItem({ notification, onRead, onDelete }) {
