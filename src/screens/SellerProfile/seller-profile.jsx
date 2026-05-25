@@ -42,36 +42,42 @@ export default function SellerProfile() {
   const [companyCertificate, setCompantCertificate] = useState(null);
 
   const [bankDetails, setBankDetails] = useState({
-    accountName: user?.bankDetails?.accountName,
-    bank: user?.bankDetails?.bank,
-    accountNumber: user?.bankDetails?.accountNumber,
+    accountName: user?.bankDetails?.accountName || "",
+    bank: user?.bankDetails?.bank || "",
+    accountNumber: user?.bankDetails?.accountNumber || "",
   });
 
   const [businessData, setBusinessData] = useState({
-    name: user?.corporateBusinessAccount?.companyName,
-    regNum: user?.corporateBusinessAccount?.companyRegNum,
-    address: user?.corporateBusinessAccount?.companyAddress,
-    companyCertificate: user?.corporateBusinessAccount?.vatCertificate,
-    businessCertificate: user?.corporateBusinessAccount?.companyCertificate,
-    businessType: user?.businessType,
+    name: user?.corporateBusinessAccount?.companyName || "",
+    regNum: user?.corporateBusinessAccount?.companyRegNum || "",
+    address: user?.corporateBusinessAccount?.companyAddress || "",
+    companyCertificate: user?.corporateBusinessAccount?.vatCertificate || "",
+    businessCertificate: user?.corporateBusinessAccount?.companyCertificate || "",
+    businessType: user?.businessType || "",
   });
 
   const [profileData, setProfileData] = useState({
-    lastName: user?.lastName,
-    firstName: user?.firstName,
-    email: user?.email,
-    phone_number: user?.phone_number,
+    lastName: user?.lastName || "",
+    firstName: user?.firstName || "",
+    email: user?.email || "",
+    phone_number: user?.phone_number || "",
     personalBusinessAccount: {
-      residentialAddress: user?.personalBusinessAccount?.residentialAddress,
-      dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
-      countryIdentificationCard: user?.personalBusinessAccount?.countryIdentificationCard,
+      residentialAddress: user?.personalBusinessAccount?.residentialAddress || "",
+      dateOfBirth: user?.personalBusinessAccount?.dateOfBirth || null,
+      countryIdentificationCard: user?.personalBusinessAccount?.countryIdentificationCard || "",
     },
-    country: user?.country,
+    country: user?.country || "",
   });
 
   const [banks, setBanks] = useState([]);
   const [isResolvingAccount, setIsResolvingAccount] = useState(false);
   const [accountResolved, setAccountResolved] = useState(false);
+  // Tracks whether the user manually changed bank fields during an edit session
+  const [bankFieldsDirty, setBankFieldsDirty] = useState(false);
+
+  // Ref so sync effects can check whether a section is being actively edited
+  const isEditModeRef = useRef(isEditMode);
+  useEffect(() => { isEditModeRef.current = isEditMode; }, [isEditMode]);
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
@@ -79,6 +85,7 @@ export default function SellerProfile() {
     setPayload(undefined);
     setCompantCertificate(null);
     setVatCertificate(null);
+    setBankFieldsDirty(false);
   };
 
   const handleDataUpdate = async (p) => {
@@ -144,7 +151,41 @@ export default function SellerProfile() {
       .catch(console.error);
   }, []);
 
+  // Sync all form states when user data arrives/changes — but never overwrite an active edit
   useEffect(() => {
+    if (!user?._id) return;
+    if (!isEditModeRef.current) {
+      setProfileData({
+        lastName:    user.lastName    || "",
+        firstName:   user.firstName   || "",
+        email:       user.email       || "",
+        phone_number: user.phone_number || "",
+        personalBusinessAccount: {
+          residentialAddress:         user.personalBusinessAccount?.residentialAddress         || "",
+          dateOfBirth:                user.personalBusinessAccount?.dateOfBirth                || null,
+          countryIdentificationCard:  user.personalBusinessAccount?.countryIdentificationCard  || "",
+        },
+        country: user.country || "",
+      });
+      setBankDetails({
+        accountName:   user.bankDetails?.accountName   || "",
+        bank:          user.bankDetails?.bank          || "",
+        accountNumber: user.bankDetails?.accountNumber || "",
+      });
+      setBusinessData({
+        name:                user.corporateBusinessAccount?.companyName        || "",
+        regNum:              user.corporateBusinessAccount?.companyRegNum      || "",
+        address:             user.corporateBusinessAccount?.companyAddress     || "",
+        companyCertificate:  user.corporateBusinessAccount?.vatCertificate    || "",
+        businessCertificate: user.corporateBusinessAccount?.companyCertificate || "",
+        businessType:        user.businessType || "",
+      });
+    }
+  }, [user]);
+
+  // Bank account resolution — only runs when user explicitly edits bank fields
+  useEffect(() => {
+    if (!isEditMode || !bankFieldsDirty) return;
     setAccountResolved(false);
     const timer = setTimeout(async () => {
       if (bankDetails.accountNumber?.length === 10 && bankDetails.bank) {
@@ -159,19 +200,20 @@ export default function SellerProfile() {
             if (resolved?.data) {
               setBankDetails((prev) => ({ ...prev, accountName: resolved.data.account_name }));
               setAccountResolved(true);
-              if (isEditMode) success("Account verified!");
+              success("Account verified!");
             }
           } catch (err) {
-            if (isEditMode) error("Could not verify account. Please check your inputs.");
+            error("Could not verify account. Please check your inputs.");
             setBankDetails((prev) => ({ ...prev, accountName: "" }));
           } finally {
             setIsResolvingAccount(false);
+            setBankFieldsDirty(false);
           }
         }
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [bankDetails.accountNumber, bankDetails.bank, banks, isEditMode]);
+  }, [bankDetails.accountNumber, bankDetails.bank, bankFieldsDirty, isEditMode, banks]);
 
   const initials =
     `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase() || "S";
@@ -529,7 +571,7 @@ export default function SellerProfile() {
                 <div className="header__actions">
                   {isEditMode ? (
                     <>
-                      <button className="edit__btn cancel" onClick={() => setIsEditMode(false)}>
+                      <button className="edit__btn cancel" onClick={() => { setIsEditMode(false); setBankFieldsDirty(false); }}>
                         Cancel
                       </button>
                       <button
@@ -557,9 +599,10 @@ export default function SellerProfile() {
                         <TextField
                           placeholder="10-digit account number"
                           defaultValue={bankDetails.accountNumber}
-                          onChange={(e) =>
-                            setBankDetails((prev) => ({ ...prev, accountNumber: e.target.value }))
-                          }
+                          onChange={(e) => {
+                            setBankDetails((prev) => ({ ...prev, accountNumber: e.target.value }));
+                            setBankFieldsDirty(true);
+                          }}
                         />
                         {isResolvingAccount && (
                           <span className="resolve__hint resolving">Verifying account…</span>
@@ -584,9 +627,10 @@ export default function SellerProfile() {
                         defaultValue={bankDetails.bank}
                         bgColor="#FAFAFA"
                         height="40px"
-                        onChange={(val) =>
-                          setBankDetails((prev) => ({ ...prev, bank: val }))
-                        }
+                        onChange={(val) => {
+                          setBankDetails((prev) => ({ ...prev, bank: val }));
+                          setBankFieldsDirty(true);
+                        }}
                       >
                         {banks.map((bank) => (
                           <Select.Option key={bank.code} value={bank.name}>
