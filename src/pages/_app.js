@@ -6,37 +6,38 @@ import { useEffect } from "react";
 import { MainProvider } from "@/context";
 import AppWrapper from "@/components/app-wrapper/AppWrapper";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { App as AntApp } from 'antd';
 
-// Create a client outside the component to prevent recreation on every render
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
   },
 });
 
-export default function App({ Component, pageProps }) {
+function OnlineGuard() {
   const [isOnline] = useOnlineStatus();
-  const [success, error] = useNotification();
-
+  const [, error] = useNotification();
   useEffect(() => {
-    const bootLoader  = document.getElementById("oosri-boot-loader");
+    if (!isOnline) error("You are offline.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline]);
+  return null;
+}
 
-    if (!bootLoader) {
-      return undefined;
-    }
+export default function App({ Component, pageProps }) {
+  useEffect(() => {
+    const bootLoader = document.getElementById("oosri-boot-loader");
+    if (!bootLoader) return undefined;
 
     const removeBootLoader = () => {
       bootLoader.setAttribute("data-hidden", "true");
-
-      window.setTimeout(() => {
-        bootLoader.remove();
-      }, 200);
+      window.setTimeout(() => bootLoader.remove(), 200);
     };
 
     if (document.readyState === "complete") {
@@ -45,26 +46,19 @@ export default function App({ Component, pageProps }) {
     }
 
     window.addEventListener("load", removeBootLoader, { once: true });
-
-    return () => {
-      window.removeEventListener("load", removeBootLoader);
-    };
+    return () => window.removeEventListener("load", removeBootLoader);
   }, []);
-
-  useEffect(() => {
-    if (!isOnline) {
-      error("You are offline.");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOnline]);
 
   return (
     <MainProvider>
       <QueryClientProvider client={queryClient}>
-        <AppWrapper>
-          <Component {...pageProps} />
-        </AppWrapper>
-        {process.env.NODE_ENV !== 'production' && <ReactQueryDevtools initialIsOpen={false} />}
+        <AntApp>
+          <OnlineGuard />
+          <AppWrapper>
+            <Component {...pageProps} />
+          </AppWrapper>
+          {process.env.NODE_ENV !== 'production' && <ReactQueryDevtools initialIsOpen={false} />}
+        </AntApp>
       </QueryClientProvider>
     </MainProvider>
   );

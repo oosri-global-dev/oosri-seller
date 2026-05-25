@@ -1,507 +1,585 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { SellersProfileWrapper } from "./seller-profile.styles";
-import { Tabs, Form, DatePicker, Input } from "antd";
-import { useState, useContext, useEffect } from "react";
+import { DatePicker, Input } from "antd";
+import { useState, useContext, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import TextField from "@/components/lib/TextField";
 import Select from "@/components/lib/Select";
-import { FlexibleDiv } from "@/components/lib/Box/styles";
-import SellerImage from "@/assets/images/sellerimage.png";
-import Button from "@/components/lib/Button";
-import useNotification from "@/hooks/useNotification";
-import { countries } from "@/data-helpers/auth-helpers";
 import { CustomUpload } from "@/components/lib/CustomUpload";
 import { MainContext } from "@/context";
 import dayjs from "dayjs";
+import useNotification from "@/hooks/useNotification";
+import { countries } from "@/data-helpers/auth-helpers";
 import { UpdateProfileData, UpdateProfilePicture, UpdateSellerProfile } from "@/network/profile";
-import { BusinessProfile } from "./profile";
 import { getBanks, resolveBankAccount } from "@/network/bank";
-
+import {
+  IoPersonOutline as PersonIcon,
+  IoWalletOutline as BankIcon,
+  IoBriefcaseOutline as BusinessIcon,
+  IoCreateOutline as EditIcon,
+  IoStorefrontOutline as StoreIcon,
+} from "react-icons/io5";
+import { UpdateStoreProfile } from "@/network/profile";
+import { uploadProductImage } from "@/utils/cloudinary-upload";
+import { IoOpenOutline as PreviewIcon } from "react-icons/io5";
 
 export default function SellerProfile() {
-
   const [file, setFile] = useState(null);
-  const [activeTab, setActiveTab] = useState("1");
-  const [isEditMode, setIsEditMode] = useState(true); // State for edit mode
-  const [form] = Form.useForm();
+  const [activeSection, setActiveSection] = useState("personal");
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [success, error] = useNotification();
-  const { state: { user }, } = useContext(MainContext);
-  const activeBusinessItems = user?.businessType === "Corporate"
+  const { state: { user } } = useContext(MainContext);
+
+  const isCorporate = user?.businessType === "Corporate";
+
   const [payload, setPayload] = useState();
-  const [vatCertificate, setVatCertificate] = useState(null)
-  const [companyCertificate, setCompantCertificate] = useState(null)
-  const [bankDetails, setBankDetails] = useState(
-    {
-      accountName: user?.bankDetails?.accountName,
-      bank: user?.bankDetails?.bank,
-      accountNumber: user?.bankDetails?.accountNumber,
-    }
-  )
-  const [businessData, setBusinessData] = useState(
-    {
-      name: user?.corporateBusinessAccount?.companyName,
-      regNum: user?.corporateBusinessAccount?.companyRegNum,
-      address: user?.corporateBusinessAccount?.companyAddress,
-      companyCertificate: user?.corporateBusinessAccount?.vatCertificate,
-      businessCertificate: user?.corporateBusinessAccount?.companyCertificate,
-      businessType: user?.businessType,
-    }
-  )
-  const [profileData, setProfileData] = useState(
-    {
-      lastName: user?.lastName,
-      firstName: user?.firstName,
-      email: user?.email,
-      phone_number: user?.phone_number,
-      personalBusinessAccount: {
-        residentialAddress: user?.personalBusinessAccount?.residentialAddress,
-        dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
-        countryIdentificationCard: user?.personalBusinessAccount?.countryIdentificationCard
-      },
-      country: user?.country,
-    }
-  )
+  const [vatCertificate, setVatCertificate] = useState(null);
+  const [companyCertificate, setCompantCertificate] = useState(null);
+
+  const [bankDetails, setBankDetails] = useState({
+    accountName: user?.bankDetails?.accountName,
+    bank: user?.bankDetails?.bank,
+    accountNumber: user?.bankDetails?.accountNumber,
+  });
+
+  const [businessData, setBusinessData] = useState({
+    name: user?.corporateBusinessAccount?.companyName,
+    regNum: user?.corporateBusinessAccount?.companyRegNum,
+    address: user?.corporateBusinessAccount?.companyAddress,
+    companyCertificate: user?.corporateBusinessAccount?.vatCertificate,
+    businessCertificate: user?.corporateBusinessAccount?.companyCertificate,
+    businessType: user?.businessType,
+  });
+
+  const [profileData, setProfileData] = useState({
+    lastName: user?.lastName,
+    firstName: user?.firstName,
+    email: user?.email,
+    phone_number: user?.phone_number,
+    personalBusinessAccount: {
+      residentialAddress: user?.personalBusinessAccount?.residentialAddress,
+      dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
+      countryIdentificationCard: user?.personalBusinessAccount?.countryIdentificationCard,
+    },
+    country: user?.country,
+  });
+
   const [banks, setBanks] = useState([]);
   const [isResolvingAccount, setIsResolvingAccount] = useState(false);
+  const [accountResolved, setAccountResolved] = useState(false);
 
-
-  const toggleEditMode = () => {
-    setIsEditMode(!isEditMode); // Toggle edit mode
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+    setIsEditMode(false);
+    setPayload(undefined);
+    setCompantCertificate(null);
+    setVatCertificate(null);
   };
 
-  const handleTabChange = () => {
-    setIsEditMode(false)
-    setPayload()
-    setCompantCertificate(null)
-    setVatCertificate(null)
-  }
-
-  const handleDataUpdate = async (payload) => {
+  const handleDataUpdate = async (p) => {
     try {
-      const data = await UpdateProfileData(payload, user?._id)
-      return data
-    } catch (errors) {
-      // error surfaces via return value — no action needed here
+      return await UpdateProfileData(p, user?._id);
+    } catch (err) {
+      console.log(err);
     }
-  }
+  };
 
-  const handleSaveDetails = async () => {
-    setIsLoading(true)
+  const handleSaveBankDetails = async () => {
+    setIsLoading(true);
     try {
-      const payload = { bankDetails }
-      // Use JSON endpoint for bank details
-      const data = await UpdateSellerProfile(payload, user?._id);
+      await UpdateSellerProfile({ bankDetails }, user?._id);
       success("Bank details saved successfully!");
-      setIsEditMode(false)
-    } catch (errors) {
+      setIsEditMode(false);
+    } catch (err) {
+      console.log(err);
       error("There was a problem when saving your details!");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-
   };
-
-
-  const businessItemsTab = [
-    {
-      key: "1",
-      label: "Business Details",
-    },
-    {
-      key: "2",
-      label: "Bank Details",
-    },
-  ];
-
-  const personalItemsTab = [
-    {
-      key: "1",
-      label: "Personal Details",
-    },
-    {
-      key: "2",
-      label: "Bank Details",
-    },
-  ];
-
-  const businessTypeOptions = [
-    { value: "Corporate", label: "Corporate" },
-    { value: "Personal", label: "Personal" },
-  ];
 
   const handleImageUpload = async () => {
     if (file) {
       try {
-        await UpdateProfilePicture({ profilePicture: file }, user?._id)
-        setFile(null)
-      } catch (errors) {
-        // upload failure is surfaced by the parent handleSubmit catch
+        await UpdateProfilePicture({ profilePicture: file }, user?._id);
+        setFile(null);
+      } catch (err) {
+        console.log(err);
       }
     }
-  }
+  };
 
-  const handleSubmit = async (type) => {
+  const handleSubmit = async (type = "personal") => {
     setIsLoading(true);
     try {
-      if (type == "personal") {
-        await handleImageUpload()
-      }
+      if (type === "personal") await handleImageUpload();
       if (payload) {
-        await handleDataUpdate(payload)
-        success("Personal details saved successfully!");
-        setIsLoading(false);
-        handleTabChange()
+        await handleDataUpdate(payload);
+        success(`${type === "personal" ? "Personal" : "Business"} details saved successfully!`);
       }
     } catch (err) {
       error("An error occurred while saving your details.");
-      setIsLoading(false);
     } finally {
-      toggleEditMode()
+      setIsLoading(false);
+      setIsEditMode(false);
     }
   };
 
   useEffect(() => {
-    handleTabChange()
-  }, [activeTab])
-
-  useEffect(() => {
     const handleImages = () => {
-      if (vatCertificate) {
-        setPayload({ ...payload, vatCertificate: vatCertificate })
-      } else if (companyCertificate) {
-        setPayload({ ...payload, companyCertificate: companyCertificate })
-      }
-    }
-    handleImages()
-
-  }, [vatCertificate, companyCertificate])
+      if (vatCertificate) setPayload((p) => ({ ...p, vatCertificate }));
+      else if (companyCertificate) setPayload((p) => ({ ...p, companyCertificate }));
+    };
+    handleImages();
+  }, [vatCertificate, companyCertificate]);
 
   useEffect(() => {
-    const fetchBanks = async () => {
-      try {
-        const response = await getBanks();
-        if (response && response.data) {
-          setBanks(response.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch banks", err);
-      }
-    };
-    fetchBanks();
+    getBanks()
+      .then((res) => { if (res?.data) setBanks(res.data); })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
-    const resolveAccount = async () => {
-      if (bankDetails.accountNumber && bankDetails.accountNumber.length === 10 && bankDetails.bank) {
-        // Find bank code
-        const selectedBank = banks.find(b => b.name === bankDetails.bank);
+    setAccountResolved(false);
+    const timer = setTimeout(async () => {
+      if (bankDetails.accountNumber?.length === 10 && bankDetails.bank) {
+        const selectedBank = banks.find((b) => b.name === bankDetails.bank);
         if (selectedBank) {
           setIsResolvingAccount(true);
           try {
             const resolved = await resolveBankAccount({
               account_number: bankDetails.accountNumber,
-              bank_code: selectedBank.code
+              bank_code: selectedBank.code,
             });
-            if (resolved && resolved.data) {
-              setBankDetails(prev => ({
-                ...prev,
-                accountName: resolved.data.account_name
-              }));
-              success("Account details verified successfully!");
+            if (resolved?.data) {
+              setBankDetails((prev) => ({ ...prev, accountName: resolved.data.account_name }));
+              setAccountResolved(true);
+              success("Account verified!");
             }
           } catch (err) {
-            console.error("Failed to resolve account", err);
-            error("Could not verify account details. Please check your inputs.");
-            setBankDetails(prev => ({
-              ...prev,
-              accountName: ""
-            }));
+            error("Could not verify account. Please check your inputs.");
+            setBankDetails((prev) => ({ ...prev, accountName: "" }));
           } finally {
             setIsResolvingAccount(false);
           }
         }
       }
-    };
-
-    // Debounce or just check conditions
-    const timer = setTimeout(() => {
-      resolveAccount();
     }, 1000);
-
     return () => clearTimeout(timer);
-
   }, [bankDetails.accountNumber, bankDetails.bank, banks]);
+
+  const initials =
+    `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase() || "S";
+  const fullName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Seller";
+
+  const [storeData, setStoreData] = useState({
+    storeName: user?.storeProfile?.storeName || "",
+    bannerImage: user?.storeProfile?.bannerImage || "",
+    description: user?.storeProfile?.description || "",
+    instagram: user?.storeProfile?.socialLinks?.instagram || "",
+    twitter: user?.storeProfile?.socialLinks?.twitter || "",
+    facebook: user?.storeProfile?.socialLinks?.facebook || "",
+    tiktok: user?.storeProfile?.socialLinks?.tiktok || "",
+    website: user?.storeProfile?.socialLinks?.website || "",
+  });
+  const [isStoreLoading, setIsStoreLoading] = useState(false);
+  const [storeEditMode, setStoreEditMode] = useState(false);
+  const [bannerUpload, setBannerUpload] = useState({ uploading: false, progress: 0, stage: "idle", error: null });
+  const queryClient = useQueryClient();
+  const storeEditModeRef = useRef(storeEditMode);
+  useEffect(() => { storeEditModeRef.current = storeEditMode; }, [storeEditMode]);
+
+  useEffect(() => {
+    if (user?.storeProfile && !storeEditModeRef.current) {
+      setStoreData({
+        storeName: user.storeProfile.storeName || "",
+        bannerImage: user.storeProfile.bannerImage || "",
+        description: user.storeProfile.description || "",
+        instagram: user.storeProfile.socialLinks?.instagram || "",
+        twitter: user.storeProfile.socialLinks?.twitter || "",
+        facebook: user.storeProfile.socialLinks?.facebook || "",
+        tiktok: user.storeProfile.socialLinks?.tiktok || "",
+        website: user.storeProfile.socialLinks?.website || "",
+      });
+    }
+  }, [user]);
+
+  const handleBannerFileSelected = async (file) => {
+    setBannerUpload({ uploading: true, progress: 0, stage: "compressing", error: null });
+    try {
+      const result = await uploadProductImage(file, {
+        onProgress: (pct) => setBannerUpload((p) => ({ ...p, progress: pct })),
+        onStageChange: (stage) => setBannerUpload((p) => ({ ...p, stage })),
+      });
+      setStoreData((p) => ({ ...p, bannerImage: result.secureUrl }));
+      setBannerUpload({ uploading: false, progress: 100, stage: "completed", error: null });
+    } catch (err) {
+      setBannerUpload({ uploading: false, progress: 0, stage: "failed", error: err.message });
+    }
+  };
+
+  const handleSaveStore = async () => {
+    setIsStoreLoading(true);
+    try {
+      await UpdateStoreProfile({
+        storeName: storeData.storeName,
+        bannerImage: storeData.bannerImage,
+        description: storeData.description,
+        socialLinks: {
+          instagram: storeData.instagram,
+          twitter: storeData.twitter,
+          facebook: storeData.facebook,
+          tiktok: storeData.tiktok,
+          website: storeData.website,
+        },
+      }, user?._id);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      success("Store profile saved successfully!");
+      setStoreEditMode(false);
+    } catch (err) {
+      error("Failed to save store profile. Please try again.");
+    } finally {
+      setIsStoreLoading(false);
+    }
+  };
+
+  const navItems = [
+    { key: "personal",  label: "Personal Info",     icon: <PersonIcon size={16} /> },
+    { key: "bank",      label: "Bank Details",       icon: <BankIcon size={16} /> },
+    ...(isCorporate
+      ? [{ key: "business", label: "Business Details", icon: <BusinessIcon size={16} /> }]
+      : []),
+    { key: "store", label: "My Store", icon: <StoreIcon size={16} /> },
+  ];
 
   return (
     <DashboardLayout title="My Profile">
       <SellersProfileWrapper>
-        <Tabs className="tabs__custom" defaultActiveKey="1"
-          items={activeBusinessItems ? businessItemsTab : personalItemsTab}
-          onChange={(e) => { setActiveTab(e) }}
-        />
 
-        {/* Profile Content */}
-        {!activeBusinessItems && activeTab === "1" && (
-          <FlexibleDiv className="profile__details__section">
-            <FlexibleDiv className="profile__info__wrapper">
-              <h2>Personal Information</h2>
-              <FlexibleDiv className="info_cont">
-                <FlexibleDiv className="info__inner_cont1" flexDir="row">
-                  <FlexibleDiv className="info1" flexDir="column">
-                    <p>Full Legal Name</p>
+        {/* ── Sidebar ── */}
+        <aside className="profile__sidebar">
+          <div className="avatar__section">
+            <div className="avatar__wrap">
+              {user?.profilePicture
+                ? <img src={user.profilePicture} alt={fullName} />
+                : <span className="avatar__initials">{initials}</span>}
+            </div>
+            <p className="profile__name">{fullName}</p>
+            <p className="profile__email">{user?.email}</p>
+            <span className="biz__badge">{user?.businessType || "Personal"}</span>
+          </div>
+
+          <nav className="sidebar__nav">
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                className={`nav__item${activeSection === item.key ? " active" : ""}`}
+                onClick={() => handleSectionChange(item.key)}
+              >
+                <span className="nav__icon">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="member__since">
+            <span className="since__label">Member since</span>
+            <span className="since__value">
+              {user?.createdAt ? dayjs(user.createdAt).format("MMM YYYY") : "—"}
+            </span>
+          </div>
+        </aside>
+
+        {/* ── Content area ── */}
+        <div className="profile__content">
+
+          {/* ── Personal Info ── */}
+          {activeSection === "personal" && (
+            <div className="section__card">
+              <div className="section__header">
+                <div className="header__left">
+                  <h3>Personal Information</h3>
+                  <p>Your basic profile and contact details</p>
+                </div>
+                <div className="header__actions">
+                  {isEditMode ? (
+                    <>
+                      <button className="edit__btn cancel" onClick={() => setIsEditMode(false)}>
+                        Cancel
+                      </button>
+                      <button
+                        className="edit__btn save"
+                        onClick={() => handleSubmit("personal")}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Saving…" : "Save Changes"}
+                      </button>
+                    </>
+                  ) : (
+                    <button className="edit__btn" onClick={() => setIsEditMode(true)}>
+                      <EditIcon size={13} /> Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="section__body">
+                {isEditMode && (
+                  <div className="avatar__upload__row">
+                    <CustomUpload
+                      setFile={setFile}
+                      editable
+                      initialImage={user?.profilePicture}
+                    />
+                    <div className="upload__meta">
+                      <h4>Profile Photo</h4>
+                      <p>JPG, PNG or WebP · Max 80 MB</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="fields__grid">
+                  <div className="field__item">
+                    <span className="field__label">Full Name</span>
                     {isEditMode ? (
                       <TextField
-                        name="regNum"
-                        placeholder="Enter registration number"
-                        defaultValue={`${profileData.lastName} ${profileData.firstName}`}
-                        disabled />
+                        placeholder="Full name"
+                        defaultValue={`${profileData.firstName || ""} ${profileData.lastName || ""}`.trim()}
+                        disabled
+                      />
                     ) : (
-                      <p>{profileData.lastName} {profileData.firstName}</p>
+                      <span className="field__value">{fullName}</span>
                     )}
-                  </FlexibleDiv>
-                </FlexibleDiv>
-                <FlexibleDiv className="info__inner_cont2">
-                  <FlexibleDiv className="info1">
-                    <p>Email Address</p>
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Email Address</span>
                     {isEditMode ? (
                       <TextField
-                        name="regNum"
-                        placeholder="Enter registration number"
+                        placeholder="Email"
                         defaultValue={profileData.email}
                         disabled
-                      />) : (
-                      <p>{profileData.email}</p>)}
-                  </FlexibleDiv>
-                  <FlexibleDiv className="info2">
-                    <p>Phone Number</p>
+                      />
+                    ) : (
+                      <span className="field__value">
+                        {profileData.email || <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Phone Number</span>
                     {isEditMode ? (
                       <Input
                         type="number"
-                        name="regNum"
-                        placeholder="Enter registration number"
-                        defaultValue={profileData.phone_number || " "}
+                        placeholder="Phone number"
+                        defaultValue={profileData.phone_number}
                         onChange={(e) => {
-                          setProfileData((prev) => ({
-                            ...prev,
-                            phone_number: e.target.value
-                          }))
-                          setPayload({ ...payload, phone_number: e.target.value })
-                        }} />) : (
-                      <p>{profileData.phone_number}</p>)}
-                  </FlexibleDiv>
-                </FlexibleDiv>
-                <FlexibleDiv className="info__inner_cont3">
-                  <FlexibleDiv className="info1">
-                    <p>Physical Address</p>
-                    {isEditMode ? (
-                      <TextField
-                        name="regNum"
-                        placeholder="Enter registration number"
-                        defaultValue={profileData.personalBusinessAccount.residentialAddress}
-                        onChange={(e) => {
-                          profileData.residentialAddress = e.target.value;
-                          setProfileData((prev) => ({
-                            ...prev,
-                            personalBusinessAccount: {
-                              residentialAddress: e.target.value,
-                              dateOfBirth: profileData.personalBusinessAccount.dateOfBirth,
-                              countryIdentificationCard: profileData.personalBusinessAccount.countryIdentificationCard,
-                            }
-                          }))
-                          setPayload({ ...payload, personalBusinessAccount: profileData.personalBusinessAccount })
-                        }} />
-                    ) : (<p>{profileData.personalBusinessAccount.residentialAddress}</p>)}
-                  </FlexibleDiv>
-                  <FlexibleDiv className="info2">
-                    <p>Date of Birth</p>
+                          setProfileData((prev) => ({ ...prev, phone_number: e.target.value }));
+                          setPayload((p) => ({ ...p, phone_number: e.target.value }));
+                        }}
+                      />
+                    ) : (
+                      <span className="field__value">
+                        {profileData.phone_number || <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Date of Birth</span>
                     {isEditMode ? (
                       <DatePicker
-                        name="regNum"
-                        defaultValue={dayjs(profileData.personalBusinessAccount.dateOfBirth)}
-                        placeholder="Enter registration number"
                         style={{ width: "100%" }}
+                        defaultValue={
+                          profileData.personalBusinessAccount.dateOfBirth
+                            ? dayjs(profileData.personalBusinessAccount.dateOfBirth)
+                            : null
+                        }
+                        onChange={(val) => {
+                          setProfileData((prev) => ({
+                            ...prev,
+                            personalBusinessAccount: {
+                              ...prev.personalBusinessAccount,
+                              dateOfBirth: val,
+                            },
+                          }));
+                          setPayload((p) => ({
+                            ...p,
+                            personalBusinessAccount: {
+                              ...profileData.personalBusinessAccount,
+                              dateOfBirth: val,
+                            },
+                          }));
+                        }}
+                      />
+                    ) : (
+                      <span className="field__value">
+                        {profileData.personalBusinessAccount.dateOfBirth
+                          ? dayjs(profileData.personalBusinessAccount.dateOfBirth).format("DD MMM YYYY")
+                          : <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item full__width">
+                    <span className="field__label">Residential Address</span>
+                    {isEditMode ? (
+                      <TextField
+                        placeholder="Enter your address"
+                        defaultValue={profileData.personalBusinessAccount.residentialAddress}
                         onChange={(e) => {
                           setProfileData((prev) => ({
                             ...prev,
                             personalBusinessAccount: {
-                              dateOfBirth: e,
-                              countryIdentificationCard: profileData.personalBusinessAccount.countryIdentificationCard,
-                              residentialAddress: profileData.personalBusinessAccount.residentialAddress,
-                            }
-                          }))
-                          setPayload({ ...payload, personalBusinessAccount: profileData.personalBusinessAccount })
-                        }} />
+                              ...prev.personalBusinessAccount,
+                              residentialAddress: e.target.value,
+                            },
+                          }));
+                          setPayload((p) => ({
+                            ...p,
+                            personalBusinessAccount: {
+                              ...profileData.personalBusinessAccount,
+                              residentialAddress: e.target.value,
+                            },
+                          }));
+                        }}
+                      />
                     ) : (
-                      <p>{dayjs(profileData.personalBusinessAccount.dateOfBirth).format('DD/MM/YYYY')}</p>
+                      <span className="field__value">
+                        {profileData.personalBusinessAccount.residentialAddress ||
+                          <span className="field__empty">Not set</span>}
+                      </span>
                     )}
-                  </FlexibleDiv>
-                </FlexibleDiv>
-                <FlexibleDiv className="info__inner_cont4">
-                  <FlexibleDiv className="info1">
-                    <p>Country</p>
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Country</span>
                     {isEditMode ? (
-                      <Select name="country" required bgColor="#FAFAFA" height="40px" showSearch className="country__select" defaultValue={profileData.country}
-                        onChange={(e) => {
-                          profileData.country = e
-                          setPayload({ ...payload, country: e })
-                          setProfileData((prev) => ({
-                            ...prev,
-                            country: e
-                          }))
-                        }}>
+                      <Select
+                        showSearch
+                        defaultValue={profileData.country}
+                        bgColor="#FAFAFA"
+                        height="40px"
+                        onChange={(val) => {
+                          setProfileData((prev) => ({ ...prev, country: val }));
+                          setPayload((p) => ({ ...p, country: val }));
+                        }}
+                      >
                         {countries.map((cty, idx) => (
-                          <Select.Option
-                            key={idx}
-                            value={cty.name}
-                            className="select__public__content"
-                          >
-                            <img
-                              className="small__drop__down__img"
-                              src={`https://flagsapi.com/${cty?.code}/flat/64.png`}
-                              alt={`${cty?.name?.toLowerCase()}-icon`}
-                            />
-                            <p>{cty.name}</p>
+                          <Select.Option key={idx} value={cty.name}>
+                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <img
+                                src={`https://flagsapi.com/${cty.code}/flat/64.png`}
+                                alt={cty.name}
+                                style={{ width: 18, height: 13, objectFit: "cover", borderRadius: 2 }}
+                              />
+                              {cty.name}
+                            </span>
                           </Select.Option>
                         ))}
                       </Select>
                     ) : (
-                      <p>{profileData.country}</p>
+                      <span className="field__value">
+                        {profileData.country ? (
+                          <span className="country__row">
+                            <img
+                              src={`https://flagsapi.com/${
+                                countries.find((c) => c.name === profileData.country)?.code
+                              }/flat/64.png`}
+                              alt={profileData.country}
+                            />
+                            {profileData.country}
+                          </span>
+                        ) : (
+                          <span className="field__empty">Not set</span>
+                        )}
+                      </span>
                     )}
-                  </FlexibleDiv>
-                  <FlexibleDiv className="info2">
-                    <p>Registration Date</p>
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Member Since</span>
+                    <span className="field__value">
+                      {user?.createdAt ? dayjs(user.createdAt).format("DD MMM YYYY") : "—"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Bank Details ── */}
+          {activeSection === "bank" && (
+            <div className="section__card">
+              <div className="section__header">
+                <div className="header__left">
+                  <h3>Bank Details</h3>
+                  <p>Your payout account information</p>
+                </div>
+                <div className="header__actions">
+                  {isEditMode ? (
+                    <>
+                      <button className="edit__btn cancel" onClick={() => setIsEditMode(false)}>
+                        Cancel
+                      </button>
+                      <button
+                        className="edit__btn save"
+                        onClick={handleSaveBankDetails}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Saving…" : "Save Changes"}
+                      </button>
+                    </>
+                  ) : (
+                    <button className="edit__btn" onClick={() => setIsEditMode(true)}>
+                      <EditIcon size={13} /> Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="section__body">
+                <div className="fields__grid">
+                  <div className="field__item">
+                    <span className="field__label">Account Number</span>
                     {isEditMode ? (
-                      <DatePicker
-                        name="regNum"
-                        defaultValue={dayjs(user?.createdAt)}
-                        disabled
-                        style={{ width: "100%" }} />
+                      <>
+                        <TextField
+                          placeholder="10-digit account number"
+                          defaultValue={bankDetails.accountNumber}
+                          onChange={(e) =>
+                            setBankDetails((prev) => ({ ...prev, accountNumber: e.target.value }))
+                          }
+                        />
+                        {isResolvingAccount && (
+                          <span className="resolve__hint resolving">Verifying account…</span>
+                        )}
+                        {accountResolved && !isResolvingAccount && (
+                          <span className="resolve__hint resolved">Account verified</span>
+                        )}
+                      </>
                     ) : (
-                      <p>{dayjs(user?.createdAt).format("DD/MM/YYYY")}</p>
+                      <span className="field__value">
+                        {bankDetails.accountNumber || <span className="field__empty">Not set</span>}
+                      </span>
                     )}
-                  </FlexibleDiv>
-                </FlexibleDiv>
-              </FlexibleDiv>
+                  </div>
 
-            </FlexibleDiv>
-
-            <FlexibleDiv className="profile__image__wrapper" flexDir="column" gap="29px">
-              <CustomUpload setFile={setFile} editable={isEditMode} initialImage={user?.profilePicture} />
-
-              <Button
-                onClick={() => { isEditMode ? handleSubmit("personal") : toggleEditMode() }}
-                width="50%"
-                radius="8px"
-                color="var(--oosriWhite)"
-                backgroundColor="var(--oosriPrimary)"
-                className="submit__btn"
-                htmlType="submit"
-              >
-                {isEditMode ? "Save Details" : "Edit Details"}
-              </Button>
-            </FlexibleDiv>
-          </FlexibleDiv>
-        )}
-
-        {/* business details Content */}
-        {activeBusinessItems &&
-          activeTab === "1" && (
-            <BusinessProfile
-              businessData={businessData}
-              setBusinessData={setBusinessData}
-              handleSubmit={handleSubmit}
-              businessTypeOptions={businessTypeOptions}
-              setPayload={setPayload}
-              payload={payload}
-              setVatCertificate={setVatCertificate}
-              setCompantCertificate={setCompantCertificate}
-              isLoading={isLoading}
-              toggleEditMode={toggleEditMode}
-              isEditMode={isEditMode}
-            />
-          )
-        }
-
-        {/* bank information Content */}
-        {activeTab === "2" && (
-          <FlexibleDiv
-            className="business__details__section"
-            style={{
-              display: "flex",
-              justifyContent: " space-around",
-            }}
-          >
-            <FlexibleDiv
-              className="business__info__wrapper"
-            >
-              <h2 style={{
-                justifyContent: "flex-start",
-                textAlign: "left",
-                width: "100%",
-                paddingBottom: "15px"
-              }}>Bank Information</h2>
-
-              <Form
-                form={form}
-                onFinish={isEditMode ? handleSubmit : undefined}
-                className="business__details__form"
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "left",
-                  gap: "25px",
-                }}
-              >
-                {/* account Name and bank name */}
-                <FlexibleDiv
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between"
-                  }}
-                  className="input__container">
-                  {/* Account name */}
-                  <FlexibleDiv
-                    flexDir="column"
-                    alignItems="flex-start"
-                    width="40%"
-                    gap="5px"
-                    className="single__row"
-                  >
-                    <label>Account Name</label>
-                    {isEditMode ? (
-                      <TextField
-                        name="accountName"
-                        placeholder={isResolvingAccount ? "Resolving account..." : "Account Name"}
-                        value={bankDetails.accountName}
-                        disabled // Make it read-only as it is auto-populated
-                      />
-                    ) : (
-                      <p>{bankDetails.accountName}</p>
-                    )}
-                  </FlexibleDiv>
-
-                  {/* Bank name */}
-                  <FlexibleDiv
-                    flexDir="column"
-                    alignItems="flex-start"
-                    width="40%"
-                    gap="5px"
-                    className="single__row"
-                  >
-                    <label>Bank</label>
+                  <div className="field__item">
+                    <span className="field__label">Bank Name</span>
                     {isEditMode ? (
                       <Select
-                        name="bank"
+                        showSearch
                         placeholder="Select bank"
                         defaultValue={bankDetails.bank}
-                        showSearch
-                        onChange={(e) => {
-                          setBankDetails((prev) => ({
-                            ...prev,
-                            bank: e
-                          }))
-                        }}
+                        bgColor="#FAFAFA"
+                        height="40px"
+                        onChange={(val) =>
+                          setBankDetails((prev) => ({ ...prev, bank: val }))
+                        }
                       >
                         {banks.map((bank) => (
                           <Select.Option key={bank.code} value={bank.name}>
@@ -510,70 +588,304 @@ export default function SellerProfile() {
                         ))}
                       </Select>
                     ) : (
-                      <p>{bankDetails.bank}</p>
+                      <span className="field__value">
+                        {bankDetails.bank || <span className="field__empty">Not set</span>}
+                      </span>
                     )}
-                  </FlexibleDiv>
-                </FlexibleDiv>
+                  </div>
 
-                <FlexibleDiv
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between"
-                  }}
-                  className="input__container">
-                  {/* acc no and nin no */}
-                  <FlexibleDiv
-                    flexDir="column"
-                    alignItems="flex-start"
-                    width="40%"
-                    gap="5px"
-                    className="single__row"
-                  >
-                    {/* Acc Number */}
-                    <label>Account Number</label>
+                  <div className="field__item full__width">
+                    <span className="field__label">Account Name</span>
                     {isEditMode ? (
                       <TextField
-                        name="regNum"
-                        placeholder="Enter registration number"
-                        defaultValue={bankDetails.accountNumber}
+                        placeholder={isResolvingAccount ? "Resolving…" : "Auto-populated after verification"}
+                        value={bankDetails.accountName || ""}
+                        disabled
+                      />
+                    ) : (
+                      <span className="field__value">
+                        {bankDetails.accountName || <span className="field__empty">Not verified yet</span>}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Business Details (corporate only) ── */}
+          {activeSection === "business" && isCorporate && (
+            <div className="section__card">
+              <div className="section__header">
+                <div className="header__left">
+                  <h3>Business Details</h3>
+                  <p>Your corporate account information</p>
+                </div>
+                <div className="header__actions">
+                  {isEditMode ? (
+                    <>
+                      <button className="edit__btn cancel" onClick={() => setIsEditMode(false)}>
+                        Cancel
+                      </button>
+                      <button
+                        className="edit__btn save"
+                        onClick={() => handleSubmit("business")}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Saving…" : "Save Changes"}
+                      </button>
+                    </>
+                  ) : (
+                    <button className="edit__btn" onClick={() => setIsEditMode(true)}>
+                      <EditIcon size={13} /> Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="section__body">
+                <div className="fields__grid">
+                  <div className="field__item">
+                    <span className="field__label">Business Name</span>
+                    {isEditMode ? (
+                      <TextField
+                        placeholder="Business name"
+                        defaultValue={businessData.name}
+                        disabled
+                      />
+                    ) : (
+                      <span className="field__value">
+                        {businessData.name || <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Business Type</span>
+                    {isEditMode ? (
+                      <TextField
+                        placeholder="Business type"
+                        defaultValue={businessData.businessType}
+                        disabled
+                      />
+                    ) : (
+                      <span className="field__value">
+                        {businessData.businessType || <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Registration Number</span>
+                    {isEditMode ? (
+                      <TextField
+                        placeholder="Registration number"
+                        defaultValue={businessData.regNum}
+                        disabled
+                      />
+                    ) : (
+                      <span className="field__value">
+                        {businessData.regNum || <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item">
+                    <span className="field__label">Business Address</span>
+                    {isEditMode ? (
+                      <TextField
+                        placeholder="Business address"
+                        defaultValue={businessData.address}
                         onChange={(e) => {
-                          setBankDetails((prev) => ({
-                            ...prev,
-                            accountNumber: e.target.value
-                          }))
+                          setPayload((p) => ({ ...p, companyAddress: e.target.value }));
+                          setBusinessData((prev) => ({ ...prev, address: e.target.value }));
                         }}
                       />
                     ) : (
-                      <p>{bankDetails.accountNumber}</p>
+                      <span className="field__value">
+                        {businessData.address || <span className="field__empty">Not set</span>}
+                      </span>
                     )}
-                  </FlexibleDiv>
-                </FlexibleDiv>
+                  </div>
+                </div>
 
+                <div className="docs__grid" style={{ marginTop: 28 }}>
+                  <div className="doc__item">
+                    <span className="doc__label">Government ID</span>
+                    <CustomUpload
+                      setFile={setVatCertificate}
+                      editable={isEditMode}
+                      initialImage={businessData.companyCertificate}
+                    />
+                  </div>
+                  <div className="doc__item">
+                    <span className="doc__label">Business Certificate</span>
+                    <CustomUpload
+                      setFile={setCompantCertificate}
+                      editable={isEditMode}
+                      initialImage={businessData.businessCertificate}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-              </Form>
+          {/* ── My Store ── */}
+          {activeSection === "store" && (
+            <div className="section__card">
+              <div className="section__header">
+                <div className="header__left">
+                  <h3>My Store</h3>
+                  <p>Customise your public storefront on Oosri</p>
+                </div>
+                <div className="header__actions">
+                  {storeData.storeName && (
+                    <a
+                      className="edit__btn"
+                      href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL || "http://localhost:3000"}/store/${storeData.storeName}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}
+                    >
+                      <PreviewIcon size={13} /> Preview Store
+                    </a>
+                  )}
+                  {storeEditMode ? (
+                    <>
+                      <button className="edit__btn cancel" onClick={() => setStoreEditMode(false)}>
+                        Cancel
+                      </button>
+                      <button
+                        className="edit__btn save"
+                        onClick={handleSaveStore}
+                        disabled={isStoreLoading || bannerUpload.uploading}
+                      >
+                        {isStoreLoading ? "Saving…" : "Save Changes"}
+                      </button>
+                    </>
+                  ) : (
+                    <button className="edit__btn" onClick={() => setStoreEditMode(true)}>
+                      <EditIcon size={13} /> Edit
+                    </button>
+                  )}
+                </div>
+              </div>
 
+              <div className="section__body">
+                <div className="fields__grid">
 
+                  <div className="field__item full__width">
+                    <span className="field__label">Store URL Name</span>
+                    {storeEditMode ? (
+                      <>
+                        <Input
+                          placeholder="e.g. adire-studio (used in your public store URL)"
+                          value={storeData.storeName}
+                          onChange={(e) => setStoreData((p) => ({ ...p, storeName: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
+                          prefix={<span style={{ color: "#aaa", fontSize: "0.8rem" }}>oosri.com/store/</span>}
+                        />
+                        <span style={{ fontSize: "0.78rem", color: "#999", marginTop: 4, display: "block" }}>
+                          Only lowercase letters, numbers, and hyphens. This is your unique store URL.
+                        </span>
+                      </>
+                    ) : (
+                      <span className="field__value">
+                        {storeData.storeName
+                          ? <span style={{ color: "var(--oosriPrimary)" }}>oosri.com/store/{storeData.storeName}</span>
+                          : <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
 
-            </FlexibleDiv>
+                  <div className="field__item full__width">
+                    <span className="field__label">Store Banner</span>
+                    {storeEditMode ? (
+                      <div>
+                        <div style={{ borderRadius: 10, overflow: "hidden", height: 140, background: "#f5f5f5", marginBottom: 8 }}>
+                          <CustomUpload
+                            editable
+                            initialImage={storeData.bannerImage || null}
+                            uploadedUrl={bannerUpload.stage === "completed" ? storeData.bannerImage : null}
+                            uploading={bannerUpload.uploading}
+                            uploadProgress={bannerUpload.progress}
+                            uploadStage={bannerUpload.stage}
+                            uploadError={bannerUpload.error}
+                            onFileSelected={handleBannerFileSelected}
+                          />
+                        </div>
+                        <span style={{ fontSize: "0.78rem", color: "#999" }}>
+                          Recommended: 1500 × 400px, JPG or PNG. Max 80 MB.
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="field__value">
+                        {storeData.bannerImage ? (
+                          <img
+                            src={storeData.bannerImage}
+                            alt="Store banner"
+                            style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 8, display: "block" }}
+                          />
+                        ) : (
+                          <span className="field__empty">No banner set</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
 
-            <FlexibleDiv
-              className="edit__details__cont edit__bank__details__cont"
-            >
-              <Button
-                onClick={isEditMode ? handleSaveDetails : toggleEditMode}
-                type="submit"
-                radius="8px"
-                color="var(--oosriWhite)"
-                backgroundColor="var(--oosriPrimary)"
-                isLoading={isLoading}
-              >
-                {isEditMode ? "Save Details" : "Edit Details"}
-              </Button>
-            </FlexibleDiv>
-          </FlexibleDiv>
-        )}
+                  <div className="field__item full__width">
+                    <span className="field__label">Store Description</span>
+                    {storeEditMode ? (
+                      <Input.TextArea
+                        rows={3}
+                        maxLength={600}
+                        showCount
+                        placeholder="Tell buyers about your store, what you sell, your story…"
+                        value={storeData.description}
+                        onChange={(e) => setStoreData((p) => ({ ...p, description: e.target.value }))}
+                      />
+                    ) : (
+                      <span className="field__value" style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                        {storeData.description || <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                </div>
+
+                <div style={{ marginTop: 24 }}>
+                  <p style={{ fontWeight: 600, fontSize: "0.88rem", color: "#333", marginBottom: 12 }}>Social Links</p>
+                  <div className="fields__grid">
+                    {[
+                      { key: "instagram", label: "Instagram username", placeholder: "@youraccount" },
+                      { key: "twitter", label: "Twitter / X username", placeholder: "@youraccount" },
+                      { key: "facebook", label: "Facebook page name", placeholder: "yourpage" },
+                      { key: "tiktok", label: "TikTok username", placeholder: "@youraccount" },
+                      { key: "website", label: "Website URL", placeholder: "https://yoursite.com" },
+                    ].map(({ key, label, placeholder }) => (
+                      <div className="field__item" key={key}>
+                        <span className="field__label">{label}</span>
+                        {storeEditMode ? (
+                          <Input
+                            placeholder={placeholder}
+                            value={storeData[key]}
+                            onChange={(e) => setStoreData((p) => ({ ...p, [key]: e.target.value }))}
+                          />
+                        ) : (
+                          <span className="field__value">
+                            {storeData[key] || <span className="field__empty">Not set</span>}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
       </SellersProfileWrapper>
-
     </DashboardLayout>
   );
 }

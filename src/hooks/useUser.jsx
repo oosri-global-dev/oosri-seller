@@ -11,15 +11,15 @@ export const useUser = () => {
     }, []);
 
     return useQuery({
-        queryKey: ["user", token],
+        queryKey: ["user"],
         queryFn: async () => {
             const res = await handleFetchUser();
             return res?.data?.data;
         },
         enabled: !!token,
-        staleTime: Infinity, // User profile doesn't change often
-        cacheTime: Infinity,
-        retry: false,
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
+        retry: 1,
     });
 };
 
