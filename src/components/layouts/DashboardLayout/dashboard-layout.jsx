@@ -18,7 +18,7 @@ import NotificationPanel from "@/components/lib/NotificationPanel";
 
 import { DashboardOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { GoStack as ProductsIcon } from "react-icons/go";
-import { HiOutlineShoppingBag as OrdersIcon, HiOutlineBellAlert as NotificationIcon, HiOutlineBanknotes as PayoutsIcon } from "react-icons/hi2";
+import { HiOutlineShoppingBag as OrdersIcon, HiOutlineBellAlert as NotificationIcon, HiOutlineBanknotes as PayoutsIcon, HiOutlineArrowPath as ReturnsIcon } from "react-icons/hi2";
 import { VscGraph as AnalyticsIcon } from "react-icons/vsc";
 import { BsPeopleFill as ProfileIcon, BsArrowLeft as BackIcon } from "react-icons/bs";
 import { IoMdLogOut as LogoutIcon } from "react-icons/io";
@@ -31,6 +31,7 @@ const MAIN_NAV = [
   { key: "/order",           icon: OrdersIcon,        label: "Orders",     href: "/order" },
   { key: "/sales-analytics", icon: AnalyticsIcon,     label: "Analytics",  href: "/sales-analytics" },
   { key: "/payouts",         icon: PayoutsIcon,       label: "Payouts",    href: "/payouts" },
+  { key: "/returns",         icon: ReturnsIcon,       label: "Returns",    href: "/returns" },
 ];
 
 const ACCOUNT_NAV = [
@@ -54,6 +55,7 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
     if (pathname.includes("/order"))   return "/order";
     if (pathname.includes("/sales") || pathname.includes("/analytics")) return "/sales-analytics";
     if (pathname.includes("/payouts")) return "/payouts";
+    if (pathname.includes("/returns")) return "/returns";
     if (pathname.includes("/profile") || pathname.includes("/sellers-profile")) return "/profile";
     if (pathname.includes("/kyc")) return "/kyc";
     return pathname;
@@ -213,6 +215,7 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
                   onRead={(id) => { markRead(id); }}
                   onMarkAllRead={() => { markAllRead(); }}
                   onDelete={(id) => { remove(id); }}
+                  onClose={() => setNotifOpen(false)}
                 />
               }
             >
