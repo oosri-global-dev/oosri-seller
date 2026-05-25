@@ -217,7 +217,7 @@ export default function SaleAnalytics() {
               <div className="kpi__top">
                 <div className="kpi__icon">{k.icon}</div>
               </div>
-              <div className="kpi__value">{isLoading ? "—" : k.value}</div>
+              <div className="kpi__value">{summaryLoading ? "—" : k.value}</div>
               <div className="kpi__label">{k.label}</div>
             </div>
           ))}
@@ -352,7 +352,7 @@ export default function SaleAnalytics() {
           <Table
             columns={recentColumns}
             dataSource={recentOrders}
-            loading={isLoading}
+            loading={ordersLoading}
             rowKey="id"
             onRow={(record) => ({
               onClick: () => push(`/order/${record.id}`),
