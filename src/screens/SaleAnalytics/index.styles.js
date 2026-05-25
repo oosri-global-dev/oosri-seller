@@ -71,6 +71,13 @@ export const SaleAnalyticsWrapper = styled.div`
       font-weight: 500;
       margin-top: -8px;
     }
+
+    .kpi__sub {
+      font-size: 0.7rem;
+      color: #ccc;
+      font-weight: 400;
+      margin-top: -6px;
+    }
   }
 
   /* ── Chart card ── */

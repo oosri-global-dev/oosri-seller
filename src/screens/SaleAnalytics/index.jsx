@@ -13,8 +13,7 @@ import {
   IoBagOutline as BagIcon,
   IoPersonOutline as PersonIcon,
 } from "react-icons/io5";
-import { HiOutlineCurrencyDollar as RevenueIcon } from "react-icons/hi2";
-import { VscGraph as TrendIcon } from "react-icons/vsc";
+import { HiOutlineCurrencyDollar as RevenueIcon, HiOutlineBanknotes as EarningsIcon } from "react-icons/hi2";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
 
@@ -91,12 +90,21 @@ export default function SaleAnalytics() {
 
   const isChartLoading = overviewLoading;
 
-  /* ── KPI metrics (backend summary preferred; fallback to local orders) ── */
-  const localRevenue = useMemo(() => orders.reduce((s, o) => s + (o.totalForSeller || 0), 0), [orders]);
-  const uniqueCustomers = useMemo(() => new Set(orders.map((o) => o.userId?._id).filter(Boolean)).size, [orders]);
-  const totalRevenue = summary.totalSales ?? localRevenue;
-  const totalOrders  = summary.totalOrders ?? orders.length;
-  const avgOrder     = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  /* ── KPI metrics ── */
+  // Compute gross sales from product line items (buyer-facing price)
+  const localGrossSales = useMemo(() =>
+    orders.reduce((s, o) =>
+      s + (o.products?.reduce((ps, p) => ps + (p.totalPrice || 0), 0) || 0), 0),
+    [orders]
+  );
+  const uniqueCustomers = useMemo(() =>
+    new Set(orders.map((o) => o.userId?._id).filter(Boolean)).size, [orders]);
+
+  // Backend summary.totalSales is gross; fall back to locally computed gross
+  const grossSales      = summary.totalSales ?? localGrossSales;
+  const sellerEarnings  = Number((grossSales * 0.85).toFixed(2));
+  const totalOrders     = summary.totalOrders ?? orders.length;
+  const avgOrderValue   = totalOrders > 0 ? grossSales / totalOrders : 0;
 
   /* ── Top / least selling products ── */
   const { topProduct, leastProduct } = useMemo(() => {
@@ -122,15 +130,19 @@ export default function SaleAnalytics() {
     [...orders]
       .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
       .slice(0, 5)
-      .map((o) => ({
-        key: o.id,
-        id: o.id,
-        orderId: `#${o.id?.slice(-6).toUpperCase()}`,
-        customer: o.userId?.fullName || "N/A",
-        amount: o.totalForSeller,
-        date: o.orderDate,
-        status: o.orderStatus,
-      })),
+      .map((o) => {
+        const subtotal = o.products?.reduce((s, p) => s + (p.totalPrice || 0), 0) || 0;
+        return {
+          key: o.id,
+          id: o.id,
+          orderId: `#${o.id?.slice(-6).toUpperCase()}`,
+          customer: o.userId?.fullName || "N/A",
+          amount: subtotal,
+          payout: Number((subtotal * 0.85).toFixed(2)),
+          date: o.orderDate,
+          status: o.orderStatus,
+        };
+      }),
     [orders]
   );
 
@@ -140,7 +152,7 @@ export default function SaleAnalytics() {
       dataIndex: "orderId",
       key: "orderId",
       render: (_) => (
-        <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: "0.84rem" }}>{_}</span>
+        <span style={{ fontFamily: "ui-monospace, monospace", fontWeight: 700, fontSize: "0.84rem" }}>{_}</span>
       ),
     },
     {
@@ -150,11 +162,19 @@ export default function SaleAnalytics() {
       render: (_) => <span style={{ fontWeight: 500 }}>{_}</span>,
     },
     {
-      title: "Amount",
+      title: "Order Total",
       dataIndex: "amount",
       key: "amount",
       render: (_) => (
-        <span style={{ fontWeight: 700 }}>₦{Number(_ || 0).toLocaleString()}</span>
+        <span style={{ fontWeight: 600, color: "#333" }}>₦{Number(_ || 0).toLocaleString()}</span>
+      ),
+    },
+    {
+      title: "Your Payout",
+      dataIndex: "payout",
+      key: "payout",
+      render: (_) => (
+        <span style={{ fontWeight: 700, color: "#16a34a" }}>₦{Number(_ || 0).toLocaleString()}</span>
       ),
     },
     {
@@ -177,32 +197,35 @@ export default function SaleAnalytics() {
     },
   ];
 
+  const fmt = (n) =>
+    n >= 1_000_000 ? `₦${(n / 1_000_000).toFixed(1)}M`
+    : n >= 1_000   ? `₦${(n / 1_000).toFixed(0)}K`
+    : `₦${Number(n).toLocaleString()}`;
+
   const kpis = [
     {
       icon: <RevenueIcon size={18} />,
-      value: `₦${totalRevenue >= 1000000
-        ? `${(totalRevenue / 1000000).toFixed(1)}M`
-        : totalRevenue >= 1000
-        ? `${(totalRevenue / 1000).toFixed(0)}K`
-        : totalRevenue.toLocaleString()}`,
-      label: "Total Revenue",
+      value: fmt(grossSales),
+      label: "Gross Sales",
+      sub: "Total buyer payments",
+    },
+    {
+      icon: <EarningsIcon size={18} />,
+      value: fmt(sellerEarnings),
+      label: "Your Earnings",
+      sub: "85% after platform fee",
     },
     {
       icon: <BagIcon size={18} />,
       value: totalOrders.toLocaleString(),
       label: "Total Orders",
+      sub: null,
     },
     {
       icon: <PersonIcon size={18} />,
       value: uniqueCustomers.toLocaleString(),
       label: "Unique Customers",
-    },
-    {
-      icon: <TrendIcon size={18} />,
-      value: `₦${avgOrder >= 1000
-        ? `${(avgOrder / 1000).toFixed(0)}K`
-        : avgOrder.toFixed(0)}`,
-      label: "Avg Order Value",
+      sub: null,
     },
   ];
 
@@ -217,8 +240,9 @@ export default function SaleAnalytics() {
               <div className="kpi__top">
                 <div className="kpi__icon">{k.icon}</div>
               </div>
-              <div className="kpi__value">{summaryLoading ? "—" : k.value}</div>
+              <div className="kpi__value">{summaryLoading || ordersLoading ? "—" : k.value}</div>
               <div className="kpi__label">{k.label}</div>
+              {k.sub && <div className="kpi__sub">{k.sub}</div>}
             </div>
           ))}
         </div>
@@ -227,12 +251,12 @@ export default function SaleAnalytics() {
         <div className="chart__card">
           <div className="chart__header">
             <div className="chart__title">
-              <h3>Revenue Overview</h3>
+              <h3>Sales Overview</h3>
               <p>
-                {period === "Monthly" && `Monthly revenue for ${new Date().getFullYear()}`}
-                {period === "Daily"   && "Today's revenue"}
-                {period === "Weekly"  && "Last 7 days"}
-                {period === "Yearly"  && "Year-on-year revenue"}
+                {period === "Monthly" && `Monthly gross sales · ${new Date().getFullYear()} · Avg order: ${fmt(avgOrderValue)}`}
+                {period === "Daily"   && `Today's gross sales · Avg order: ${fmt(avgOrderValue)}`}
+                {period === "Weekly"  && `Last 7 days · Avg order: ${fmt(avgOrderValue)}`}
+                {period === "Yearly"  && `Year-on-year · Avg order: ${fmt(avgOrderValue)}`}
               </p>
             </div>
             <div className="period__tabs">
