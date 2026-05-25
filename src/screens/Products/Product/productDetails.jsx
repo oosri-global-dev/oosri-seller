@@ -2,12 +2,39 @@ import { useState, useEffect } from "react";
 import { ProductDetailsWrapper } from "./product.styles";
 import { sanitizeHTML } from "@/utils/sanitize-dom";
 import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
-import { FiEdit2 } from "react-icons/fi";
+import { FiEdit2, FiAlertTriangle } from "react-icons/fi";
 import { AiFillStar as StarIcon } from "react-icons/ai";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
+import { MdOutlineInventory2 as StockIcon } from "react-icons/md";
+import { HiOutlineCurrencyDollar as PayoutIcon } from "react-icons/hi2";
 import { getProductReviews } from "@/network/product";
 
 const STATUS_LABELS = { active: "Active", flagged: "Flagged", hidden: "Hidden" };
+
+function StockIndicator({ qty }) {
+  const level = qty === 0 ? "out" : qty <= 5 ? "critical" : qty <= 20 ? "low" : "good";
+  const widthMap = { out: "0%", critical: "12%", low: "40%", good: "85%" };
+  const colorMap = { out: "#ef4444", critical: "#ef4444", low: "#f59e0b", good: "#16a34a" };
+  const labelMap = { out: "Out of stock", critical: "Critical — restock now", low: "Low stock", good: "In stock" };
+
+  return (
+    <div className="stock__indicator">
+      <div className="stock__bar__track">
+        <div
+          className="stock__bar__fill"
+          style={{ width: widthMap[level], background: colorMap[level] }}
+        />
+      </div>
+      <div className="stock__meta" style={{ color: colorMap[level] }}>
+        {level === "out" || level === "critical" ? (
+          <FiAlertTriangle size={12} />
+        ) : null}
+        <span>{labelMap[level]}</span>
+        <span className="stock__count">{qty} units</span>
+      </div>
+    </div>
+  );
+}
 
 function ProductReviewsCard({ productId }) {
   const [page, setPage]       = useState(1);
@@ -27,14 +54,25 @@ function ProductReviewsCard({ productId }) {
   const pagination = data?.pagination || {};
   const totalPages = pagination.totalPages || 1;
   const total      = pagination.total || 0;
+  const avgRating  = reviews.length
+    ? (reviews.reduce((s, r) => s + (r.productRating || 0), 0) / reviews.length).toFixed(1)
+    : null;
 
   return (
     <div className="detail__card">
       <div className="detail__card__header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3>Customer Reviews</h3>
-        {total > 0 && (
-          <span style={{ fontSize: "0.78rem", color: "#999" }}>{total} review{total !== 1 ? "s" : ""}</span>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {avgRating && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.82rem", fontWeight: 700, color: "#111" }}>
+              <StarIcon size={13} color="#FCCB1B" />
+              {avgRating}
+            </span>
+          )}
+          {total > 0 && (
+            <span style={{ fontSize: "0.78rem", color: "#999" }}>{total} review{total !== 1 ? "s" : ""}</span>
+          )}
+        </div>
       </div>
 
       <div className="detail__card__body" style={{ padding: "0 24px" }}>
@@ -105,14 +143,15 @@ export const ProductDetails = ({ data, setEdit }) => {
   const stockQty   = Number(data?.inStock ?? data?.quantity ?? 0);
 
   const sellingPrice  = data?.discountPrice || data?.regularPrice || 0;
-  const originalPrice = data?.discountPrice ? data?.regularPrice : null;
-  const discount      = originalPrice
-    ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100)
+  const originalPrice = data?.discountPrice && data?.regularPrice > data?.discountPrice
+    ? data?.regularPrice
     : null;
 
-  const estimatedPayout = Number(sellingPrice * 0.9).toLocaleString("en-NG", {
-    minimumFractionDigits: 0,
-  });
+  // Use stored sellerPayout from DB (set at create/update time), fall back to 85%
+  const payoutAmount  = data?.sellerPayout ?? Number((sellingPrice * 0.85).toFixed(2));
+  const platformFee   = Number((sellingPrice - payoutAmount).toFixed(2));
+
+  const stockLevel = stockQty === 0 ? "out" : stockQty <= 5 ? "critical" : stockQty <= 20 ? "low" : "good";
 
   return (
     <ProductDetailsWrapper>
@@ -169,9 +208,39 @@ export const ProductDetails = ({ data, setEdit }) => {
             {originalPrice && (
               <span className="price__old">₦{Number(originalPrice).toLocaleString()}</span>
             )}
-            {discount > 0 && (
-              <span className="discount__badge">-{discount}%</span>
-            )}
+          </div>
+
+          {/* ── Payout breakdown card ── */}
+          <div className="payout__breakdown">
+            <div className="payout__row">
+              <span className="payout__row__label">
+                <PayoutIcon size={14} />
+                Your Payout (85%)
+              </span>
+              <span className="payout__row__value green">₦{Number(payoutAmount).toLocaleString()}</span>
+            </div>
+            <div className="payout__row">
+              <span className="payout__row__label">Platform fee (15%)</span>
+              <span className="payout__row__value muted">₦{Number(platformFee).toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* ── Stock inventory ── */}
+          <div className="stock__section">
+            <div className="stock__header">
+              <span className="stock__title">
+                <StockIcon size={14} />
+                Inventory
+              </span>
+              <button className="edit__cta small" onClick={() => setEdit(true)}>
+                Update Stock
+              </button>
+            </div>
+            <div className="stock__qty__display">
+              <span className={`stock__number ${stockLevel}`}>{stockQty}</span>
+              <span className="stock__unit">units available</span>
+            </div>
+            <StockIndicator qty={stockQty} />
           </div>
 
           <div className="meta__grid">
@@ -188,15 +257,30 @@ export const ProductDetails = ({ data, setEdit }) => {
               <span className="meta__value">{data?.brandArtist || "—"}</span>
             </div>
             <div className="meta__item">
-              <span className="meta__label">Stock</span>
-              <span className="meta__value">{stockQty} units</span>
+              <span className="meta__label">Product Type</span>
+              <span className="meta__value">{data?.productType || "—"}</span>
             </div>
+            {data?.weight && (
+              <div className="meta__item">
+                <span className="meta__label">Weight</span>
+                <span className="meta__value">{data.weight} kg</span>
+              </div>
+            )}
+            {data?.sku && (
+              <div className="meta__item">
+                <span className="meta__label">SKU</span>
+                <span className="meta__value" style={{ fontFamily: "ui-monospace, monospace" }}>{data.sku}</span>
+              </div>
+            )}
           </div>
 
-          <div className="payout__info">
-            <span>Estimated payout (after fees)</span>
-            <strong>₦{estimatedPayout}</strong>
-          </div>
+          {data?.tags?.length > 0 && (
+            <div className="tags__row">
+              {data.tags.map((tag) => (
+                <span key={tag} className="tag__pill">{tag}</span>
+              ))}
+            </div>
+          )}
 
           <button className="edit__cta" onClick={() => setEdit(true)}>
             <FiEdit2 size={15} />

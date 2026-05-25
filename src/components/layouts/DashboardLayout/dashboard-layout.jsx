@@ -18,7 +18,7 @@ import NotificationPanel from "@/components/lib/NotificationPanel";
 
 import { DashboardOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { GoStack as ProductsIcon } from "react-icons/go";
-import { HiOutlineShoppingBag as OrdersIcon, HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
+import { HiOutlineShoppingBag as OrdersIcon, HiOutlineBellAlert as NotificationIcon, HiOutlineBanknotes as PayoutsIcon } from "react-icons/hi2";
 import { VscGraph as AnalyticsIcon } from "react-icons/vsc";
 import { BsPeopleFill as ProfileIcon, BsArrowLeft as BackIcon } from "react-icons/bs";
 import { IoMdLogOut as LogoutIcon } from "react-icons/io";
@@ -26,10 +26,11 @@ import { FiPlus as AddIcon, FiMenu as HamburgerIcon, FiX as CloseIcon } from "re
 import { MdVerifiedUser as KycIcon } from "react-icons/md";
 
 const MAIN_NAV = [
-  { key: "/dashboard",      icon: DashboardOutlined, label: "Dashboard",    href: "/dashboard",      isAntd: true },
-  { key: "/products",       icon: ProductsIcon,      label: "Products",     href: "/products" },
-  { key: "/order",          icon: OrdersIcon,        label: "Orders",       href: "/order" },
-  { key: "/sales-analytics", icon: AnalyticsIcon,   label: "Analytics",    href: "/sales-analytics" },
+  { key: "/dashboard",       icon: DashboardOutlined, label: "Dashboard",  href: "/dashboard",       isAntd: true },
+  { key: "/products",        icon: ProductsIcon,      label: "Products",   href: "/products" },
+  { key: "/order",           icon: OrdersIcon,        label: "Orders",     href: "/order" },
+  { key: "/sales-analytics", icon: AnalyticsIcon,     label: "Analytics",  href: "/sales-analytics" },
+  { key: "/payouts",         icon: PayoutsIcon,       label: "Payouts",    href: "/payouts" },
 ];
 
 const ACCOUNT_NAV = [
@@ -52,6 +53,7 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
     if (pathname.includes("/product")) return "/products";
     if (pathname.includes("/order"))   return "/order";
     if (pathname.includes("/sales") || pathname.includes("/analytics")) return "/sales-analytics";
+    if (pathname.includes("/payouts")) return "/payouts";
     if (pathname.includes("/profile") || pathname.includes("/sellers-profile")) return "/profile";
     if (pathname.includes("/kyc")) return "/kyc";
     return pathname;

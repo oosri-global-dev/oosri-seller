@@ -159,10 +159,10 @@ export default function SellerProfile() {
             if (resolved?.data) {
               setBankDetails((prev) => ({ ...prev, accountName: resolved.data.account_name }));
               setAccountResolved(true);
-              success("Account verified!");
+              if (isEditMode) success("Account verified!");
             }
           } catch (err) {
-            error("Could not verify account. Please check your inputs.");
+            if (isEditMode) error("Could not verify account. Please check your inputs.");
             setBankDetails((prev) => ({ ...prev, accountName: "" }));
           } finally {
             setIsResolvingAccount(false);
@@ -171,7 +171,7 @@ export default function SellerProfile() {
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [bankDetails.accountNumber, bankDetails.bank, banks]);
+  }, [bankDetails.accountNumber, bankDetails.bank, banks, isEditMode]);
 
   const initials =
     `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase() || "S";
