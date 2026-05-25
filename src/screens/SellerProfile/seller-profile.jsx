@@ -22,10 +22,14 @@ import {
 import { UpdateStoreProfile } from "@/network/profile";
 import { uploadProductImage } from "@/utils/cloudinary-upload";
 import { IoOpenOutline as PreviewIcon } from "react-icons/io5";
+import { useRouter } from "next/router";
 
 export default function SellerProfile() {
+  const router = useRouter();
+  const isSetupMode = router.query.setup === "store";
+
   const [file, setFile] = useState(null);
-  const [activeSection, setActiveSection] = useState("personal");
+  const [activeSection, setActiveSection] = useState(isSetupMode ? "store" : "personal");
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [success, error] = useNotification();
@@ -238,6 +242,9 @@ export default function SellerProfile() {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       success("Store profile saved successfully!");
       setStoreEditMode(false);
+      if (isSetupMode) {
+        router.replace("/profile", undefined, { shallow: true });
+      }
     } catch (err) {
       error("Failed to save store profile. Please try again.");
     } finally {
@@ -734,6 +741,25 @@ export default function SellerProfile() {
           {/* ── My Store ── */}
           {activeSection === "store" && (
             <div className="section__card">
+              {isSetupMode && (
+                <div style={{
+                  background: "#fff8e1",
+                  border: "1px solid #ffe082",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  marginBottom: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  fontSize: "0.88rem",
+                  color: "#7c5a00",
+                }}>
+                  <StoreIcon size={18} />
+                  <span>
+                    <strong>One last step —</strong> set your store name to unlock your dashboard. You only need to do this once.
+                  </span>
+                </div>
+              )}
               <div className="section__header">
                 <div className="header__left">
                   <h3>My Store</h3>
