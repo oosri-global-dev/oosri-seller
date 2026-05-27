@@ -166,7 +166,7 @@ export default function ReturnsScreen() {
           <div className="strip__divider" />
           <div className="strip__item">
             <span className="strip__num red">
-              {allReturns.filter((r) => ["seller_rejected", "admin_rejected"].includes(r.status)).length}
+              {allReturns.filter((r) => ["seller_rejected", "escalated", "admin_rejected"].includes(r.status)).length}
             </span>
             <span className="strip__label">Rejected</span>
           </div>
