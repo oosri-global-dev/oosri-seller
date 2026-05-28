@@ -20,7 +20,7 @@ import {
   IoStorefrontOutline as StoreIcon,
 } from "react-icons/io5";
 import { UpdateStoreProfile } from "@/network/profile";
-import { uploadProductImage } from "@/utils/cloudinary-upload";
+import { uploadBannerImage } from "@/utils/cloudinary-upload";
 import { IoOpenOutline as PreviewIcon } from "react-icons/io5";
 import { useRouter } from "next/router";
 
@@ -231,7 +231,7 @@ export default function SellerProfile() {
     website: user?.storeProfile?.socialLinks?.website || "",
   });
   const [isStoreLoading, setIsStoreLoading] = useState(false);
-  const [storeEditMode, setStoreEditMode] = useState(false);
+  const [storeEditMode, setStoreEditMode] = useState(isSetupMode);
   const [bannerUpload, setBannerUpload] = useState({ uploading: false, progress: 0, stage: "idle", error: null });
   const queryClient = useQueryClient();
   const storeEditModeRef = useRef(storeEditMode);
@@ -255,7 +255,7 @@ export default function SellerProfile() {
   const handleBannerFileSelected = async (file) => {
     setBannerUpload({ uploading: true, progress: 0, stage: "compressing", error: null });
     try {
-      const result = await uploadProductImage(file, {
+      const result = await uploadBannerImage(file, {
         onProgress: (pct) => setBannerUpload((p) => ({ ...p, progress: pct })),
         onStageChange: (stage) => setBannerUpload((p) => ({ ...p, stage })),
       });
@@ -813,7 +813,7 @@ export default function SellerProfile() {
                   {storeData.storeName && (
                     <a
                       className="edit__btn"
-                      href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL || "http://localhost:3000"}/store/${storeData.storeName}`}
+                      href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL || "https://oosri.com"}/store/${storeData.storeName}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}
