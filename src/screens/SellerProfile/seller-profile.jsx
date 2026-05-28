@@ -1,7 +1,8 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { SellersProfileWrapper } from "./seller-profile.styles";
 import { DatePicker, Input } from "antd";
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import TextField from "@/components/lib/TextField";
 import Select from "@/components/lib/Select";
 import { CustomUpload } from "@/components/lib/CustomUpload";
@@ -16,11 +17,19 @@ import {
   IoWalletOutline as BankIcon,
   IoBriefcaseOutline as BusinessIcon,
   IoCreateOutline as EditIcon,
+  IoStorefrontOutline as StoreIcon,
 } from "react-icons/io5";
+import { UpdateStoreProfile } from "@/network/profile";
+import { uploadProductImage } from "@/utils/cloudinary-upload";
+import { IoOpenOutline as PreviewIcon } from "react-icons/io5";
+import { useRouter } from "next/router";
 
 export default function SellerProfile() {
+  const router = useRouter();
+  const isSetupMode = router.query.setup === "store";
+
   const [file, setFile] = useState(null);
-  const [activeSection, setActiveSection] = useState("personal");
+  const [activeSection, setActiveSection] = useState(isSetupMode ? "store" : "personal");
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [success, error] = useNotification();
@@ -33,36 +42,42 @@ export default function SellerProfile() {
   const [companyCertificate, setCompantCertificate] = useState(null);
 
   const [bankDetails, setBankDetails] = useState({
-    accountName: user?.bankDetails?.accountName,
-    bank: user?.bankDetails?.bank,
-    accountNumber: user?.bankDetails?.accountNumber,
+    accountName: user?.bankDetails?.accountName || "",
+    bank: user?.bankDetails?.bank || "",
+    accountNumber: user?.bankDetails?.accountNumber || "",
   });
 
   const [businessData, setBusinessData] = useState({
-    name: user?.corporateBusinessAccount?.companyName,
-    regNum: user?.corporateBusinessAccount?.companyRegNum,
-    address: user?.corporateBusinessAccount?.companyAddress,
-    companyCertificate: user?.corporateBusinessAccount?.vatCertificate,
-    businessCertificate: user?.corporateBusinessAccount?.companyCertificate,
-    businessType: user?.businessType,
+    name: user?.corporateBusinessAccount?.companyName || "",
+    regNum: user?.corporateBusinessAccount?.companyRegNum || "",
+    address: user?.corporateBusinessAccount?.companyAddress || "",
+    companyCertificate: user?.corporateBusinessAccount?.vatCertificate || "",
+    businessCertificate: user?.corporateBusinessAccount?.companyCertificate || "",
+    businessType: user?.businessType || "",
   });
 
   const [profileData, setProfileData] = useState({
-    lastName: user?.lastName,
-    firstName: user?.firstName,
-    email: user?.email,
-    phone_number: user?.phone_number,
+    lastName: user?.lastName || "",
+    firstName: user?.firstName || "",
+    email: user?.email || "",
+    phone_number: user?.phone_number || "",
     personalBusinessAccount: {
-      residentialAddress: user?.personalBusinessAccount?.residentialAddress,
-      dateOfBirth: user?.personalBusinessAccount?.dateOfBirth,
-      countryIdentificationCard: user?.personalBusinessAccount?.countryIdentificationCard,
+      residentialAddress: user?.personalBusinessAccount?.residentialAddress || "",
+      dateOfBirth: user?.personalBusinessAccount?.dateOfBirth || null,
+      countryIdentificationCard: user?.personalBusinessAccount?.countryIdentificationCard || "",
     },
-    country: user?.country,
+    country: user?.country || "",
   });
 
   const [banks, setBanks] = useState([]);
   const [isResolvingAccount, setIsResolvingAccount] = useState(false);
   const [accountResolved, setAccountResolved] = useState(false);
+  // Tracks whether the user manually changed bank fields during an edit session
+  const [bankFieldsDirty, setBankFieldsDirty] = useState(false);
+
+  // Ref so sync effects can check whether a section is being actively edited
+  const isEditModeRef = useRef(isEditMode);
+  useEffect(() => { isEditModeRef.current = isEditMode; }, [isEditMode]);
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
@@ -70,6 +85,7 @@ export default function SellerProfile() {
     setPayload(undefined);
     setCompantCertificate(null);
     setVatCertificate(null);
+    setBankFieldsDirty(false);
   };
 
   const handleDataUpdate = async (p) => {
@@ -135,7 +151,41 @@ export default function SellerProfile() {
       .catch(console.error);
   }, []);
 
+  // Sync all form states when user data arrives/changes — but never overwrite an active edit
   useEffect(() => {
+    if (!user?._id) return;
+    if (!isEditModeRef.current) {
+      setProfileData({
+        lastName:    user.lastName    || "",
+        firstName:   user.firstName   || "",
+        email:       user.email       || "",
+        phone_number: user.phone_number || "",
+        personalBusinessAccount: {
+          residentialAddress:         user.personalBusinessAccount?.residentialAddress         || "",
+          dateOfBirth:                user.personalBusinessAccount?.dateOfBirth                || null,
+          countryIdentificationCard:  user.personalBusinessAccount?.countryIdentificationCard  || "",
+        },
+        country: user.country || "",
+      });
+      setBankDetails({
+        accountName:   user.bankDetails?.accountName   || "",
+        bank:          user.bankDetails?.bank          || "",
+        accountNumber: user.bankDetails?.accountNumber || "",
+      });
+      setBusinessData({
+        name:                user.corporateBusinessAccount?.companyName        || "",
+        regNum:              user.corporateBusinessAccount?.companyRegNum      || "",
+        address:             user.corporateBusinessAccount?.companyAddress     || "",
+        companyCertificate:  user.corporateBusinessAccount?.vatCertificate    || "",
+        businessCertificate: user.corporateBusinessAccount?.companyCertificate || "",
+        businessType:        user.businessType || "",
+      });
+    }
+  }, [user]);
+
+  // Bank account resolution — only runs when user explicitly edits bank fields
+  useEffect(() => {
+    if (!isEditMode || !bankFieldsDirty) return;
     setAccountResolved(false);
     const timer = setTimeout(async () => {
       if (bankDetails.accountNumber?.length === 10 && bankDetails.bank) {
@@ -157,17 +207,92 @@ export default function SellerProfile() {
             setBankDetails((prev) => ({ ...prev, accountName: "" }));
           } finally {
             setIsResolvingAccount(false);
+            setBankFieldsDirty(false);
           }
         }
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [bankDetails.accountNumber, bankDetails.bank, banks]);
+  }, [bankDetails.accountNumber, bankDetails.bank, bankFieldsDirty, isEditMode, banks]);
 
   const initials =
     `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase() || "S";
   const fullName =
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Seller";
+
+  const [storeData, setStoreData] = useState({
+    storeName: user?.storeProfile?.storeName || "",
+    bannerImage: user?.storeProfile?.bannerImage || "",
+    description: user?.storeProfile?.description || "",
+    instagram: user?.storeProfile?.socialLinks?.instagram || "",
+    twitter: user?.storeProfile?.socialLinks?.twitter || "",
+    facebook: user?.storeProfile?.socialLinks?.facebook || "",
+    tiktok: user?.storeProfile?.socialLinks?.tiktok || "",
+    website: user?.storeProfile?.socialLinks?.website || "",
+  });
+  const [isStoreLoading, setIsStoreLoading] = useState(false);
+  const [storeEditMode, setStoreEditMode] = useState(false);
+  const [bannerUpload, setBannerUpload] = useState({ uploading: false, progress: 0, stage: "idle", error: null });
+  const queryClient = useQueryClient();
+  const storeEditModeRef = useRef(storeEditMode);
+  useEffect(() => { storeEditModeRef.current = storeEditMode; }, [storeEditMode]);
+
+  useEffect(() => {
+    if (user?.storeProfile && !storeEditModeRef.current) {
+      setStoreData({
+        storeName: user.storeProfile.storeName || "",
+        bannerImage: user.storeProfile.bannerImage || "",
+        description: user.storeProfile.description || "",
+        instagram: user.storeProfile.socialLinks?.instagram || "",
+        twitter: user.storeProfile.socialLinks?.twitter || "",
+        facebook: user.storeProfile.socialLinks?.facebook || "",
+        tiktok: user.storeProfile.socialLinks?.tiktok || "",
+        website: user.storeProfile.socialLinks?.website || "",
+      });
+    }
+  }, [user]);
+
+  const handleBannerFileSelected = async (file) => {
+    setBannerUpload({ uploading: true, progress: 0, stage: "compressing", error: null });
+    try {
+      const result = await uploadProductImage(file, {
+        onProgress: (pct) => setBannerUpload((p) => ({ ...p, progress: pct })),
+        onStageChange: (stage) => setBannerUpload((p) => ({ ...p, stage })),
+      });
+      setStoreData((p) => ({ ...p, bannerImage: result.secureUrl }));
+      setBannerUpload({ uploading: false, progress: 100, stage: "completed", error: null });
+    } catch (err) {
+      setBannerUpload({ uploading: false, progress: 0, stage: "failed", error: err.message });
+    }
+  };
+
+  const handleSaveStore = async () => {
+    setIsStoreLoading(true);
+    try {
+      await UpdateStoreProfile({
+        storeName: storeData.storeName,
+        bannerImage: storeData.bannerImage,
+        description: storeData.description,
+        socialLinks: {
+          instagram: storeData.instagram,
+          twitter: storeData.twitter,
+          facebook: storeData.facebook,
+          tiktok: storeData.tiktok,
+          website: storeData.website,
+        },
+      }, user?._id);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      success("Store profile saved successfully!");
+      setStoreEditMode(false);
+      if (isSetupMode) {
+        router.replace("/profile", undefined, { shallow: true });
+      }
+    } catch (err) {
+      error("Failed to save store profile. Please try again.");
+    } finally {
+      setIsStoreLoading(false);
+    }
+  };
 
   const navItems = [
     { key: "personal",  label: "Personal Info",     icon: <PersonIcon size={16} /> },
@@ -175,6 +300,7 @@ export default function SellerProfile() {
     ...(isCorporate
       ? [{ key: "business", label: "Business Details", icon: <BusinessIcon size={16} /> }]
       : []),
+    { key: "store", label: "My Store", icon: <StoreIcon size={16} /> },
   ];
 
   return (
@@ -445,7 +571,7 @@ export default function SellerProfile() {
                 <div className="header__actions">
                   {isEditMode ? (
                     <>
-                      <button className="edit__btn cancel" onClick={() => setIsEditMode(false)}>
+                      <button className="edit__btn cancel" onClick={() => { setIsEditMode(false); setBankFieldsDirty(false); }}>
                         Cancel
                       </button>
                       <button
@@ -473,9 +599,10 @@ export default function SellerProfile() {
                         <TextField
                           placeholder="10-digit account number"
                           defaultValue={bankDetails.accountNumber}
-                          onChange={(e) =>
-                            setBankDetails((prev) => ({ ...prev, accountNumber: e.target.value }))
-                          }
+                          onChange={(e) => {
+                            setBankDetails((prev) => ({ ...prev, accountNumber: e.target.value }));
+                            setBankFieldsDirty(true);
+                          }}
                         />
                         {isResolvingAccount && (
                           <span className="resolve__hint resolving">Verifying account…</span>
@@ -500,9 +627,10 @@ export default function SellerProfile() {
                         defaultValue={bankDetails.bank}
                         bgColor="#FAFAFA"
                         height="40px"
-                        onChange={(val) =>
-                          setBankDetails((prev) => ({ ...prev, bank: val }))
-                        }
+                        onChange={(val) => {
+                          setBankDetails((prev) => ({ ...prev, bank: val }));
+                          setBankFieldsDirty(true);
+                        }}
                       >
                         {banks.map((bank) => (
                           <Select.Option key={bank.code} value={bank.name}>
@@ -648,6 +776,178 @@ export default function SellerProfile() {
                       editable={isEditMode}
                       initialImage={businessData.businessCertificate}
                     />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── My Store ── */}
+          {activeSection === "store" && (
+            <div className="section__card">
+              {isSetupMode && (
+                <div style={{
+                  background: "#fff8e1",
+                  border: "1px solid #ffe082",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  marginBottom: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  fontSize: "0.88rem",
+                  color: "#7c5a00",
+                }}>
+                  <StoreIcon size={18} />
+                  <span>
+                    <strong>One last step —</strong> set your store name to unlock your dashboard. You only need to do this once.
+                  </span>
+                </div>
+              )}
+              <div className="section__header">
+                <div className="header__left">
+                  <h3>My Store</h3>
+                  <p>Customise your public storefront on Oosri</p>
+                </div>
+                <div className="header__actions">
+                  {storeData.storeName && (
+                    <a
+                      className="edit__btn"
+                      href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL || "http://localhost:3000"}/store/${storeData.storeName}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}
+                    >
+                      <PreviewIcon size={13} /> Preview Store
+                    </a>
+                  )}
+                  {storeEditMode ? (
+                    <>
+                      <button className="edit__btn cancel" onClick={() => setStoreEditMode(false)}>
+                        Cancel
+                      </button>
+                      <button
+                        className="edit__btn save"
+                        onClick={handleSaveStore}
+                        disabled={isStoreLoading || bannerUpload.uploading}
+                      >
+                        {isStoreLoading ? "Saving…" : "Save Changes"}
+                      </button>
+                    </>
+                  ) : (
+                    <button className="edit__btn" onClick={() => setStoreEditMode(true)}>
+                      <EditIcon size={13} /> Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="section__body">
+                <div className="fields__grid">
+
+                  <div className="field__item full__width">
+                    <span className="field__label">Store URL Name</span>
+                    {storeEditMode ? (
+                      <>
+                        <Input
+                          placeholder="e.g. adire-studio (used in your public store URL)"
+                          value={storeData.storeName}
+                          onChange={(e) => setStoreData((p) => ({ ...p, storeName: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
+                          prefix={<span style={{ color: "#aaa", fontSize: "0.8rem" }}>oosri.com/store/</span>}
+                        />
+                        <span style={{ fontSize: "0.78rem", color: "#999", marginTop: 4, display: "block" }}>
+                          Only lowercase letters, numbers, and hyphens. This is your unique store URL.
+                        </span>
+                      </>
+                    ) : (
+                      <span className="field__value">
+                        {storeData.storeName
+                          ? <span style={{ color: "var(--oosriPrimary)" }}>oosri.com/store/{storeData.storeName}</span>
+                          : <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item full__width">
+                    <span className="field__label">Store Banner</span>
+                    {storeEditMode ? (
+                      <div>
+                        <div style={{ borderRadius: 10, overflow: "hidden", height: 140, background: "#f5f5f5", marginBottom: 8 }}>
+                          <CustomUpload
+                            editable
+                            initialImage={storeData.bannerImage || null}
+                            uploadedUrl={bannerUpload.stage === "completed" ? storeData.bannerImage : null}
+                            uploading={bannerUpload.uploading}
+                            uploadProgress={bannerUpload.progress}
+                            uploadStage={bannerUpload.stage}
+                            uploadError={bannerUpload.error}
+                            onFileSelected={handleBannerFileSelected}
+                          />
+                        </div>
+                        <span style={{ fontSize: "0.78rem", color: "#999" }}>
+                          Recommended: 1500 × 400px, JPG or PNG. Max 80 MB.
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="field__value">
+                        {storeData.bannerImage ? (
+                          <img
+                            src={storeData.bannerImage}
+                            alt="Store banner"
+                            style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 8, display: "block" }}
+                          />
+                        ) : (
+                          <span className="field__empty">No banner set</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="field__item full__width">
+                    <span className="field__label">Store Description</span>
+                    {storeEditMode ? (
+                      <Input.TextArea
+                        rows={3}
+                        maxLength={600}
+                        showCount
+                        placeholder="Tell buyers about your store, what you sell, your story…"
+                        value={storeData.description}
+                        onChange={(e) => setStoreData((p) => ({ ...p, description: e.target.value }))}
+                      />
+                    ) : (
+                      <span className="field__value" style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                        {storeData.description || <span className="field__empty">Not set</span>}
+                      </span>
+                    )}
+                  </div>
+
+                </div>
+
+                <div style={{ marginTop: 24 }}>
+                  <p style={{ fontWeight: 600, fontSize: "0.88rem", color: "#333", marginBottom: 12 }}>Social Links</p>
+                  <div className="fields__grid">
+                    {[
+                      { key: "instagram", label: "Instagram username", placeholder: "@youraccount" },
+                      { key: "twitter", label: "Twitter / X username", placeholder: "@youraccount" },
+                      { key: "facebook", label: "Facebook page name", placeholder: "yourpage" },
+                      { key: "tiktok", label: "TikTok username", placeholder: "@youraccount" },
+                      { key: "website", label: "Website URL", placeholder: "https://yoursite.com" },
+                    ].map(({ key, label, placeholder }) => (
+                      <div className="field__item" key={key}>
+                        <span className="field__label">{label}</span>
+                        {storeEditMode ? (
+                          <Input
+                            placeholder={placeholder}
+                            value={storeData[key]}
+                            onChange={(e) => setStoreData((p) => ({ ...p, [key]: e.target.value }))}
+                          />
+                        ) : (
+                          <span className="field__value">
+                            {storeData[key] || <span className="field__empty">Not set</span>}
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

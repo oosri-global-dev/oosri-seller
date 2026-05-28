@@ -188,7 +188,7 @@ export default function DashboardScreen() {
   return (
     <DashboardLayout>
       {isLoading ? (
-        <CustomLoader customHeight="60vh" />
+        <CustomLoader customHeight="calc(100dvh - 130px)" />
       ) : (
         <DashboardWrapper>
 

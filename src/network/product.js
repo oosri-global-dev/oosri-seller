@@ -20,7 +20,6 @@ export const filterAllProducts = async (params = {}) => {
         limit: params.limit || 10,
       },
     });
-    console.log("Filtered Products Data:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error filtering products:", error);
@@ -72,5 +71,11 @@ export const searchProduct = async (searchTerm) => {
     console.error("Error filtering products:", error);
     throw error;
   }
+};
 
-} 
+export const getProductReviews = async (productId, page = 1, limit = 10) => {
+  const { data } = await instance.get(`/products/seller/${productId}/reviews`, {
+    params: { page, limit },
+  });
+  return data;
+}; 

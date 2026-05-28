@@ -7,7 +7,7 @@ import { MainProvider } from "@/context";
 import AppWrapper from "@/components/app-wrapper/AppWrapper";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { App as AntdApp } from "antd";
+import { App as AntApp } from 'antd';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,17 +20,17 @@ const queryClient = new QueryClient({
   },
 });
 
-function AppContent({ Component, pageProps }) {
+function OnlineGuard() {
   const [isOnline] = useOnlineStatus();
   const [, error] = useNotification();
-
   useEffect(() => {
-    if (!isOnline) {
-      error("You are offline.");
-    }
+    if (!isOnline) error("You are offline.");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline]);
+  return null;
+}
 
+export default function App({ Component, pageProps }) {
   useEffect(() => {
     const bootLoader = document.getElementById("oosri-boot-loader");
     if (!bootLoader) return undefined;
@@ -50,20 +50,15 @@ function AppContent({ Component, pageProps }) {
   }, []);
 
   return (
-    <AppWrapper>
-      <Component {...pageProps} />
-    </AppWrapper>
-  );
-}
-
-export default function App({ Component, pageProps }) {
-  return (
     <MainProvider>
       <QueryClientProvider client={queryClient}>
-        <AntdApp>
-          <AppContent Component={Component} pageProps={pageProps} />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </AntdApp>
+        <AntApp>
+          <OnlineGuard />
+          <AppWrapper>
+            <Component {...pageProps} />
+          </AppWrapper>
+          {process.env.NODE_ENV !== 'production' && <ReactQueryDevtools initialIsOpen={false} />}
+        </AntApp>
       </QueryClientProvider>
     </MainProvider>
   );

@@ -3,64 +3,64 @@
 import DashboardLayout from '@/components/layouts/DashboardLayout/dashboard-layout'
 import { OrderWrapper } from './orders.styles'
 import { Table } from 'antd'
-import { IoSearchOutline as SearchIcon } from 'react-icons/io5'
-import { FiEye } from 'react-icons/fi'
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { useOrderTableData } from '@/utils/order-helpers'
+import { useRouter } from 'next/router'
+import { useState, useMemo } from 'react'
+import { MdOutlineSearch as SearchIcon } from 'react-icons/md'
 import dayjs from 'dayjs'
 
-const STATUS_TABS = ['All', 'Pending', 'Processing', 'Sent for Pickup', 'Delivered', 'Cancelled']
+const STATUS_TABS = ['All', 'Pending', 'Processing', 'Delivered', 'Cancelled']
 
 const getStatusClass = (status = '') => {
   const s = status.toLowerCase()
-  if (s === 'pending')       return 'pending'
-  if (s === 'processing')    return 'processing'
-  if (s.includes('pickup'))  return 'pickup'
-  if (s === 'delivered')     return 'delivered'
-  if (s === 'cancelled')     return 'cancelled'
+  if (s === 'pending')        return 'pending'
+  if (s === 'processing')     return 'processing'
+  if (s.includes('pickup'))   return 'pickup'
+  if (s === 'delivered')      return 'delivered'
+  if (s === 'cancelled')      return 'cancelled'
   return 'default'
 }
 
 const getPaymentClass = (status = '') => {
-  const s = status.toLowerCase()
-  if (s === 'paid')             return 'paid'
-  if (s.includes('delivery'))   return 'pod'
+  const s = status?.toLowerCase() || ''
+  if (s === 'paid')           return 'paid'
+  if (s.includes('delivery')) return 'pod'
   return 'pending'
 }
 
 export default function OrderScreen() {
-  const [searchTerm, setSearchTerm]     = useState('')
-  const [activeStatus, setActiveStatus] = useState('All')
-  const { dataSource, isLoading }       = useOrderTableData()
-  const { push }                        = useRouter()
+  const { dataSource, isLoading } = useOrderTableData()
+  const router = useRouter()
+  const [search, setSearch] = useState('')
+  const [activeTab, setActiveTab] = useState('All')
 
   const filtered = useMemo(() => {
     let rows = dataSource
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase()
-      rows = rows.filter(r =>
-        r.customer?.toLowerCase().includes(q) ||
-        r.orderId?.toLowerCase().includes(q)
+    if (activeTab !== 'All') {
+      rows = rows.filter((r) =>
+        r.status?.toLowerCase().includes(activeTab.toLowerCase())
       )
     }
-    if (activeStatus !== 'All') {
-      rows = rows.filter(r =>
-        r.status?.toLowerCase() === activeStatus.toLowerCase()
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      rows = rows.filter(
+        (r) =>
+          r.orderId?.toLowerCase().includes(q) ||
+          r.customer?.toLowerCase().includes(q)
       )
     }
     return rows
-  }, [dataSource, searchTerm, activeStatus])
+  }, [dataSource, activeTab, search])
 
-  const columns = useMemo(() => [
+  const columns = [
     {
-      title: 'Order ID',
+      title: 'Order',
       dataIndex: 'orderId',
       key: 'orderId',
-      render: (_, obj) => (
+      render: (_, row) => (
         <div className="order__id__cell">
-          <p className="order__code">{obj.orderId}</p>
-          <p className="item__count">{obj.itemNum} item{obj.itemNum !== 1 ? 's' : ''}</p>
+          <span className="order__code">{row.orderId}</span>
+          <span className="item__count">{row.itemNum} item{row.itemNum !== 1 ? 's' : ''}</span>
         </div>
       ),
     },
@@ -68,22 +68,38 @@ export default function OrderScreen() {
       title: 'Customer',
       dataIndex: 'customer',
       key: 'customer',
-      render: (_) => <span className="customer__cell">{_ || '—'}</span>,
-    },
-    {
-      title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (_) => <span className="amount__cell">₦{Number(_ || 0).toLocaleString()}</span>,
-      sorter: (a, b) => a.amount - b.amount,
+      render: (val) => <span className="customer__cell">{val}</span>,
     },
     {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      render: (_) => (
+      render: (val) => (
         <span className="date__cell">
-          {_ ? dayjs(_).format('MMM D, YYYY') : '—'}
+          {val ? dayjs(val).format('MMM D, YYYY') : '—'}
+          <br />
+          <span style={{ fontSize: '0.72rem', color: '#ccc' }}>
+            {val ? dayjs(val).format('h:mm A') : ''}
+          </span>
+        </span>
+      ),
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (val) => (
+        <span className="amount__cell">₦{Number(val || 0).toLocaleString()}</span>
+      ),
+      sorter: (a, b) => a.amount - b.amount,
+    },
+    {
+      title: 'Payment',
+      dataIndex: 'paymentStatus',
+      key: 'paymentStatus',
+      render: (val) => (
+        <span className={`payment__badge ${getPaymentClass(val)}`}>
+          {val || 'Pending'}
         </span>
       ),
     },
@@ -91,32 +107,29 @@ export default function OrderScreen() {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (_) => (
-        <span className={`status__badge ${getStatusClass(_)}`}>{_ || '—'}</span>
-      ),
-    },
-    {
-      title: 'Payment',
-      dataIndex: 'paymentStatus',
-      key: 'paymentStatus',
-      render: (_) => (
-        <span className={`payment__badge ${getPaymentClass(_)}`}>{_ || '—'}</span>
+      render: (val) => (
+        <span className={`status__badge ${getStatusClass(val)}`}>
+          {val || 'Pending'}
+        </span>
       ),
     },
     {
       title: '',
-      key: 'actions',
-      render: (_, obj) => (
+      key: 'action',
+      width: 80,
+      render: (_, row) => (
         <button
           className="view__btn"
-          onClick={(e) => { e.stopPropagation(); push(`/order/${obj.id}`) }}
+          onClick={(e) => {
+            e.stopPropagation()
+            router.push(`/order/${row.id}`)
+          }}
         >
-          <FiEye size={13} />
           View
         </button>
       ),
     },
-  ], [push])
+  ]
 
   return (
     <DashboardLayout title="Orders">
@@ -125,20 +138,20 @@ export default function OrderScreen() {
         {/* ── Toolbar ── */}
         <div className="toolbar">
           <div className="search__wrap">
-            <SearchIcon size={15} className="search__icon" />
+            <span className="search__icon"><SearchIcon size={15} /></span>
             <input
               className="search__input"
-              placeholder="Search by customer or order ID…"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search order ID or customer…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className="status__tabs">
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab}
-                className={`tab__pill${activeStatus === tab ? ' active' : ''}`}
-                onClick={() => setActiveStatus(tab)}
+                className={`tab__pill${activeTab === tab ? ' active' : ''}`}
+                onClick={() => setActiveTab(tab)}
               >
                 {tab}
               </button>
@@ -154,22 +167,22 @@ export default function OrderScreen() {
             loading={isLoading}
             rowKey="id"
             onRow={(record) => ({
-              onClick: () => push(`/order/${record.id}`),
+              onClick: () => router.push(`/order/${record.id}`),
               style: { cursor: 'pointer' },
             })}
             pagination={{
-              pageSize: 10,
-              showTotal: (total, range) =>
-                `${range[0]}–${range[1]} of ${total} orders`,
+              pageSize: 20,
+              showSizeChanger: false,
+              showTotal: (total) => `${total} order${total !== 1 ? 's' : ''}`,
             }}
             locale={{
               emptyText: (
                 <div className="empty__state">
                   <p className="empty__title">No orders found</p>
                   <p className="empty__sub">
-                    {activeStatus !== 'All'
-                      ? `No ${activeStatus.toLowerCase()} orders yet.`
-                      : 'Orders placed by buyers will appear here.'}
+                    {search || activeTab !== 'All'
+                      ? 'Try adjusting your search or filter'
+                      : 'Orders will appear here once buyers purchase your products'}
                   </p>
                 </div>
               ),

@@ -1,17 +1,23 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
-import { AllProductsWrapper } from "./all-products.styles";
-import { FlexibleDiv } from "@/components/lib/Box/styles";
+import { AllProductsWrapper, PopoverMenu } from "./all-products.styles";
 import { Table, Switch, Popover } from "antd";
 import Button from "@/components/lib/Button";
 import { IoSearchOutline as SearchIcon } from "react-icons/io5";
 import { LuArrowUpDown as FilterArrow } from "react-icons/lu";
-import { FiEye, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { HiOutlineEllipsisHorizontal as EllipsisIcon } from "react-icons/hi2";
+import { MdOutlineEdit as EditIcon } from "react-icons/md";
+import { RiDeleteBinLine as DeleteIcon } from "react-icons/ri";
+import { HiOutlineEye as ViewIcon } from "react-icons/hi2";
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useMainContext } from "@/context";
 import { useRouter } from "next/router";
+import { isBusinessActive } from "@/utils/business-checker";
+import { NO_BUSINESS_MODAL } from "@/context/types";
 import { deleteProduct, toggleProductVisibility } from "@/network/product";
 import { StyledModal } from "@/components/lib/NoBusinessModal/index.styles";
 import { useProducts } from "@/hooks/useProducts";
 import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
+import { FlexibleDiv } from "@/components/lib/Box/styles";
 
 const normalizeProducts = (data) => {
   if (!data || !Array.isArray(data)) return [];
@@ -19,248 +25,225 @@ const normalizeProducts = (data) => {
     key: item._id || item.objectID || index,
     _id: item._id || item.objectID,
     productName: item.productName,
-    images: item.images || [],
     brandArtist: item.brandArtist || item.artist || "",
+    images: item.images || [],
+    productId: item.productId || item.product || "",
     regularPrice: item.regularPrice || item.price || 0,
-    discountPrice: item.discountPrice || null,
-    stockQty: Number(item.inStock ?? item.quantity ?? 0),
-    inStock: Number(item.inStock ?? item.quantity ?? 0) > 0,
+    inStock: Boolean(item.inStock ?? item.quantity),
     isVisible: item.isVisible ?? item.isApproved ?? false,
   }));
 };
 
-const StockBadge = ({ qty }) => {
-  const isOut  = qty === 0;
-  const isLow  = qty > 0 && qty < 5;
-  const label  = isOut ? "Out of Stock" : isLow ? "Low Stock" : "In Stock";
-  const colors = isOut
-    ? { bg: "#fef2f2", color: "#dc2626", border: "#fca5a5" }
-    : isLow
-    ? { bg: "#fffbeb", color: "#d97706", border: "#fcd34d" }
-    : { bg: "#f0fdf4", color: "#16a34a", border: "#86efac" };
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ fontWeight: 700, fontSize: "0.88rem", color: "#1a1a1a" }}>{qty}</span>
-      <span style={{
-        background: colors.bg, color: colors.color,
-        border: `1px solid ${colors.border}`,
-        padding: "2px 8px", borderRadius: 20,
-        fontSize: "0.7rem", fontWeight: 600, whiteSpace: "nowrap",
-      }}>
-        {label}
-      </span>
-    </div>
-  );
-};
+const formatNGN = (amount) =>
+  new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(amount);
+
+const SORT_OPTIONS = [
+  { label: "Newest First",       value: "newest" },
+  { label: "Oldest First",       value: "oldest" },
+  { label: "Price: Low to High", value: "price_asc" },
+  { label: "Price: High to Low", value: "price_desc" },
+];
 
 export default function AllProductsScreen() {
+  const { push } = useRouter();
+  const { dispatch, state: { user } } = useMainContext();
+
   const [openModal, setOpenModal]   = useState(false);
   const [modalError, setModalError] = useState(false);
-  const [editModal, setEditModal]   = useState(true);
-  const [deleteId, setDeleteId]     = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteId, setDeleteId]     = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [toggleLoading, setToggleLoading] = useState({});
 
   const [filters, setFilters] = useState({
     keyword: "",
-    category: "",
-    minPrice: undefined,
-    maxPrice: undefined,
     limit: 10,
-    sortBy: "oldest",
+    sortBy: "newest",
     page: 1,
   });
 
   const { data, isLoading, refetch } = useProducts(filters, searchTerm);
-  const { push } = useRouter();
-
-  const allProducts       = data?.data?.data || data?.data || [];
-  const pagination        = data?.data?.pagination || data?.pagination || {};
+  const allProducts = data?.data?.data || data?.data || [];
+  const pagination  = data?.data?.pagination || data?.pagination || {};
   const structuredProducts = useMemo(() => normalizeProducts(allProducts), [allProducts]);
 
-  const handleToggle = useCallback(async (checked, obj) => {
-    setToggleLoading((prev) => ({ ...prev, [obj._id]: true }));
+  useEffect(() => {
+    const t = setTimeout(() => setFilters((f) => ({ ...f, page: 1 })), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  const handleToggle = useCallback(async (checked, record) => {
+    setToggleLoading((prev) => ({ ...prev, [record._id]: true }));
     try {
-      await toggleProductVisibility(obj._id, { isVisible: checked });
+      await toggleProductVisibility(record._id, { isVisible: checked });
       refetch();
-    } catch (error) {
-      console.error("Failed to toggle visibility:", error);
+    } catch (e) {
+      console.error("Failed to toggle visibility:", e);
     } finally {
-      setToggleLoading((prev) => ({ ...prev, [obj._id]: false }));
+      setToggleLoading((prev) => ({ ...prev, [record._id]: false }));
     }
   }, [refetch]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, page: 1 }));
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    setFilters((prev) => ({ ...prev, sortBy: filters.sortBy, page: 1 }));
-  }, [filters.sortBy]);
-
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-
-  const handlePageChange = (page, pageSize) => {
-    setFilters((prev) => ({ ...prev, page, limit: pageSize }));
-  };
-
-  const handleSortChange = (sortValue) => {
-    setFilters((prev) => ({ ...prev, sortBy: sortValue, page: 1 }));
-  };
-
-  const handleDelete = async (param) => {
+  const handleDelete = async () => {
     try {
-      await deleteProduct(param);
+      await deleteProduct(deleteId?._id);
       setModalError(false);
-      setEditModal(false);
+      setDeleteSuccess(true);
       refetch();
-    } catch (errors) {
-      console.log(errors);
+    } catch {
       setModalError(true);
     }
   };
 
-  const openDeleteModal = (params) => {
-    setOpenModal(true);
-    setDeleteId(params);
-  };
-
   const closeModal = () => {
-    setEditModal(true);
     setOpenModal(false);
     setModalError(false);
+    setDeleteSuccess(false);
+    setDeleteId(null);
   };
 
-  const filterContent = useMemo(() => (
-    <div className="sort__popover">
-      {[
-        { label: "Newest First",     value: "newest"     },
-        { label: "Oldest First",     value: "oldest"     },
-        { label: "Price: Low → High", value: "price_asc"  },
-        { label: "Price: High → Low", value: "price_desc" },
-      ].map((item) => (
+  const sortPopover = (
+    <PopoverMenu>
+      {SORT_OPTIONS.map((opt) => (
         <button
-          key={item.value}
-          className={`sort__option${filters.sortBy === item.value ? " active" : ""}`}
-          onClick={() => handleSortChange(item.value)}
+          key={opt.value}
+          className={filters.sortBy === opt.value ? "active" : ""}
+          onClick={() => setFilters((f) => ({ ...f, sortBy: opt.value, page: 1 }))}
         >
-          {item.label}
+          {opt.label}
         </button>
       ))}
-    </div>
-  ), [filters.sortBy]);
+    </PopoverMenu>
+  );
+
+  const rowActions = (record) => (
+    <PopoverMenu>
+      <button onClick={() => push(`/product/${record._id}`)}>
+        View details
+      </button>
+      <button
+        className="danger"
+        onClick={() => { setDeleteId(record); setDeleteSuccess(false); setModalError(false); setOpenModal(true); }}
+      >
+        Delete product
+      </button>
+    </PopoverMenu>
+  );
 
   const columns = useMemo(() => [
     {
       title: "Product",
-      dataIndex: "productName",
-      key: "productName",
-      render: (name, obj) => (
+      key: "product",
+      render: (_, r) => (
         <div className="product__cell">
           <div className="product__thumb">
-            {obj.images[0]
-              ? <img src={getOptimizedCloudinaryUrl(obj.images[0], 80)} alt={name} />
-              : <span className="thumb__placeholder">{name?.[0]?.toUpperCase() || "P"}</span>
-            }
+            {r.images[0] ? (
+              <img src={getOptimizedCloudinaryUrl(r.images[0], 100)} alt={r.productName} />
+            ) : (
+              <span className="thumb__placeholder">{(r.productName || "?")[0].toUpperCase()}</span>
+            )}
           </div>
           <div className="product__info">
-            <p className="product__name">{name}</p>
-            {obj.brandArtist && <p className="product__brand">{obj.brandArtist}</p>}
+            <p className="product__name">{r.productName}</p>
+            {r.brandArtist && <p className="product__brand">{r.brandArtist}</p>}
           </div>
         </div>
       ),
     },
     {
       title: "Price",
-      dataIndex: "regularPrice",
-      key: "regularPrice",
-      render: (price, obj) => (
+      key: "price",
+      render: (_, r) => (
         <div className="price__cell">
-          <p className="price__main">₦{Number(price).toLocaleString()}</p>
-          {obj.discountPrice && (
-            <p className="price__old">₦{Number(obj.discountPrice).toLocaleString()}</p>
-          )}
+          <p className="price__main">{formatNGN(r.regularPrice)}</p>
         </div>
       ),
     },
     {
       title: "Stock",
-      dataIndex: "stockQty",
-      key: "stockQty",
-      render: (qty) => <StockBadge qty={qty} />,
+      key: "inStock",
+      align: "center",
+      render: (_, r) => (
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          fontSize: "0.76rem", fontWeight: 700,
+          padding: "3px 10px", borderRadius: 20,
+          background: r.inStock ? "#f0fdf4" : "#fef2f2",
+          color: r.inStock ? "#15803d" : "#b91c1c",
+        }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
+            background: r.inStock ? "#16a34a" : "#dc2626",
+          }} />
+          {r.inStock ? "In Stock" : "Out of Stock"}
+        </span>
+      ),
     },
     {
       title: "Visibility",
-      dataIndex: "isVisible",
-      key: "isVisible",
-      render: (isVisible, obj) => (
+      key: "visibility",
+      render: (_, r) => (
         <div className="visibility__cell">
           <Switch
-            checked={isVisible}
-            loading={!!toggleLoading[obj._id]}
-            onChange={(checked) => handleToggle(checked, obj)}
-            size="small"
+            checked={r.isVisible}
+            loading={!!toggleLoading[r._id]}
+            onChange={(checked) => handleToggle(checked, r)}
           />
-          <span className={`vis__label${isVisible ? " on" : ""}`}>
-            {isVisible ? "Active" : "Hidden"}
+          <span className={`vis__label${r.isVisible ? " on" : ""}`}>
+            {r.isVisible ? "Visible" : "Hidden"}
           </span>
         </div>
       ),
     },
     {
-      title: "Actions",
+      title: "",
       key: "actions",
-      render: (_, obj) => (
-        <div className="actions__cell">
+      width: 48,
+      render: (_, r) => (
+        <Popover trigger="click" placement="bottomRight" content={rowActions(r)}>
           <button
-            className="action__btn view"
-            title="View product"
-            onClick={() => push(`/product/${obj._id}`)}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 6, display: "flex", alignItems: "center" }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <FiEye size={14} />
+            <EllipsisIcon size={18} color="#999" />
           </button>
-          <button
-            className="action__btn edit"
-            title="Edit product"
-            onClick={() => push(`/product/${obj._id}`)}
-          >
-            <FiEdit2 size={14} />
-          </button>
-          <button
-            className="action__btn delete"
-            title="Delete product"
-            onClick={() => openDeleteModal(obj)}
-          >
-            <FiTrash2 size={14} />
-          </button>
-        </div>
+        </Popover>
       ),
     },
-  ], [toggleLoading, handleToggle, push]);
+  ], [toggleLoading, handleToggle]);
 
   return (
     <DashboardLayout title="Products">
-      <AllProductsWrapper>
+      <FlexibleDiv justifyContent="flex-end" margin="0 0 20px">
+        <Button
+          backgroundColor="var(--oosriPrimary)"
+          color="#fff"
+          onClick={() => {
+            if (isBusinessActive(user)) {
+              push("/product/create");
+            } else {
+              dispatch({ type: NO_BUSINESS_MODAL, payload: true });
+            }
+          }}
+        >
+          + Add New Product
+        </Button>
+      </FlexibleDiv>
 
-        {/* ── Toolbar ── */}
+      <AllProductsWrapper>
+        {/* Toolbar */}
         <div className="toolbar">
           <div className="search__wrap">
-            <SearchIcon size={16} className="search__icon" />
+            <SearchIcon size={15} className="search__icon" />
             <input
               className="search__input"
-              placeholder="Search products…"
+              placeholder="Search by product name"
               value={searchTerm}
-              onChange={handleSearchChange}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Popover
-            content={filterContent}
-            trigger="click"
-            placement="bottomRight"
-          >
+
+          <Popover trigger="click" placement="bottomRight" content={sortPopover}>
             <button className="sort__btn">
               <FilterArrow size={14} />
               Sort
@@ -268,7 +251,7 @@ export default function AllProductsScreen() {
           </Popover>
         </div>
 
-        {/* ── Table ── */}
+        {/* Table */}
         <div className="table__wrap">
           <Table
             columns={columns}
@@ -278,91 +261,62 @@ export default function AllProductsScreen() {
               current: pagination?.currentPage || filters.page,
               pageSize: filters.limit,
               total: pagination?.total || 0,
-              showTotal: (total, range) => `${range[0]}–${range[1]} of ${total} products`,
-              onChange: handlePageChange,
-            }}
-            locale={{
-              emptyText: (
-                <div className="empty__state">
-                  <p className="empty__title">No products yet</p>
-                  <p className="empty__sub">
-                    Click "+ Add Product" in the header to create your first listing.
-                  </p>
-                </div>
-              ),
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+              onChange: (page, pageSize) => setFilters((f) => ({ ...f, page, limit: pageSize })),
             }}
           />
         </div>
-
-        {/* ── Delete modal ── */}
-        <StyledModal
-          maskClosable
-          open={openModal}
-          centered
-          closeIcon={null}
-          footer={null}
-        >
-          {editModal ? (
-            <>
-              <h2 style={{ textAlign: "center" }}>Delete Product</h2>
-              <p style={{ textAlign: "center", margin: "16px 0", color: "#777" }}>
-                Are you sure you want to delete{" "}
-                <strong>{deleteId.productName}</strong>? This cannot be undone.
-              </p>
-              <FlexibleDiv flexWrap="nowrap" gap="12px">
-                <Button
-                  border="1px solid #e0e0e0"
-                  color="#666"
-                  hoverBg="rgba(0,0,0,0.04)"
-                  width="100%"
-                  onClick={() => setOpenModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => handleDelete(deleteId?._id)}
-                  backgroundColor="var(--oosriPrimary)"
-                  color="white"
-                  width="100%"
-                >
-                  Delete
-                </Button>
-              </FlexibleDiv>
-            </>
-          ) : modalError ? (
-            <>
-              <h2 style={{ textAlign: "center" }}>Delete Failed</h2>
-              <p style={{ textAlign: "center", margin: "16px 0", color: "#777" }}>
-                We couldn't delete this product. Please try again.
-              </p>
-              <Button
-                onClick={closeModal}
-                backgroundColor="var(--oosriPrimary)"
-                color="white"
-                width="100%"
-              >
-                Close
-              </Button>
-            </>
-          ) : (
-            <>
-              <h2 style={{ textAlign: "center" }}>Product Deleted</h2>
-              <p style={{ textAlign: "center", margin: "16px 0", color: "#777" }}>
-                Your product has been deleted successfully.
-              </p>
-              <Button
-                onClick={closeModal}
-                backgroundColor="var(--oosriPrimary)"
-                color="white"
-                width="100%"
-              >
-                Done
-              </Button>
-            </>
-          )}
-        </StyledModal>
-
       </AllProductsWrapper>
+
+      {/* Delete modal */}
+      <StyledModal
+        maskClosable
+        open={openModal}
+        centered
+        closeIcon={null}
+        footer={null}
+      >
+        {!deleteSuccess && !modalError && (
+          <>
+            <h2 style={{ textAlign: "center" }}>Delete Product</h2>
+            <p style={{ textAlign: "center", margin: "16px 0", color: "#777" }}>
+              Are you sure you want to delete <strong>{deleteId?.productName}</strong>? This cannot be undone.
+            </p>
+            <FlexibleDiv flexWrap="nowrap" gap="16px">
+              <Button border="1px solid #E0E0E0" color="#555" hoverBg="white" width="100%" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button backgroundColor="var(--oosriPrimary)" color="white" border="1px solid var(--oosriPrimary)" width="100%" onClick={handleDelete}>
+                Delete
+              </Button>
+            </FlexibleDiv>
+          </>
+        )}
+
+        {deleteSuccess && (
+          <>
+            <h2 style={{ textAlign: "center" }}>Deleted</h2>
+            <p style={{ textAlign: "center", margin: "16px 0", color: "#777" }}>
+              Product deleted successfully.
+            </p>
+            <Button backgroundColor="var(--oosriPrimary)" color="white" width="100%" onClick={closeModal}>
+              Close
+            </Button>
+          </>
+        )}
+
+        {modalError && (
+          <>
+            <h2 style={{ textAlign: "center" }}>Delete Failed</h2>
+            <p style={{ textAlign: "center", margin: "16px 0", color: "#777" }}>
+              Something went wrong. Please try again.
+            </p>
+            <Button backgroundColor="var(--oosriPrimary)" color="white" width="100%" onClick={closeModal}>
+              Close
+            </Button>
+          </>
+        )}
+      </StyledModal>
     </DashboardLayout>
   );
 }

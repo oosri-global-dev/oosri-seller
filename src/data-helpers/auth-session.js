@@ -38,9 +38,22 @@ export function deleteDataInCookie(cName) {
   }
 }
 
+export function storeRefreshToken(token) {
+  storeDataInCookie("refresh_token__seller", token, 30);
+}
+
+export function getRefreshToken() {
+  return getDataInCookie("refresh_token__seller");
+}
+
+export function deleteRefreshToken() {
+  deleteDataInCookie("refresh_token__seller");
+}
+
 export function deleteAllCookie() {
   if (typeof window !== "undefined") {
     document.cookie = "_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
     deleteDataInCookie("access_token__seller");
+    deleteDataInCookie("refresh_token__seller");
   }
 }

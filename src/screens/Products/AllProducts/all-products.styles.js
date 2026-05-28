@@ -1,5 +1,40 @@
 import styled from "styled-components";
 
+export const PopoverMenu = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  min-width: 170px;
+
+  button {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #444;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.12s;
+
+    &:hover { background: #f5f5f5; }
+
+    &.active {
+      background: rgba(252, 83, 83, 0.08);
+      color: var(--oosriPrimary);
+      font-weight: 700;
+    }
+
+    &.danger { color: #ef4444; }
+    &.danger:hover { background: #fef2f2; }
+  }
+`;
+
 export const AllProductsWrapper = styled.div`
   display: flex;
   flex-direction: column;

@@ -14,6 +14,7 @@ const excludedPaths = [
   "/forgot-password",
   "/check-email",
   "/create-business",
+  "/profile",
 ];
 
 const AppWrapper = ({ children }) => {
@@ -40,9 +41,15 @@ const AppWrapper = ({ children }) => {
       // Redirect from home to dashboard if user is logged in
       if (pathname === "/") {
         push("/dashboard");
+        return;
+      }
+
+      // Force store setup for sellers who haven't set a store name yet
+      if (!user.storeProfile?.storeName && !isExcludedPath) {
+        push("/profile?setup=store");
       }
     }
-  }, [user, dispatch, pathname, push]);
+  }, [user, dispatch, pathname, push, isExcludedPath]);
 
   useEffect(() => {
     if (!hasMounted) {

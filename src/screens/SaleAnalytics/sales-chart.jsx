@@ -7,11 +7,12 @@ const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
   ssr: false,
 });
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DEFAULT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export default function SalesChart({ data = [] }) {
-  const chartData = data.length === 12 ? data : Array(12).fill(0);
-  const hasData   = chartData.some((v) => v > 0);
+export default function SalesChart({ data = [], labels }) {
+  const chartLabels = labels && labels.length > 0 ? labels : DEFAULT_MONTHS;
+  const chartData   = labels && labels.length > 0 ? data : (data.length === 12 ? data : Array(12).fill(0));
+  const hasData     = chartData.some((v) => v > 0);
 
   const chartOptions = {
     resizeDelay: 2,
@@ -66,7 +67,7 @@ export default function SalesChart({ data = [] }) {
     <Line
       options={chartOptions}
       data={{
-        labels: MONTHS,
+        labels: chartLabels,
         datasets: [
           {
             label: 'Revenue',

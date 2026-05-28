@@ -6,7 +6,8 @@ import Link from "next/link";
 import { MainContext } from "@/context";
 import BlockerModal from "@/components/lib/NoBusinessModal";
 import { NO_BUSINESS_MODAL } from "@/context/types";
-import { deleteDataInCookie } from "@/data-helpers/auth-session";
+import { deleteDataInCookie, getRefreshToken, deleteRefreshToken } from "@/data-helpers/auth-session";
+import { handleSignOut } from "@/network/user";
 import { isEmpty } from "lodash";
 import Button from "@/components/lib/Button";
 import ProfileImage from "@/assets/images/profile.jpg";
@@ -17,20 +18,20 @@ import NotificationPanel from "@/components/lib/NotificationPanel";
 
 import { DashboardOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { GoStack as ProductsIcon } from "react-icons/go";
-import { HiOutlineShoppingBag as OrdersIcon } from "react-icons/hi2";
+import { HiOutlineShoppingBag as OrdersIcon, HiOutlineBellAlert as NotificationIcon, HiOutlineBanknotes as PayoutsIcon, HiOutlineArrowPath as ReturnsIcon } from "react-icons/hi2";
 import { VscGraph as AnalyticsIcon } from "react-icons/vsc";
-import { BsPeopleFill as ProfileIcon } from "react-icons/bs";
+import { BsPeopleFill as ProfileIcon, BsArrowLeft as BackIcon } from "react-icons/bs";
 import { IoMdLogOut as LogoutIcon } from "react-icons/io";
-import { HiOutlineBellAlert as NotificationIcon } from "react-icons/hi2";
-import { BsArrowLeft as BackIcon } from "react-icons/bs";
 import { FiPlus as AddIcon, FiMenu as HamburgerIcon, FiX as CloseIcon } from "react-icons/fi";
 import { MdVerifiedUser as KycIcon } from "react-icons/md";
 
 const MAIN_NAV = [
-  { key: "/dashboard", icon: DashboardOutlined, label: "Dashboard", href: "/dashboard", isAntd: true },
-  { key: "/products",  icon: ProductsIcon,       label: "Products",  href: "/products" },
-  { key: "/order",     icon: OrdersIcon,          label: "Orders",    href: "/order" },
-  { key: "/sales-analytics", icon: AnalyticsIcon, label: "Analytics", href: "/sales-analytics" },
+  { key: "/dashboard",       icon: DashboardOutlined, label: "Dashboard",  href: "/dashboard",       isAntd: true },
+  { key: "/products",        icon: ProductsIcon,      label: "Products",   href: "/products" },
+  { key: "/order",           icon: OrdersIcon,        label: "Orders",     href: "/order" },
+  { key: "/sales-analytics", icon: AnalyticsIcon,     label: "Analytics",  href: "/sales-analytics" },
+  { key: "/payouts",         icon: PayoutsIcon,       label: "Payouts",    href: "/payouts" },
+  { key: "/returns",         icon: ReturnsIcon,       label: "Returns",    href: "/returns" },
 ];
 
 const ACCOUNT_NAV = [
@@ -53,13 +54,20 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
     if (pathname.includes("/product")) return "/products";
     if (pathname.includes("/order"))   return "/order";
     if (pathname.includes("/sales") || pathname.includes("/analytics")) return "/sales-analytics";
+    if (pathname.includes("/payouts")) return "/payouts";
+    if (pathname.includes("/returns")) return "/returns";
     if (pathname.includes("/profile") || pathname.includes("/sellers-profile")) return "/profile";
     if (pathname.includes("/kyc")) return "/kyc";
     return pathname;
   }, [pathname]);
 
   const handleLogout = useCallback(() => {
+    const rt = getRefreshToken();
     deleteDataInCookie("access_token__seller");
+    deleteRefreshToken();
+    if (rt) {
+      handleSignOut(rt).catch(() => {});
+    }
     window.location.href = "/";
   }, []);
 
@@ -207,6 +215,7 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
                   onRead={(id) => { markRead(id); }}
                   onMarkAllRead={() => { markAllRead(); }}
                   onDelete={(id) => { remove(id); }}
+                  onClose={() => setNotifOpen(false)}
                 />
               }
             >

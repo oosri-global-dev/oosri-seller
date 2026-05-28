@@ -4,7 +4,7 @@ export const SaleAnalyticsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1100px;
+  width: 100%;
 
   /* ── KPI grid ── */
   .kpi__grid {
@@ -70,6 +70,13 @@ export const SaleAnalyticsWrapper = styled.div`
       color: #aaa;
       font-weight: 500;
       margin-top: -8px;
+    }
+
+    .kpi__sub {
+      font-size: 0.7rem;
+      color: #ccc;
+      font-weight: 400;
+      margin-top: -6px;
     }
   }
 

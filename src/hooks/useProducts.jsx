@@ -15,10 +15,11 @@ export const useProducts = (filters = {}, searchTerm = "") => {
       if (isSearching) {
         return searchProduct(searchTerm);
       }
-      return filterAllProducts(filters); 
+      return filterAllProducts(filters);
     },
     keepPreviousData: true,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -26,10 +27,10 @@ export const useProducts = (filters = {}, searchTerm = "") => {
 export const useProduct = (productId) => {
   return useQuery({
     queryKey: ["product", productId],
-    queryFn: () => getProduct(id),
-    config: {
-      staleTime: 5 * 60 * 1000,
-      cacheTime: 10 * 60 * 1000,
-    },
+    queryFn: () => getProduct(productId),
+    enabled: !!productId,
+    staleTime: 30 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 };

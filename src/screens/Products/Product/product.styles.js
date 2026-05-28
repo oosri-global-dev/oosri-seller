@@ -207,25 +207,136 @@ export const ProductDetailsWrapper = styled.div`
       }
     }
 
-    /* ── Payout info ── */
-    .payout__info {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(252, 83, 83, 0.04);
-      border: 1px solid rgba(252, 83, 83, 0.12);
-      border-radius: 8px;
+    /* ── Payout breakdown ── */
+    .payout__breakdown {
+      background: #fafff8;
+      border: 1px solid #d1fae5;
+      border-radius: 10px;
       padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
 
-      span {
-        font-size: 0.82rem;
-        color: #888;
+      .payout__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.84rem;
+
+        .payout__row__label {
+          color: #555;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-weight: 500;
+        }
+
+        .payout__row__value {
+          font-weight: 700;
+          &.green { color: #16a34a; font-size: 1rem; }
+          &.muted { color: #aaa; font-size: 0.82rem; }
+        }
+      }
+    }
+
+    /* ── Stock section ── */
+    .stock__section {
+      border: 1px solid #f0f0f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fafafa;
+
+      .stock__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .stock__title {
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #888;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
       }
 
-      strong {
-        font-size: 1rem;
-        font-weight: 800;
-        color: var(--oosriPrimary);
+      .stock__qty__display {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+
+        .stock__number {
+          font-size: 2rem;
+          font-weight: 800;
+          line-height: 1;
+          &.good     { color: #16a34a; }
+          &.low      { color: #f59e0b; }
+          &.critical { color: #ef4444; }
+          &.out      { color: #ef4444; }
+        }
+
+        .stock__unit {
+          font-size: 0.82rem;
+          color: #aaa;
+        }
+      }
+    }
+
+    /* ── Stock indicator bar ── */
+    .stock__indicator {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .stock__bar__track {
+        height: 6px;
+        border-radius: 3px;
+        background: #f0f0f0;
+        overflow: hidden;
+
+        .stock__bar__fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 0.4s ease;
+        }
+      }
+
+      .stock__meta {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.74rem;
+        font-weight: 600;
+
+        .stock__count {
+          margin-left: auto;
+          font-size: 0.72rem;
+          color: #aaa;
+          font-weight: 500;
+        }
+      }
+    }
+
+    /* ── Tags ── */
+    .tags__row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .tag__pill {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: #f5f5f5;
+        color: #666;
+        border: 1px solid #e8e8e8;
       }
     }
 
@@ -246,6 +357,14 @@ export const ProductDetailsWrapper = styled.div`
       transition: background 0.15s, transform 0.1s;
       font-family: inherit;
       margin-top: auto;
+
+      &.small {
+        height: 28px;
+        padding: 0 12px;
+        font-size: 0.73rem;
+        border-radius: 6px;
+        margin-top: 0;
+      }
 
       &:hover  { background: #e04040; }
       &:active { background: #cc3333; transform: scale(0.99); }
@@ -322,6 +441,131 @@ export const ProductDetailsWrapper = styled.div`
         font-size: 0.88rem;
         font-weight: 600;
         color: #1a1a1a;
+      }
+    }
+  }
+
+  /* ── Reviews section ── */
+  .reviews__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    .review__item {
+      display: flex;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid #f5f5f5;
+
+      &:last-child { border-bottom: none; }
+    }
+
+    .reviewer__avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #f5f5f5;
+      border: 1px solid #ebebeb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #888;
+      flex-shrink: 0;
+    }
+
+    .review__body { flex: 1; min-width: 0; }
+
+    .review__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .reviewer__name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .review__date {
+      font-size: 0.72rem;
+      color: #bbb;
+      white-space: nowrap;
+    }
+
+    .stars__row {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 6px;
+    }
+
+    .review__text {
+      font-size: 0.84rem;
+      color: #555;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .status__pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin-top: 6px;
+
+      &.active  { background: #f0fdf4; color: #16a34a; }
+      &.flagged { background: #fffbeb; color: #b45309; }
+      &.hidden  { background: #fef2f2; color: #dc2626; }
+    }
+  }
+
+  .reviews__empty {
+    padding: 32px 0;
+    text-align: center;
+    color: #bbb;
+    font-size: 0.85rem;
+  }
+
+  .reviews__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-top: 1px solid #f5f5f5;
+
+    .page__info {
+      font-size: 0.78rem;
+      color: #999;
+      span { font-weight: 700; color: #444; }
+    }
+
+    .page__btns {
+      display: flex;
+      gap: 6px;
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        border: 1px solid #e8e8e8;
+        background: #fff;
+        cursor: pointer;
+        color: #555;
+        transition: all 0.12s;
+
+        &:hover:not(:disabled) { border-color: var(--oosriPrimary); color: var(--oosriPrimary); }
+        &:disabled { opacity: 0.35; cursor: not-allowed; }
       }
     }
   }

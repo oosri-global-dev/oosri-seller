@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { Table } from "antd";
 import { useRouter } from "next/router";
 import { useOrders } from "@/hooks/useOrders";
+import { useQuery } from "@tanstack/react-query";
+import { getDashboardOverview, getDashboardSummary } from "@/network/dashboard";
 import SalesChart from "./sales-chart";
 import PurchasingChart from "./purchasing-chart";
 import dayjs from "dayjs";
@@ -11,12 +13,14 @@ import {
   IoBagOutline as BagIcon,
   IoPersonOutline as PersonIcon,
 } from "react-icons/io5";
-import { HiOutlineCurrencyDollar as RevenueIcon } from "react-icons/hi2";
-import { VscGraph as TrendIcon } from "react-icons/vsc";
+import { HiOutlineCurrencyDollar as RevenueIcon, HiOutlineBanknotes as EarningsIcon } from "react-icons/hi2";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { getOptimizedCloudinaryUrl } from "@/utils/cloudinary-helper";
 
 const PERIODS = ["Daily", "Weekly", "Monthly", "Yearly"];
+const PERIOD_MAP = { Daily: "daily", Weekly: "weekly", Monthly: "monthly", Yearly: "yearly" };
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const getStatusClass = (status = "") => {
   const s = status.toLowerCase();
@@ -29,26 +33,78 @@ const getStatusClass = (status = "") => {
 };
 
 export default function SaleAnalytics() {
-  const [period, setPeriod]   = useState("Monthly");
-  const { data, isLoading }   = useOrders();
-  const { push }              = useRouter();
-  const orders                = useMemo(() => data?.data?.data || [], [data]);
+  const [period, setPeriod] = useState("Monthly");
+  const { data: ordersData, isLoading: ordersLoading } = useOrders();
+  const { push } = useRouter();
+  const orders = useMemo(() => ordersData?.data?.data || [], [ordersData]);
+
+  /* ── KPI summary from backend ── */
+  const { data: summaryData, isLoading: summaryLoading } = useQuery({
+    queryKey: ["seller-dashboard-summary"],
+    queryFn: getDashboardSummary,
+    staleTime: 1000 * 60 * 2,
+  });
+  const summary = summaryData?.data?.data || summaryData?.data || {};
+
+  /* ── Period-sensitive revenue chart from backend ── */
+  const apiPeriod = PERIOD_MAP[period];
+  const { data: overviewData, isLoading: overviewLoading } = useQuery({
+    queryKey: ["seller-dashboard-overview", apiPeriod],
+    queryFn: () => getDashboardOverview(apiPeriod),
+    staleTime: 1000 * 60 * 2,
+  });
+
+  /* ── Shape chart data per period ── */
+  const chartData = useMemo(() => {
+    const raw = overviewData?.data?.data || [];
+    if (!raw.length) return { labels: [], values: [] };
+
+    if (apiPeriod === "monthly") {
+      const labels = MONTHS;
+      const values = Array(12).fill(0);
+      raw.forEach((d) => {
+        const month = parseInt(d.period?.split("-")[1], 10) - 1;
+        if (month >= 0 && month <= 11) values[month] = d.totalSales || 0;
+      });
+      return { labels, values };
+    }
+
+    if (apiPeriod === "daily") {
+      return { labels: ["Today"], values: [raw[0]?.totalSales || 0] };
+    }
+
+    if (apiPeriod === "weekly") {
+      const labels = raw.map((d) => dayjs(d.period).format("ddd D"));
+      const values = raw.map((d) => d.totalSales || 0);
+      return { labels, values };
+    }
+
+    if (apiPeriod === "yearly") {
+      const labels = raw.map((d) => d.period);
+      const values = raw.map((d) => d.totalSales || 0);
+      return { labels, values };
+    }
+
+    return { labels: [], values: [] };
+  }, [overviewData, apiPeriod]);
+
+  const isChartLoading = overviewLoading;
 
   /* ── KPI metrics ── */
-  const totalRevenue   = useMemo(() => orders.reduce((s, o) => s + (o.totalForSeller || 0), 0), [orders]);
-  const totalOrders    = orders.length;
-  const uniqueCustomers = useMemo(() => new Set(orders.map((o) => o.userId?._id).filter(Boolean)).size, [orders]);
-  const avgOrder       = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  // Compute gross sales from product line items (buyer-facing price)
+  const localGrossSales = useMemo(() =>
+    orders.reduce((s, o) =>
+      s + (o.products?.reduce((ps, p) => ps + (p.totalPrice || 0), 0) || 0), 0),
+    [orders]
+  );
+  const uniqueCustomers = useMemo(() =>
+    new Set(orders.map((o) => o.userId?._id).filter(Boolean)).size, [orders]);
 
-  /* ── Monthly revenue for chart ── */
-  const monthlyRevenue = useMemo(() => {
-    const buckets = Array(12).fill(0);
-    orders.forEach((o) => {
-      const m = dayjs(o.orderDate).month();
-      if (m >= 0 && m <= 11) buckets[m] += o.totalForSeller || 0;
-    });
-    return buckets;
-  }, [orders]);
+  // Backend summary.totalSales is gross; fall back to locally computed gross
+  const grossSales      = summary.totalSales ?? localGrossSales;
+  const sellerEarnings  = Number((grossSales * 0.85).toFixed(2));
+  const totalOrders     = summary.totalOrders ?? orders.length;
+  const avgOrderValue   = totalOrders > 0 ? grossSales / totalOrders : 0;
 
   /* ── Top / least selling products ── */
   const { topProduct, leastProduct } = useMemo(() => {
@@ -74,15 +130,19 @@ export default function SaleAnalytics() {
     [...orders]
       .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
       .slice(0, 5)
-      .map((o) => ({
-        key: o.id,
-        id: o.id,
-        orderId: `#${o.id?.slice(-6).toUpperCase()}`,
-        customer: o.userId?.fullName || "N/A",
-        amount: o.totalForSeller,
-        date: o.orderDate,
-        status: o.orderStatus,
-      })),
+      .map((o) => {
+        const subtotal = o.products?.reduce((s, p) => s + (p.totalPrice || 0), 0) || 0;
+        return {
+          key: o.id,
+          id: o.id,
+          orderId: `#${o.id?.slice(-6).toUpperCase()}`,
+          customer: o.userId?.fullName || "N/A",
+          amount: subtotal,
+          payout: Number((subtotal * 0.85).toFixed(2)),
+          date: o.orderDate,
+          status: o.orderStatus,
+        };
+      }),
     [orders]
   );
 
@@ -92,7 +152,7 @@ export default function SaleAnalytics() {
       dataIndex: "orderId",
       key: "orderId",
       render: (_) => (
-        <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: "0.84rem" }}>{_}</span>
+        <span style={{ fontFamily: "ui-monospace, monospace", fontWeight: 700, fontSize: "0.84rem" }}>{_}</span>
       ),
     },
     {
@@ -102,11 +162,19 @@ export default function SaleAnalytics() {
       render: (_) => <span style={{ fontWeight: 500 }}>{_}</span>,
     },
     {
-      title: "Amount",
+      title: "Order Total",
       dataIndex: "amount",
       key: "amount",
       render: (_) => (
-        <span style={{ fontWeight: 700 }}>₦{Number(_ || 0).toLocaleString()}</span>
+        <span style={{ fontWeight: 600, color: "#333" }}>₦{Number(_ || 0).toLocaleString()}</span>
+      ),
+    },
+    {
+      title: "Your Payout",
+      dataIndex: "payout",
+      key: "payout",
+      render: (_) => (
+        <span style={{ fontWeight: 700, color: "#16a34a" }}>₦{Number(_ || 0).toLocaleString()}</span>
       ),
     },
     {
@@ -129,32 +197,35 @@ export default function SaleAnalytics() {
     },
   ];
 
+  const fmt = (n) =>
+    n >= 1_000_000 ? `₦${(n / 1_000_000).toFixed(1)}M`
+    : n >= 1_000   ? `₦${(n / 1_000).toFixed(0)}K`
+    : `₦${Number(n).toLocaleString()}`;
+
   const kpis = [
     {
       icon: <RevenueIcon size={18} />,
-      value: `₦${totalRevenue >= 1000000
-        ? `${(totalRevenue / 1000000).toFixed(1)}M`
-        : totalRevenue >= 1000
-        ? `${(totalRevenue / 1000).toFixed(0)}K`
-        : totalRevenue.toLocaleString()}`,
-      label: "Total Revenue",
+      value: fmt(grossSales),
+      label: "Gross Sales",
+      sub: "Total buyer payments",
+    },
+    {
+      icon: <EarningsIcon size={18} />,
+      value: fmt(sellerEarnings),
+      label: "Your Earnings",
+      sub: "85% after platform fee",
     },
     {
       icon: <BagIcon size={18} />,
       value: totalOrders.toLocaleString(),
       label: "Total Orders",
+      sub: null,
     },
     {
       icon: <PersonIcon size={18} />,
       value: uniqueCustomers.toLocaleString(),
       label: "Unique Customers",
-    },
-    {
-      icon: <TrendIcon size={18} />,
-      value: `₦${avgOrder >= 1000
-        ? `${(avgOrder / 1000).toFixed(0)}K`
-        : avgOrder.toFixed(0)}`,
-      label: "Avg Order Value",
+      sub: null,
     },
   ];
 
@@ -169,8 +240,9 @@ export default function SaleAnalytics() {
               <div className="kpi__top">
                 <div className="kpi__icon">{k.icon}</div>
               </div>
-              <div className="kpi__value">{isLoading ? "—" : k.value}</div>
+              <div className="kpi__value">{summaryLoading || ordersLoading ? "—" : k.value}</div>
               <div className="kpi__label">{k.label}</div>
+              {k.sub && <div className="kpi__sub">{k.sub}</div>}
             </div>
           ))}
         </div>
@@ -179,8 +251,13 @@ export default function SaleAnalytics() {
         <div className="chart__card">
           <div className="chart__header">
             <div className="chart__title">
-              <h3>Revenue Overview</h3>
-              <p>Monthly revenue for {new Date().getFullYear()}</p>
+              <h3>Sales Overview</h3>
+              <p>
+                {period === "Monthly" && `Monthly gross sales · ${new Date().getFullYear()} · Avg order: ${fmt(avgOrderValue)}`}
+                {period === "Daily"   && `Today's gross sales · Avg order: ${fmt(avgOrderValue)}`}
+                {period === "Weekly"  && `Last 7 days · Avg order: ${fmt(avgOrderValue)}`}
+                {period === "Yearly"  && `Year-on-year · Avg order: ${fmt(avgOrderValue)}`}
+              </p>
             </div>
             <div className="period__tabs">
               {PERIODS.map((p) => (
@@ -195,7 +272,13 @@ export default function SaleAnalytics() {
             </div>
           </div>
           <div className="chart__body">
-            <SalesChart data={monthlyRevenue} />
+            {isChartLoading ? (
+              <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", color: "#ccc", fontSize: "0.85rem" }}>
+                Loading…
+              </div>
+            ) : (
+              <SalesChart data={chartData.values} labels={chartData.labels} />
+            )}
           </div>
         </div>
 
@@ -293,7 +376,7 @@ export default function SaleAnalytics() {
           <Table
             columns={recentColumns}
             dataSource={recentOrders}
-            loading={isLoading}
+            loading={ordersLoading}
             rowKey="id"
             onRow={(record) => ({
               onClick: () => push(`/order/${record.id}`),

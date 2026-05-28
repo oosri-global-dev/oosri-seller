@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import { Spin } from 'antd';
 import { HiOutlineBellAlert } from 'react-icons/hi2';
 import { MdClose, MdDoneAll } from 'react-icons/md';
@@ -5,36 +6,75 @@ import { MdClose, MdDoneAll } from 'react-icons/md';
 function timeAgo(dateStr) {
   if (!dateStr) return '';
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60)    return 'just now';
+  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
 const TYPE_CONFIG = {
-  kyc_approved: { color: '#16a34a', bg: '#f0fdf4', label: 'KYC' },
-  kyc_rejected: { color: '#dc2626', bg: '#fef2f2', label: 'KYC' },
-  new_order:    { color: '#2563eb', bg: '#eff6ff', label: 'Order' },
-  order_update: { color: '#0891b2', bg: '#ecfeff', label: 'Order' },
-  payout:       { color: '#d97706', bg: '#fffbeb', label: 'Payout' },
-  system:       { color: '#6b7280', bg: '#f9fafb', label: 'System' },
+  kyc_approved:      { color: '#16a34a', bg: '#f0fdf4', label: 'KYC' },
+  kyc_rejected:      { color: '#dc2626', bg: '#fef2f2', label: 'KYC' },
+  new_order:         { color: '#2563eb', bg: '#eff6ff', label: 'Order' },
+  order_update:      { color: '#0891b2', bg: '#ecfeff', label: 'Order' },
+  payout:            { color: '#d97706', bg: '#fffbeb', label: 'Payout' },
+  new_review:        { color: '#7c3aed', bg: '#f5f3ff', label: 'Review' },
+  product_approved:  { color: '#16a34a', bg: '#f0fdf4', label: 'Product' },
+  product_rejected:  { color: '#dc2626', bg: '#fef2f2', label: 'Product' },
+  return_request:    { color: '#ea580c', bg: '#fff7ed', label: 'Return' },
+  system:            { color: '#6b7280', bg: '#f9fafb', label: 'System' },
 };
 
-function NotificationItem({ notification, onRead, onDelete }) {
-  const cfg = TYPE_CONFIG[notification.type] || TYPE_CONFIG.system;
-  const ago = timeAgo(notification.createdAt);
+function getNavRoute(notification) {
+  const { type, metadata = {} } = notification;
+  switch (type) {
+    case 'new_order':
+    case 'order_update':
+      return metadata.orderId ? `/order/${metadata.orderId}` : '/order';
+    case 'return_request':
+      return metadata.returnRequestId ? `/returns/${metadata.returnRequestId}` : '/returns';
+    case 'kyc_approved':
+    case 'kyc_rejected':
+      return '/kyc';
+    case 'payout':
+      return '/payouts';
+    case 'new_review':
+      return metadata.productId ? `/product/${metadata.productId}` : '/products';
+    case 'product_approved':
+    case 'product_rejected':
+      return metadata.productId ? `/product/${metadata.productId}` : '/products';
+    default:
+      return null;
+  }
+}
+
+function NotificationItem({ notification, onRead, onDelete, onClose }) {
+  const router = useRouter();
+  const cfg    = TYPE_CONFIG[notification.type] || TYPE_CONFIG.system;
+  const ago    = timeAgo(notification.createdAt);
+  const route  = getNavRoute(notification);
+
+  const handleClick = () => {
+    if (!notification.isRead) onRead(notification._id);
+    if (route) {
+      router.push(route);
+      onClose?.();
+    }
+  };
 
   return (
     <div
-      onClick={() => !notification.isRead && onRead(notification._id)}
+      onClick={handleClick}
       style={{
         display: 'flex', gap: 12, padding: '12px 16px',
         background: notification.isRead ? '#fff' : '#f8faff',
         borderBottom: '1px solid #f1f5f9',
-        cursor: notification.isRead ? 'default' : 'pointer',
+        cursor: route ? 'pointer' : (notification.isRead ? 'default' : 'pointer'),
         transition: 'background .15s',
         alignItems: 'flex-start',
       }}
+      onMouseEnter={(e) => { if (route) e.currentTarget.style.background = '#f5f8ff'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = notification.isRead ? '#fff' : '#f8faff'; }}
     >
       <div style={{
         width: 8, height: 8, borderRadius: '50%', marginTop: 6, flexShrink: 0,
@@ -57,6 +97,11 @@ function NotificationItem({ notification, onRead, onDelete }) {
         <p style={{ margin: 0, fontSize: '.78rem', color: '#6b7280', lineHeight: 1.4 }}>
           {notification.message}
         </p>
+        {route && (
+          <p style={{ margin: '4px 0 0', fontSize: '.72rem', color: cfg.color, fontWeight: 600 }}>
+            View details →
+          </p>
+        )}
       </div>
 
       <button
@@ -73,7 +118,7 @@ function NotificationItem({ notification, onRead, onDelete }) {
   );
 }
 
-export default function NotificationPanel({ notifications, unreadCount, isLoading, onRead, onMarkAllRead, onDelete }) {
+export default function NotificationPanel({ notifications, unreadCount, isLoading, onRead, onMarkAllRead, onDelete, onClose }) {
   return (
     <div style={{ width: 360, background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,.12)' }}>
 
@@ -115,6 +160,7 @@ export default function NotificationPanel({ notifications, unreadCount, isLoadin
               notification={n}
               onRead={onRead}
               onDelete={onDelete}
+              onClose={onClose}
             />
           ))
         )}
