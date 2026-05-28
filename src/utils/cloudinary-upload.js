@@ -1,6 +1,7 @@
 import axios from "axios";
 import imageCompression from "browser-image-compression";
 import { getUploadUrl } from "@/network/product";
+import { getBannerUploadUrl } from "@/network/profile";
 
 export const createUploadSlot = (url = null) => ({
   file: null,
@@ -141,6 +142,54 @@ export const uploadProductImage = async (
       warning: compressionResult.warning,
       compressed: compressionResult.compressed,
     };
+  } catch (error) {
+    onStageChange("failed");
+    throw new Error(getUploadErrorMessage(error, file.name));
+  }
+};
+
+// Same flow as uploadProductImage but uses the banner-specific signing endpoint
+// which does not require isVerified — sellers can upload banners during store setup.
+export const uploadBannerImage = async (
+  file,
+  { onProgress = () => {}, onStageChange = () => {} } = {}
+) => {
+  validateImageFile(file);
+
+  onStageChange("compressing");
+  const compressionResult = await compressImageForUpload(file);
+  const uploadFile = compressionResult.file;
+
+  onStageChange("signing");
+  const response = await getBannerUploadUrl(file.name);
+
+  if (!response?.success) {
+    throw new Error(response?.message || "Could not obtain upload credentials.");
+  }
+
+  const { url, signature, timestamp, apiKey, publicId, folder, tags, transformation, allowed_formats } = response.data;
+
+  const formData = new FormData();
+  formData.append("file", uploadFile);
+  formData.append("api_key", apiKey);
+  formData.append("timestamp", String(timestamp));
+  formData.append("signature", signature);
+  formData.append("public_id", publicId);
+  formData.append("folder", folder);
+  formData.append("tags", tags);
+  formData.append("transformation", transformation);
+  if (allowed_formats) formData.append("allowed_formats", allowed_formats);
+
+  try {
+    onStageChange("uploading");
+    const uploadRes = await axios.post(url, formData, {
+      timeout: CLOUDINARY_UPLOAD_TIMEOUT_MS,
+      onUploadProgress: (evt) => {
+        if (evt.total) onProgress(Math.round((evt.loaded * 100) / evt.total));
+      },
+    });
+    onStageChange("completed");
+    return { secureUrl: uploadRes.data.secure_url, warning: compressionResult.warning };
   } catch (error) {
     onStageChange("failed");
     throw new Error(getUploadErrorMessage(error, file.name));

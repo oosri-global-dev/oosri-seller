@@ -19,3 +19,8 @@ export const UpdateStoreProfile = async (payload, sellerId) => {
     const data = await instance.put(`/sellers/store-profile/${sellerId}`, payload)
     return data
 }
+
+export const getBannerUploadUrl = async (fileName) => {
+    const data = await instance.get(`/sellers/banner-upload-url?fileName=${fileName}`);
+    return data.data;
+}
