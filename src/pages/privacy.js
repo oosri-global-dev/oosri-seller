@@ -1,5 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
+import Logo from "@/assets/images/logo.png";
 
 const SECTIONS = [
   { id: "introduction", num: 1, title: "Introduction and Who We Are" },
@@ -43,7 +45,7 @@ export default function PrivacyPage() {
         <header style={styles.header}>
           <div style={styles.headerInner}>
             <Link href="/dashboard" style={styles.logo}>
-              <span style={styles.logoText}>oosri</span>
+              <Image src={Logo} alt="Oosri" height={32} style={{ display: "block" }} />
             </Link>
             <nav style={styles.headerNav}>
               <Link href="/terms" style={styles.navLink}>Terms of Use</Link>
@@ -692,12 +694,8 @@ const styles = {
   },
   logo: {
     textDecoration: "none",
-  },
-  logoText: {
-    fontSize: 22,
-    fontWeight: 800,
-    color: "#fc5353",
-    letterSpacing: "-0.5px",
+    display: "flex",
+    alignItems: "center",
   },
   headerNav: {
     display: "flex",
