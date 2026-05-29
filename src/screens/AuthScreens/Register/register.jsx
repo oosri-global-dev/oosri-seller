@@ -53,12 +53,12 @@ export default function RegisterPage() {
       return;
     }
 
-    setImageFile(file);
-
     if (file.size > maxFileLimit) {
       error("File must be a max of 10mb");
       return;
     }
+
+    setImageFile(file);
 
     setImageObjectURL(URL.createObjectURL(event.target.files[0]));
   };
