@@ -65,3 +65,8 @@ export const handleSignOut = async (refreshToken) => {
   const data = await publicInstance.post(`/auth/seller/sign-out`, { refreshToken });
   return data;
 };
+
+export const acceptTerms = async () => {
+  const data = await instance.post(`/auth/seller/accept-terms`);
+  return data;
+};

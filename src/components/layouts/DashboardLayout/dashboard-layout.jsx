@@ -274,8 +274,8 @@ export default function DashboardLayout({ children, title, showBackBtn, titleSub
           <p>© {new Date().getFullYear()} Oosri Global. All rights reserved.</p>
           <div className="footer__links">
             <a href="#">Help & Support</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Privacy Policy</a>
+            <a href="/terms">Terms of Use</a>
+            <a href="/privacy">Privacy Policy</a>
           </div>
         </footer>
 

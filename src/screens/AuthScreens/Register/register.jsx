@@ -28,6 +28,7 @@ export default function RegisterPage() {
   const [pageLoading, setPageLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [avatarIndex, setAvatarIndex] = useState();
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [selectedImageGender, setSelectedImageGender] = useState({
     type: "",
     url: "",
@@ -82,6 +83,12 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!agreedToTerms) {
+      info("You must agree to the Terms of Use and Privacy Policy to create an account.");
+      setIsLoading(false);
+      return;
+    }
+
     const formData = new FormData();
 
     formData.append("firstName", values?.first_name);
@@ -96,6 +103,8 @@ export default function RegisterPage() {
     } else {
       formData.append("profilePicture", imageFile);
     }
+
+    formData.append("agreedToTerms", "true");
 
     try {
       const res = await handleRegistration(formData);
@@ -405,6 +414,26 @@ export default function RegisterPage() {
                 )}
               </FlexibleDiv>
             </FlexibleDiv>
+
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", margin: "8px 0 4px" }}>
+              <input
+                type="checkbox"
+                id="agreedToTerms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                style={{ marginTop: "3px", accentColor: "var(--oosriPrimary)", cursor: "pointer", flexShrink: 0 }}
+              />
+              <label htmlFor="agreedToTerms" style={{ fontSize: "0.85rem", color: "#555", cursor: "pointer", lineHeight: "1.5" }}>
+                I agree to the{" "}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--oosriPrimary)", textDecoration: "underline" }}>
+                  Terms of Use
+                </a>{" "}
+                and{" "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--oosriPrimary)", textDecoration: "underline" }}>
+                  Privacy Policy
+                </a>
+              </label>
+            </div>
 
             <Button
               width="100%"
