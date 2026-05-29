@@ -40,8 +40,25 @@ export default function TermsPage() {
       </Head>
 
       <div style={styles.page}>
+        <style>{`
+          .leg-header-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+          .leg-layout { max-width: 1100px; margin: 0 auto; padding: 40px 24px; display: flex; gap: 48px; align-items: flex-start; }
+          .leg-toc { width: 240px; flex-shrink: 0; position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px 16px; }
+          .leg-content { flex: 1; min-width: 0; }
+          .leg-table { border: 1px solid #eee; border-radius: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; font-size: 13.5px; }
+          .leg-table > div { min-width: 480px; }
+          @media (max-width: 900px) {
+            .leg-layout { flex-direction: column !important; gap: 24px !important; padding: 24px 20px !important; }
+            .leg-toc { width: 100% !important; position: static !important; max-height: 260px !important; }
+          }
+          @media (max-width: 600px) {
+            .leg-header-inner { padding: 0 16px !important; }
+            .leg-layout { padding: 20px 16px !important; }
+            .leg-toc { max-height: 200px !important; }
+          }
+        `}</style>
         <header style={styles.header}>
-          <div style={styles.headerInner}>
+          <div className="leg-header-inner">
             <Link href="/dashboard" style={styles.logo}>
               <Image src={Logo} alt="Oosri" height={32} style={{ display: "block" }} />
             </Link>
@@ -52,8 +69,8 @@ export default function TermsPage() {
           </div>
         </header>
 
-        <div style={styles.layout}>
-          <aside style={styles.toc}>
+        <div className="leg-layout">
+          <aside className="leg-toc">
             <p style={styles.tocHeading}>Contents</p>
             <ol style={styles.tocList}>
               {SECTIONS.map((s) => (
@@ -66,7 +83,7 @@ export default function TermsPage() {
             </ol>
           </aside>
 
-          <main style={styles.content}>
+          <main className="leg-content">
             <div style={styles.meta}>
               <span style={styles.badge}>Oosri Limited</span>
               <span style={styles.metaDivider}>·</span>
@@ -103,7 +120,7 @@ export default function TermsPage() {
 
             <section id="definitions" style={styles.section}>
               <h2 style={styles.h2}><span style={styles.sectionNum}>2.</span> Definitions</h2>
-              <div style={styles.table}>
+              <div className="leg-table">
                 <div style={styles.tableHeader}>
                   <div style={styles.tableCell}>Term</div>
                   <div style={{ ...styles.tableCell, flex: 2 }}>Meaning</div>
@@ -630,15 +647,7 @@ const styles = {
     top: 0,
     zIndex: 100,
   },
-  headerInner: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    padding: "0 24px",
-    height: 60,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+  headerInner: {},
   logo: {
     textDecoration: "none",
     display: "flex",
@@ -658,26 +667,8 @@ const styles = {
   navLinkActive: {
     color: "#fc5353",
   },
-  layout: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    padding: "40px 24px",
-    display: "flex",
-    gap: 48,
-    alignItems: "flex-start",
-  },
-  toc: {
-    width: 240,
-    flexShrink: 0,
-    position: "sticky",
-    top: 80,
-    maxHeight: "calc(100vh - 100px)",
-    overflowY: "auto",
-    background: "#fff",
-    border: "1px solid #eee",
-    borderRadius: 8,
-    padding: "20px 16px",
-  },
+  layout: {},
+  toc: {},
   tocHeading: {
     fontSize: 11,
     fontWeight: 700,
@@ -708,10 +699,7 @@ const styles = {
     color: "#999",
     marginRight: 2,
   },
-  content: {
-    flex: 1,
-    minWidth: 0,
-  },
+  content: {},
   meta: {
     display: "flex",
     alignItems: "center",
@@ -791,12 +779,7 @@ const styles = {
     color: "#444",
     marginBottom: 6,
   },
-  table: {
-    border: "1px solid #eee",
-    borderRadius: 8,
-    overflow: "hidden",
-    fontSize: 13.5,
-  },
+  table: {},
   tableHeader: {
     display: "flex",
     background: "#f7f7f7",
