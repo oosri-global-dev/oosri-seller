@@ -41,15 +41,15 @@ export default function TermsPage() {
 
       <div style={styles.page}>
         <style>{`
-          .leg-header-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
-          .leg-layout { max-width: 1100px; margin: 0 auto; padding: 40px 24px; display: flex; gap: 48px; align-items: flex-start; }
-          .leg-toc { width: 240px; flex-shrink: 0; position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px 16px; }
+          .leg-header-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; width: 100%; }
+          .leg-layout { max-width: 1100px; margin: 0 auto; padding: 40px 24px; display: flex; gap: 48px; align-items: flex-start; box-sizing: border-box; width: 100%; }
+          .leg-toc { width: 240px; flex-shrink: 0; position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px 16px; box-sizing: border-box; }
           .leg-content { flex: 1; min-width: 0; }
           .leg-table { border: 1px solid #eee; border-radius: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; font-size: 13.5px; }
           .leg-table > div { min-width: 480px; }
           @media (max-width: 900px) {
             .leg-layout { flex-direction: column !important; gap: 24px !important; padding: 24px 20px !important; }
-            .leg-toc { width: 100% !important; position: static !important; max-height: 260px !important; }
+            .leg-toc { width: 100% !important; position: static !important; max-height: 260px !important; box-sizing: border-box !important; }
           }
           @media (max-width: 600px) {
             .leg-header-inner { padding: 0 16px !important; }
@@ -646,6 +646,7 @@ const styles = {
     position: "sticky",
     top: 0,
     zIndex: 100,
+    width: "100%",
   },
   headerInner: {},
   logo: {
