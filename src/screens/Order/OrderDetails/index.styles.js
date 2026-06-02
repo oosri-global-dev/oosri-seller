@@ -466,16 +466,62 @@ export const OrderDetailsWrapper = styled.div`
 
   /* ── Mobile ── */
   @media (max-width: 640px) {
+    gap: 14px;
+
+    /* Header card: stack badges below order info on small screens */
     .order__header__card {
-      padding: 16px;
-      .order__num { font-size: 1rem; }
+      padding: 14px 16px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+
+      .order__num { font-size: 1.05rem; }
+
+      .order__meta {
+        gap: 6px;
+        flex-wrap: wrap;
+
+        span { font-size: 0.78rem; }
+      }
+
+      .header__right {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
     }
 
+    /* Cards */
     .detail__card {
-      .card__header { padding: 14px 16px; }
-      .card__body   { padding: 16px; }
+      .card__header { padding: 12px 16px; h3 { font-size: 0.86rem; } }
+      .card__body   { padding: 14px 16px; }
     }
 
-    .product__list .product__row { padding: 14px 16px; }
+    /* Product rows */
+    .product__list .product__row {
+      padding: 12px 16px;
+      gap: 12px;
+
+      .product__thumb { width: 52px; height: 52px; }
+      .product__info .product__name { font-size: 0.84rem; }
+      .product__right .product__total { font-size: 0.88rem; }
+    }
+
+    /* Payout — reduce headline size */
+    .payout__card .payout__amount {
+      font-size: 1.5rem;
+    }
+
+    /* Summary totals tighter */
+    .summary__totals {
+      gap: 6px;
+      .total__row.grand span:last-child { font-size: 0.92rem; }
+    }
+  }
+
+  @media (max-width: 400px) {
+    .order__header__card .order__num { font-size: 0.9rem; }
+    .detail__card {
+      .card__body { padding: 12px 14px; }
+    }
   }
 `;

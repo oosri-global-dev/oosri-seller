@@ -239,19 +239,103 @@ export const OrderWrapper = styled.div`
     .empty__sub { font-size: 0.82rem; color: #bbb; }
   }
 
+  /* ── Mobile order cards ── */
+  .mobile__order__list {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobile__order__card {
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+
+    &:active { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .moc__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .moc__id__block {
+      .moc__code {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #111;
+        font-family: ui-monospace, "SF Mono", monospace;
+        display: block;
+      }
+      .moc__items {
+        font-size: 0.73rem;
+        color: #bbb;
+        display: block;
+        margin-top: 2px;
+      }
+    }
+
+    .moc__badges {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .moc__body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+    }
+
+    .moc__field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .moc__label {
+        font-size: 0.67rem;
+        font-weight: 700;
+        color: #bbb;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .moc__value {
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+
+      .moc__value--amount {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #111;
+      }
+    }
+  }
+
   /* ── Responsive ── */
   @media (max-width: 640px) {
     .toolbar {
       flex-direction: column;
       align-items: stretch;
+      padding: 12px 14px;
 
-      .search__wrap {
-        width: 100%;
-      }
-
-      .status__tabs {
-        justify-content: flex-start;
-      }
+      .search__wrap { width: 100%; }
+      .status__tabs { justify-content: flex-start; }
     }
+
+    /* Hide table, show cards */
+    .table__wrap { display: none; }
+    .mobile__order__list { display: flex; }
   }
 `;

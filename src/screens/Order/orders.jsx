@@ -159,7 +159,7 @@ export default function OrderScreen() {
           </div>
         </div>
 
-        {/* ── Table ── */}
+        {/* ── Desktop table ── */}
         <div className="table__wrap">
           <Table
             columns={columns}
@@ -188,6 +188,51 @@ export default function OrderScreen() {
               ),
             }}
           />
+        </div>
+
+        {/* ── Mobile cards (≤640px) ── */}
+        <div className="mobile__order__list">
+          {filtered.length === 0 ? (
+            <div className="empty__state" style={{ background: '#fff', borderRadius: 12, border: '1px solid #f0f0f0' }}>
+              <p className="empty__title">No orders found</p>
+              <p className="empty__sub">
+                {search || activeTab !== 'All'
+                  ? 'Try adjusting your search or filter'
+                  : 'Orders will appear here once buyers purchase your products'}
+              </p>
+            </div>
+          ) : filtered.map((row) => (
+            <div
+              key={row.id}
+              className="mobile__order__card"
+              onClick={() => router.push(`/order/${row.id}`)}
+            >
+              <div className="moc__top">
+                <div className="moc__id__block">
+                  <span className="moc__code">{row.orderId}</span>
+                  <span className="moc__items">{row.itemNum} item{row.itemNum !== 1 ? 's' : ''}</span>
+                </div>
+                <div className="moc__badges">
+                  <span className={`status__badge ${getStatusClass(row.status)}`}>{row.status || 'Pending'}</span>
+                  <span className={`payment__badge ${getPaymentClass(row.paymentStatus)}`}>{row.paymentStatus || 'Pending'}</span>
+                </div>
+              </div>
+              <div className="moc__body">
+                <div className="moc__field">
+                  <span className="moc__label">Customer</span>
+                  <span className="moc__value">{row.customer}</span>
+                </div>
+                <div className="moc__field">
+                  <span className="moc__label">Amount</span>
+                  <span className="moc__value moc__value--amount">₦{Number(row.amount || 0).toLocaleString()}</span>
+                </div>
+                <div className="moc__field">
+                  <span className="moc__label">Date</span>
+                  <span className="moc__value">{row.date ? dayjs(row.date).format('MMM D, YYYY') : '—'}</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
       </OrderWrapper>
