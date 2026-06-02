@@ -215,6 +215,85 @@ const PayoutWrapper = styled.div`
     font-weight: 700;
     color: #111;
   }
+
+  /* ── Mobile payout cards ── */
+  .mobile__payout__list {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .mobile__payout__card {
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fafafa;
+
+    .mpc__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+
+      .mpc__id {
+        font-family: ui-monospace, "SF Mono", monospace;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #111;
+        display: block;
+      }
+
+      .mpc__date {
+        font-size: 0.73rem;
+        color: #aaa;
+        margin-top: 2px;
+        display: block;
+      }
+    }
+
+    .mpc__body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+
+    .mpc__field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .mpc__label {
+        font-size: 0.67rem;
+        font-weight: 700;
+        color: #bbb;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .mpc__value         { font-size: 0.84rem; font-weight: 600; color: #1a1a1a; }
+      .mpc__value--total  { font-size: 0.88rem; font-weight: 700; color: #111; }
+      .mpc__value--payout { font-size: 0.88rem; font-weight: 800; color: #16a34a; }
+    }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    gap: 16px;
+
+    .kpi__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpi__card { padding: 14px 16px; .kpi__value { font-size: 1.25rem; } }
+
+    .bank__card { padding: 14px 16px; }
+    .info__banner { padding: 12px 14px; font-size: 0.8rem; }
+
+    .table__card .ant-table-wrapper { display: none; }
+    .table__card .table__header { padding: 14px 16px; }
+    .mobile__payout__list { display: flex; }
+  }
 `;
 
 const getPayoutStatus = (order) => {
@@ -379,6 +458,8 @@ export default function PayoutsScreen() {
             <h3>Payout History</h3>
             <span>{tableData.length} order{tableData.length !== 1 ? "s" : ""}</span>
           </div>
+
+          {/* Desktop table */}
           <Table
             columns={columns}
             dataSource={tableData}
@@ -398,6 +479,42 @@ export default function PayoutsScreen() {
               ),
             }}
           />
+
+          {/* Mobile cards (≤640px) */}
+          <div className="mobile__payout__list">
+            {tableData.length === 0 ? (
+              <div style={{ textAlign: "center", color: "#ccc", padding: "20px 0" }}>
+                <p style={{ fontWeight: 600, color: "#888", margin: "0 0 4px" }}>No payout history yet</p>
+                <p style={{ fontSize: "0.82rem", margin: 0 }}>Payouts will appear here once you receive orders</p>
+              </div>
+            ) : tableData.map((row) => (
+              <div key={row.id} className="mobile__payout__card">
+                <div className="mpc__top">
+                  <div>
+                    <span className="mpc__id">{row.orderId}</span>
+                    <span className="mpc__date">{row.date ? dayjs(row.date).format("MMM D, YYYY") : "—"}</span>
+                  </div>
+                  <span className={`payout__badge ${row.status}`}>
+                    {row.status === "eligible" ? "Payout Eligible" : row.status === "pending" ? "Awaiting Delivery" : row.status}
+                  </span>
+                </div>
+                <div className="mpc__body">
+                  <div className="mpc__field">
+                    <span className="mpc__label">Customer</span>
+                    <span className="mpc__value">{row.customer}</span>
+                  </div>
+                  <div className="mpc__field">
+                    <span className="mpc__label">Order Total</span>
+                    <span className="mpc__value mpc__value--total">₦{Number(row.orderTotal || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="mpc__field">
+                    <span className="mpc__label">Your Payout (85%)</span>
+                    <span className="mpc__value mpc__value--payout">₦{Number(row.payout || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
       </PayoutWrapper>
