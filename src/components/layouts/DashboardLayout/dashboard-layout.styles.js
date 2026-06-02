@@ -530,6 +530,20 @@ export const DBWrapper = styled.div`
     .add__product__link button span:last-child {
       display: none;
     }
+
+    /* Hide the profile wrap entirely on very small screens — name is already in sidebar */
+    .profile__wrap {
+      display: none;
+    }
+
+    .top__header {
+      padding: 0 12px;
+      gap: 8px;
+    }
+
+    .content__area {
+      padding: 12px;
+    }
   }
 `;
 

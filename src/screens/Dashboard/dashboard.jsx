@@ -261,6 +261,8 @@ export default function DashboardScreen() {
               <h3>Recent Orders</h3>
               <Link href="/order" className="see__all">See all orders →</Link>
             </div>
+
+            {/* Desktop table */}
             <div className="recent__table__wrap">
               <Table
                 columns={recentOrderColumns}
@@ -270,6 +272,42 @@ export default function DashboardScreen() {
                 locale={{ emptyText: "No orders yet" }}
                 size="middle"
               />
+            </div>
+
+            {/* Mobile cards — visible below 640px */}
+            <div className="mobile__order__list">
+              {recentOrders.length === 0 ? (
+                <p style={{ color: "#bbb", fontSize: "0.84rem", textAlign: "center", padding: "20px 0" }}>
+                  No orders yet
+                </p>
+              ) : recentOrders.map((order) => (
+                <div className="mobile__order__card" key={order.key}>
+                  <div className="moc__top">
+                    <div>
+                      <p className="moc__id">{order.orderId}</p>
+                      <p className="moc__items">{order.itemNum} item{order.itemNum !== 1 ? "s" : ""}</p>
+                    </div>
+                    <StatusBadge status={order.status} />
+                  </div>
+                  <div className="moc__body">
+                    <div className="moc__field">
+                      <span className="moc__field__label">Customer</span>
+                      <span className="moc__field__value">{order.customer}</span>
+                    </div>
+                    <div className="moc__field">
+                      <span className="moc__field__label">Amount</span>
+                      <span className="moc__field__value">₦{Number(order.amount).toLocaleString()}</span>
+                    </div>
+                    <div className="moc__field">
+                      <span className="moc__field__label">Date</span>
+                      <span className="moc__field__value">{order.date ? dayjs(order.date).format("MMM D, YYYY") : "—"}</span>
+                    </div>
+                  </div>
+                  <div className="moc__footer">
+                    <Link href={`/order/${order.id}`} className="moc__view">View details →</Link>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

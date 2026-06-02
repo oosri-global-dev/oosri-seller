@@ -204,6 +204,87 @@ export const DashboardWrapper = styled.div`
         background: #fafafa !important;
       }
     }
+
+    /* Mobile order cards — hidden on desktop */
+    .mobile__order__list {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mobile__order__card {
+      border: 1px solid #f0f0f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fafafa;
+
+      .moc__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .moc__id {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+      }
+
+      .moc__items {
+        font-size: 0.74rem;
+        color: #bbb;
+        margin: 2px 0 0;
+      }
+
+      .moc__body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 16px;
+      }
+
+      .moc__field {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .moc__field__label {
+          font-size: 0.68rem;
+          font-weight: 600;
+          color: #bbb;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .moc__field__value {
+          font-size: 0.84rem;
+          font-weight: 500;
+          color: #1a1a1a;
+        }
+      }
+
+      .moc__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 8px;
+        border-top: 1px solid #f0f0f0;
+      }
+
+      .moc__view {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--oosriPrimary);
+        text-decoration: none;
+        transition: opacity 0.15s;
+
+        &:hover { opacity: 0.75; }
+      }
+    }
   }
 
   /* ─────────────────────────────────────────────
@@ -215,36 +296,61 @@ export const DashboardWrapper = styled.div`
     }
   }
 
+  /* Tablet — switch orders table to cards */
+  @media (max-width: 640px) {
+    .recent__table__wrap { display: none; }
+    .mobile__order__list { display: flex; }
+
+    .chart__card {
+      padding: 16px;
+
+      .chart__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .chart__filters {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    .chart__body {
+      height: 200px;
+      min-height: 200px;
+    }
+  }
+
   @media (max-width: 480px) {
-    gap: 14px;
+    gap: 12px;
 
     .kpi__grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     .kpi__card {
-      padding: 14px;
-      gap: 10px;
+      padding: 12px 14px;
+      gap: 8px;
 
-      .kpi__value { font-size: 1.4rem; }
-      .kpi__label { font-size: 0.74rem; }
+      .kpi__value { font-size: 1.3rem; }
+      .kpi__label { font-size: 0.72rem; }
 
       .kpi__icon__wrap {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
         border-radius: 8px;
       }
     }
 
     .chart__card,
     .recent__card {
-      padding: 16px;
+      padding: 14px;
     }
 
-    .chart__header {
-      flex-direction: column;
-      align-items: flex-start !important;
+    .recent__card .recent__header {
+      h3 { font-size: 0.9rem; }
     }
   }
 `;
