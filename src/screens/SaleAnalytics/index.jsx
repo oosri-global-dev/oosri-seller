@@ -373,6 +373,8 @@ export default function SaleAnalytics() {
               See all →
             </button>
           </div>
+
+          {/* Desktop table */}
           <Table
             columns={recentColumns}
             dataSource={recentOrders}
@@ -391,6 +393,45 @@ export default function SaleAnalytics() {
               ),
             }}
           />
+
+          {/* Mobile cards (≤640px) */}
+          <div className="mobile__order__list">
+            {recentOrders.length === 0 ? (
+              <p style={{ textAlign: "center", color: "#ccc", padding: "16px 0", fontSize: "0.84rem" }}>
+                No orders yet
+              </p>
+            ) : recentOrders.map((row) => (
+              <div
+                key={row.id}
+                className="mobile__order__card"
+                onClick={() => push(`/order/${row.id}`)}
+              >
+                <div className="moc__top">
+                  <div>
+                    <div className="moc__id">{row.orderId}</div>
+                    <div className="moc__date">{row.date ? dayjs(row.date).format("MMM D, YYYY") : "—"}</div>
+                  </div>
+                  <span className={`status__badge ${getStatusClass(row.status)}`}>
+                    {row.status || "—"}
+                  </span>
+                </div>
+                <div className="moc__body">
+                  <div className="moc__field">
+                    <span className="moc__label">Customer</span>
+                    <span className="moc__value">{row.customer}</span>
+                  </div>
+                  <div className="moc__field">
+                    <span className="moc__label">Order Total</span>
+                    <span className="moc__value">₦{Number(row.amount || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="moc__field">
+                    <span className="moc__label">Your Payout</span>
+                    <span className="moc__payout">₦{Number(row.payout || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
       </SaleAnalyticsWrapper>

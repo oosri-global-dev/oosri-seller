@@ -341,11 +341,91 @@ export const SaleAnalyticsWrapper = styled.div`
     &.default    { background: #f5f5f5; color: #666;    border: 1px solid #e0e0e0; }
   }
 
+  /* ── Recent orders mobile cards ── */
+  .mobile__order__list {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .mobile__order__card {
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+
+    &:active { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .moc__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+
+      .moc__id {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: #111;
+        font-family: ui-monospace, "SF Mono", monospace;
+      }
+
+      .moc__date {
+        font-size: 0.74rem;
+        color: #aaa;
+        margin-top: 2px;
+      }
+    }
+
+    .moc__body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+
+    .moc__field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .moc__label {
+        font-size: 0.67rem;
+        font-weight: 700;
+        color: #bbb;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .moc__value {
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+
+      .moc__payout {
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: #16a34a;
+      }
+    }
+  }
+
   /* ── Mobile ── */
   @media (max-width: 768px) {
     .chart__card .chart__header { padding: 14px 16px 12px; }
     .chart__card .chart__body  { padding: 14px 16px; }
     .insight__card .insight__body { padding: 14px 16px; }
     .orders__card .orders__header { padding: 14px 16px; }
+  }
+
+  @media (max-width: 640px) {
+    /* Hide Ant Design table, show cards */
+    .orders__card .ant-table-wrapper { display: none; }
+    .mobile__order__list { display: flex; }
   }
 `;
