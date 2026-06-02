@@ -11,8 +11,8 @@ import { getProductReviews } from "@/network/product";
 
 const STATUS_LABELS = { active: "Active", flagged: "Flagged", hidden: "Hidden" };
 
-function StockIndicator({ qty }) {
-  const level = qty === 0 ? "out" : qty <= 5 ? "critical" : qty <= 20 ? "low" : "good";
+function StockIndicator({ qty, threshold = 5 }) {
+  const level = qty === 0 ? "out" : qty <= 1 ? "critical" : qty <= threshold ? "low" : "good";
   const widthMap = { out: "0%", critical: "12%", low: "40%", good: "85%" };
   const colorMap = { out: "#ef4444", critical: "#ef4444", low: "#f59e0b", good: "#16a34a" };
   const labelMap = { out: "Out of stock", critical: "Critical — restock now", low: "Low stock", good: "In stock" };
@@ -140,7 +140,8 @@ export const ProductDetails = ({ data, setEdit }) => {
 
   const category   = data?.category;
   const images     = data?.images || [];
-  const stockQty   = Number(data?.inStock ?? data?.quantity ?? 0);
+  const stockQty       = Number(data?.inStock ?? data?.quantity ?? 0);
+  const stockThreshold = Number(data?.lowStockThreshold ?? 5);
 
   const sellingPrice  = data?.discountPrice || data?.regularPrice || 0;
   const originalPrice = data?.discountPrice && data?.regularPrice > data?.discountPrice
@@ -151,7 +152,7 @@ export const ProductDetails = ({ data, setEdit }) => {
   const payoutAmount  = data?.sellerPayout ?? Number((sellingPrice * 0.85).toFixed(2));
   const platformFee   = Number((sellingPrice - payoutAmount).toFixed(2));
 
-  const stockLevel = stockQty === 0 ? "out" : stockQty <= 5 ? "critical" : stockQty <= 20 ? "low" : "good";
+  const stockLevel = stockQty === 0 ? "out" : stockQty <= 1 ? "critical" : stockQty <= stockThreshold ? "low" : "good";
 
   return (
     <ProductDetailsWrapper>
@@ -240,7 +241,7 @@ export const ProductDetails = ({ data, setEdit }) => {
               <span className={`stock__number ${stockLevel}`}>{stockQty}</span>
               <span className="stock__unit">units available</span>
             </div>
-            <StockIndicator qty={stockQty} />
+            <StockIndicator qty={stockQty} threshold={stockThreshold} />
           </div>
 
           <div className="meta__grid">
