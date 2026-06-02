@@ -137,7 +137,6 @@ export const CreateTab = ({
     setProductName("");
     setProductDescription("");
     setBrandArtist("");
-    setWeight("");
     setProductType("");
     setRegularPrice("");
     setDiscountPrice("");
