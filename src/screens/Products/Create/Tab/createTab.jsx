@@ -1,4 +1,3 @@
-import { FlexibleDiv, GridableDiv } from "../../../../components/lib/Box/styles";
 import Select from "../../../../components/lib/Select";
 import { useEffect, useState } from "react";
 import { CustomUpload } from "../../../../components/lib/CustomUpload";
@@ -31,7 +30,6 @@ export const CreateTab = ({
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [brandArtist, setBrandArtist] = useState("");
-  const [weight, setWeight] = useState("");
   const [subCategory, setSubCategory] = useState("");
   const [productType, setProductType] = useState();
   const [regularPrice, setRegularPrice] = useState("");
@@ -71,8 +69,6 @@ export const CreateTab = ({
       };
     });
   };
-
-  const subcategoryIdValue = subCategory?._id || subCategory?.id;
 
   // ── Eager upload — fires as soon as seller picks a file ───────────────────
   const handleFileSelected = async (slotIndex, file) => {
@@ -234,7 +230,7 @@ export const CreateTab = ({
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleCreateProduct = async () => {
-    const cleanDescription = await sanitizeHTML(productDescription);
+    const cleanDescription = sanitizeHTML(productDescription);
     const subcategoryIdString =
       subCategory?._id || subCategory?.id || null;
 
@@ -364,426 +360,317 @@ export const CreateTab = ({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      <FlexibleDiv className="tab__item">
-        <FlexibleDiv className="container_wrapper" alignItems="start">
-          {/* ── Left column ── */}
-          <FlexibleDiv
-            className="50%"
-            flexDir="column"
-            alignItems="start"
-            gap="24px"
-          >
-            <FlexibleDiv justifyContent="start" alignItems="start" gap="16px">
-              {/* Product Name */}
-              <div className="product__item">
-                <label htmlFor="productName">Product Name</label>
-                <CustomInput
-                  id="productName"
-                  width={"100%"}
-                  placeholder="Input product name"
-                  backgroundColor="#FAFAFA"
-                  style={{ border: formErrors.productName ? "1px solid #FC5353" : undefined }}
-                  status={formErrors.productName ? "error" : undefined}
-                  borderColor={formErrors.productName ? "#FC5353" : undefined}
-                  value={productName}
-                  onChange={(e) => {
-                    setProductName(e.target.value);
-                    if (formErrors.productName) setFormErrors((prev) => ({ ...prev, productName: false }));
-                  }}
-                />
-                <p>Do not exceed 40 characters while entering name</p>
-              </div>
-            </FlexibleDiv>
+      <div className="create__form">
 
-            {/* Subcategory */}
+        {/* ── Images ────────────────────────────────────────────────────── */}
+        <div className="section__card">
+          <div className="section__card__header">
+            <h3>Product Images</h3>
+            <p>Upload up to 4 images. First image will be the cover. JPG or PNG, max 5 MB each.</p>
+          </div>
+          <div className="section__card__body">
+            <div
+              className="img__upload__wrap"
+              style={{ outline: formErrors.images ? "2px solid #FC5353" : undefined, borderRadius: 8, padding: formErrors.images ? 8 : 0 }}
+            >
+              <CustomUpload editable onFileSelected={(f) => handleFileSelected(0, f)}
+                uploadProgress={slots[0].progress} uploadedUrl={slots[0].url}
+                uploadError={slots[0].error} uploadWarning={slots[0].warning}
+                uploadStage={slots[0].stage} uploading={slots[0].uploading}
+                clearImage={clearImage} setClearImg={setClearImg} />
+              <CustomUpload editable onFileSelected={(f) => handleFileSelected(1, f)}
+                uploadProgress={slots[1].progress} uploadedUrl={slots[1].url}
+                uploadError={slots[1].error} uploadWarning={slots[1].warning}
+                uploadStage={slots[1].stage} uploading={slots[1].uploading}
+                clearImage={clearImage} setClearImg={setClearImg} />
+              <CustomUpload editable onFileSelected={(f) => handleFileSelected(2, f)}
+                uploadProgress={slots[2].progress} uploadedUrl={slots[2].url}
+                uploadError={slots[2].error} uploadWarning={slots[2].warning}
+                uploadStage={slots[2].stage} uploading={slots[2].uploading}
+                clearImage={clearImage} setClearImg={setClearImg} />
+              <CustomUpload editable onFileSelected={(f) => handleFileSelected(3, f)}
+                uploadProgress={slots[3].progress} uploadedUrl={slots[3].url}
+                uploadError={slots[3].error} uploadWarning={slots[3].warning}
+                uploadStage={slots[3].stage} uploading={slots[3].uploading}
+                clearImage={clearImage} setClearImg={setClearImg} />
+            </div>
+            {formErrors.images && <p className="field__error">Please upload at least one product image.</p>}
+            {anyUploading && <p className="upload__hint">Uploading images… please wait before submitting.</p>}
+          </div>
+        </div>
+
+        {/* ── Basic Details ──────────────────────────────────────────────── */}
+        <div className="section__card">
+          <div className="section__card__header">
+            <h3>Basic Details</h3>
+            <p>Core information buyers see on your listing.</p>
+          </div>
+          <div className="section__card__body">
+
             <div className="product__item">
-              <label htmlFor="subCategory">Product Category</label>
-              <Select
-                options={categoryItem}
-                border={formErrors.subCategory ? "1px solid #FC5353" : undefined}
-                value={subCategory?.value || subCategory}
-                onChange={(value) => {
-                  const selected = categoryItem.find(
-                    (item) => item.value === value
-                  );
-                  setSubCategory(selected);
-                  if (formErrors.subCategory) setFormErrors((prev) => ({ ...prev, subCategory: false }));
-                }}
-                backgroundColor="#FAFAFA"
+              <label htmlFor="productName">Product Name <span className="req">*</span></label>
+              <CustomInput
+                id="productName"
                 width="100%"
+                placeholder="Enter your product name"
+                backgroundColor="#FAFAFA"
+                style={{ border: formErrors.productName ? "1px solid #FC5353" : undefined }}
+                status={formErrors.productName ? "error" : undefined}
+                borderColor={formErrors.productName ? "#FC5353" : undefined}
+                value={productName}
+                onChange={(e) => {
+                  setProductName(e.target.value);
+                  if (formErrors.productName) setFormErrors((prev) => ({ ...prev, productName: false }));
+                }}
               />
-              {formErrors.subCategory && (
-                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
-                  Please select a product category.
-                </p>
-              )}
+              <p className="field__hint">Keep it clear and descriptive — max 40 characters.</p>
+              {formErrors.productName && <p className="field__error">Product name is required.</p>}
             </div>
 
-            {/* Brand */}
+            <div className="field__row">
+              <div className="product__item">
+                <label htmlFor="subCategory">Subcategory <span className="req">*</span></label>
+                {categoryItem.length > 0 ? (
+                  <Select
+                    options={categoryItem}
+                    border={formErrors.subCategory ? "1px solid #FC5353" : undefined}
+                    value={typeof subCategory === 'object' ? subCategory?.value : subCategory}
+                    onChange={(value) => {
+                      const selected = categoryItem.find((item) => item.value === value);
+                      setSubCategory(selected);
+                      if (formErrors.subCategory) setFormErrors((prev) => ({ ...prev, subCategory: false }));
+                    }}
+                    backgroundColor="#FAFAFA"
+                    width="100%"
+                  />
+                ) : (
+                  <div className="no__subcategory">No subcategories for this category</div>
+                )}
+                {formErrors.subCategory && <p className="field__error">Please select a subcategory.</p>}
+              </div>
+
+              <div className="product__item">
+                <label htmlFor="productType">Product Type <span className="req">*</span></label>
+                <Select
+                  placeholder="Select type"
+                  border={formErrors.productType ? "1px solid #FC5353" : undefined}
+                  backgroundColor="#FAFAFA"
+                  value={productType}
+                  options={productTypeItem}
+                  onChange={(e) => {
+                    setProductType(e);
+                    if (formErrors.productType) setFormErrors((prev) => ({ ...prev, productType: false }));
+                  }}
+                  width="100%"
+                />
+                {formErrors.productType && <p className="field__error">Please select a product type.</p>}
+              </div>
+            </div>
+
             <div className="product__item">
-              <label htmlFor="brandArtist">Brand</label>
+              <label htmlFor="brandArtist">Brand / Artist <span className="opt">(optional)</span></label>
               <CustomInput
                 id="brandArtist"
-                placeholder="Select product brand"
+                placeholder="e.g. Handmade by Adunola"
                 backgroundColor="#FAFAFA"
                 value={brandArtist}
                 onChange={(e) => setBrandArtist(e.target.value)}
               />
             </div>
 
-            {/* Product Type */}
-            <div className="product__item">
-              <label htmlFor="productType">Product Type</label>
-              <Select
-                placeholder="Input product display type"
-                border={formErrors.productType ? "1px solid #FC5353" : undefined}
-                backgroundColor="#FAFAFA"
-                value={productType}
-                options={productTypeItem}
-                onChange={(e) => {
-                  setProductType(e);
-                  if (formErrors.productType) setFormErrors((prev) => ({ ...prev, productType: false }));
-                }}
-                width="100%"
-              />
-              {formErrors.productType && (
-                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
-                  Please select a product type.
-                </p>
-              )}
+          </div>
+        </div>
+
+        {/* ── Pricing ────────────────────────────────────────────────────── */}
+        <div className="section__card">
+          <div className="section__card__header">
+            <h3>Pricing &amp; Stock</h3>
+            <p>Set your price in NGN. Oosri retains a 15% platform fee.</p>
+          </div>
+          <div className="section__card__body">
+
+            <div className="field__row">
+              <div className="product__item">
+                <label htmlFor="regularPrice">Regular Price (₦) <span className="req">*</span></label>
+                <CustomInput
+                  id="regularPrice"
+                  placeholder="0.00"
+                  style={{ border: formErrors.regularPrice ? "1px solid #FC5353" : undefined }}
+                  status={formErrors.regularPrice ? "error" : undefined}
+                  borderColor={formErrors.regularPrice ? "#FC5353" : undefined}
+                  value={regularPrice}
+                  backgroundColor="#FAFAFA"
+                  type="number"
+                  onChange={(e) => {
+                    handleRegularPrice(e);
+                    if (formErrors.regularPrice) setFormErrors((prev) => ({ ...prev, regularPrice: false }));
+                  }}
+                />
+                {formErrors.regularPrice && <p className="field__error">Regular price is required.</p>}
+              </div>
+
+              <div className="product__item">
+                <label htmlFor="inStock">Stock Quantity <span className="req">*</span></label>
+                <CustomInput
+                  id="inStock"
+                  placeholder="How many units available?"
+                  style={{ border: formErrors.inStock ? "1px solid #FC5353" : undefined }}
+                  status={formErrors.inStock ? "error" : undefined}
+                  borderColor={formErrors.inStock ? "#FC5353" : undefined}
+                  backgroundColor="#FAFAFA"
+                  type="number"
+                  min={1}
+                  value={inStock}
+                  onChange={(e) => {
+                    setInStock(e.target.value);
+                    if (formErrors.inStock) setFormErrors((prev) => ({ ...prev, inStock: false }));
+                  }}
+                />
+                {formErrors.inStock && <p className="field__error">Stock quantity is required (min 1).</p>}
+              </div>
             </div>
 
-            {/* Regular Price */}
-            <div className="product__item">
-              <label htmlFor="regularPrice">Regular Price (NGN)</label>
-              <CustomInput
-                id="regularPrice"
-                placeholder="Input Product Price"
-                style={{ border: formErrors.regularPrice ? "1px solid #FC5353" : undefined }}
-                status={formErrors.regularPrice ? "error" : undefined}
-                borderColor={formErrors.regularPrice ? "#FC5353" : undefined}
-                value={regularPrice}
-                backgroundColor="#FAFAFA"
-                type="number"
-                onChange={(e) => {
-                  handleRegularPrice(e);
-                  if (formErrors.regularPrice) setFormErrors((prev) => ({ ...prev, regularPrice: false }));
-                }}
-              />
-              {formErrors.regularPrice && (
-                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
-                  Regular price is required.
-                </p>
-              )}
+            <div className="field__row">
+              <div className="product__item">
+                <label htmlFor="discountPercent">Discount % <span className="opt">(optional)</span></label>
+                <CustomInput
+                  id="discountPercent"
+                  placeholder="e.g. 10"
+                  backgroundColor="#FAFAFA"
+                  onChange={handleDiscountPercent}
+                  type="number"
+                  value={discountPercent}
+                />
+              </div>
+
+              <div className="product__item">
+                <label htmlFor="discountPrice">Discount Price (₦) <span className="opt">(optional)</span></label>
+                <CustomInput
+                  id="discountPrice"
+                  placeholder="0.00"
+                  backgroundColor="#FAFAFA"
+                  style={{ border: formErrors.discountPrice ? "1px solid #FC5353" : undefined }}
+                  status={formErrors.discountPrice ? "error" : undefined}
+                  borderColor={formErrors.discountPrice ? "#FC5353" : undefined}
+                  onChange={(e) => {
+                    handleDiscountPrice(e);
+                    if (formErrors.discountPrice) setFormErrors((prev) => ({ ...prev, discountPrice: false }));
+                  }}
+                  type="number"
+                  value={discountPrice}
+                />
+                {formErrors.discountPrice && <p className="field__error">Must be less than regular price.</p>}
+              </div>
             </div>
 
-            {/* Stock quantity */}
-            <div className="product__item">
-              <label htmlFor="inStock">Quantity Available (Stock)</label>
-              <CustomInput
-                id="inStock"
-                placeholder="How many units do you have?"
-                style={{ border: formErrors.inStock ? "1px solid #FC5353" : undefined }}
-                status={formErrors.inStock ? "error" : undefined}
-                borderColor={formErrors.inStock ? "#FC5353" : undefined}
-                backgroundColor="#FAFAFA"
-                type="number"
-                min={1}
-                value={inStock}
-                onChange={(e) => {
-                  setInStock(e.target.value);
-                  if (formErrors.inStock) setFormErrors((prev) => ({ ...prev, inStock: false }));
-                }}
-              />
-              {formErrors.inStock && (
-                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
-                  Stock quantity is required (minimum 1).
-                </p>
-              )}
-            </div>
+            {effectivePrice > 0 && (
+              <div className="payout__preview">
+                <div className="payout__row">
+                  <span>Buyer pays</span>
+                  <strong>₦{Number(effectivePrice).toLocaleString()}</strong>
+                </div>
+                <div className="payout__row">
+                  <span>Platform fee (15%)</span>
+                  <strong>₦{(effectivePrice * 0.15).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+                <div className="payout__row highlight">
+                  <span>Your payout</span>
+                  <strong>₦{Number(payoutAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+              </div>
+            )}
 
-            {/* Discount % */}
-            <div className="product__item">
-              <label htmlFor="discountPercent">Discount (%) (Optional)</label>
-              <CustomInput
-                id="discountPercent"
-                placeholder="e.g. 10"
-                backgroundColor="#FAFAFA"
-                onChange={handleDiscountPercent}
-                type="number"
-                value={discountPercent}
-              />
-            </div>
+          </div>
+        </div>
 
-            {/* Discount Price */}
-            <div className="product__item">
-              <label htmlFor="discountPrice">Discount Price (NGN) (Optional)</label>
-              <CustomInput
-                id="discountPrice"
-                placeholder="Input Discount Price"
-                backgroundColor="#FAFAFA"
-                style={{ border: formErrors.discountPrice ? "1px solid #FC5353" : undefined }}
-                status={formErrors.discountPrice ? "error" : undefined}
-                borderColor={formErrors.discountPrice ? "#FC5353" : undefined}
-                onChange={(e) => {
-                  handleDiscountPrice(e);
-                  if (formErrors.discountPrice) setFormErrors((prev) => ({ ...prev, discountPrice: false }));
-                }}
-                type="number"
-                value={discountPrice}
-              />
-              <p style={{ color: "grey", fontSize: "12px", marginTop: "4px" }}>
-                Leave empty for no discount. Must be less than Regular Price.
-              </p>
-              {formErrors.discountPrice && (
-                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
-                  Discount price must be less than regular price.
-                </p>
-              )}
-            </div>
-
-            {/* Payout */}
-            <div className="product__item">
-              <label htmlFor="payout">Your Payout (NGN) — Estimated</label>
-              <CustomInput
-                id="payout"
-                backgroundColor="#EEEEEE"
-                type="number"
-                value={payoutAmount}
-                disabled
-              />
-              <p
-                style={{
-                  color: "var(--oosriPrimary)",
-                  fontSize: "12px",
-                  marginTop: "4px",
-                }}
-              >
-                You receive 85% of the final buyer price ({effectivePrice} NGN).
-              </p>
-            </div>
-          </FlexibleDiv>
-
-          {/* ── Right column ── */}
-          <FlexibleDiv
-            flexDir="column"
-            gap="24px"
-            alignItems="start"
-            width="100%"
-          >
-            {/* Image upload slots */}
-            <FlexibleDiv
-              className="img__upload"
-              justifyContent="start"
-              style={{
-                outline: formErrors.images ? "1px solid #FC5353" : undefined,
-                borderRadius: formErrors.images ? "8px" : undefined,
-                padding: formErrors.images ? "8px" : undefined,
+        {/* ── Description ───────────────────────────────────────────────── */}
+        <div className="section__card">
+          <div className="section__card__header">
+            <h3>Product Description <span className="req" style={{ fontSize: '0.78rem' }}>*</span></h3>
+            <p>Describe your product in detail — materials, dimensions, care instructions, story.</p>
+          </div>
+          <div className="section__card__body">
+            <TextEditor
+              placeholder="Describe your product..."
+              width="100%"
+              hasError={formErrors.productDescription}
+              value={productDescription}
+              onChange={(val) => {
+                setProductDescription(val);
+                if (formErrors.productDescription) setFormErrors((prev) => ({ ...prev, productDescription: false }));
               }}
-            >
-              {/* Slot 0 & 1 — full-height */}
-              <CustomUpload
-                editable
-                onFileSelected={(file) => handleFileSelected(0, file)}
-                uploadProgress={slots[0].progress}
-                uploadedUrl={slots[0].url}
-                uploadError={slots[0].error}
-                uploadWarning={slots[0].warning}
-                uploadStage={slots[0].stage}
-                uploading={slots[0].uploading}
-                clearImage={clearImage}
-                setClearImg={setClearImg}
-              />
-              <CustomUpload
-                editable
-                onFileSelected={(file) => handleFileSelected(1, file)}
-                uploadProgress={slots[1].progress}
-                uploadedUrl={slots[1].url}
-                uploadError={slots[1].error}
-                uploadWarning={slots[1].warning}
-                uploadStage={slots[1].stage}
-                uploading={slots[1].uploading}
-                clearImage={clearImage}
-                setClearImg={setClearImg}
-              />
+            />
+            {formErrors.productDescription && <p className="field__error">Product description is required.</p>}
+          </div>
+        </div>
 
-              {/* Slot 2 & 3 — stacked */}
-              <FlexibleDiv
-                flexDir="column"
-                className="column_item"
-                width="fit-content"
-              >
-                <CustomUpload
-                  editable
-                  onFileSelected={(file) => handleFileSelected(2, file)}
-                  uploadProgress={slots[2].progress}
-                  uploadedUrl={slots[2].url}
-                  uploadError={slots[2].error}
-                  uploadWarning={slots[2].warning}
-                  uploadStage={slots[2].stage}
-                  uploading={slots[2].uploading}
-                  clearImage={clearImage}
-                  setClearImg={setClearImg}
-                />
-                <CustomUpload
-                  editable
-                  onFileSelected={(file) => handleFileSelected(3, file)}
-                  uploadProgress={slots[3].progress}
-                  uploadedUrl={slots[3].url}
-                  uploadError={slots[3].error}
-                  uploadWarning={slots[3].warning}
-                  uploadStage={slots[3].stage}
-                  uploading={slots[3].uploading}
-                  clearImage={clearImage}
-                  setClearImg={setClearImg}
-                />
-              </FlexibleDiv>
-            </FlexibleDiv>
-            {formErrors.images && (
-              <p
-                style={{
-                  color: "#FC5353",
-                  fontSize: "12px",
-                  marginTop: "-12px",
-                }}
-              >
-                Please upload at least one product image.
-              </p>
-            )}
-
-            {/* Upload status hint */}
-            {anyUploading && (
-              <p
-                style={{
-                  color: "#3b82f6",
-                  fontSize: "13px",
-                  marginTop: "-12px",
-                }}
-              >
-                Uploading images… please wait before submitting.
-              </p>
-            )}
-
-            {/* Description */}
-            <div className="product__item">
-              <label htmlFor="productDescription">Product Description</label>
-              <TextEditor
-                placeholder="Minimum of 1000 words"
-                width="1000px"
-                hasError={formErrors.productDescription}
-                value={productDescription}
-                onChange={(val) => {
-                  setProductDescription(val);
-                  if (formErrors.productDescription) setFormErrors((prev) => ({ ...prev, productDescription: false }));
-                }}
-              />
-              {formErrors.productDescription && (
-                <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
-                  Product description is required.
-                </p>
-              )}
-            </div>
-          </FlexibleDiv>
-        </FlexibleDiv>
-
-        {/* ── Dynamic Attributes ─────────────────────────────────────────── */}
+        {/* ── Dynamic Specifications ─────────────────────────────────────── */}
         {selectedCategory?.attributes?.length > 0 && (
-          <FlexibleDiv
-            width="100%"
-            margin="30px 0 0 0"
-            flexDir="column"
-            alignItems="start"
-          >
-            <h3
-              style={{
-                marginBottom: "16px",
-                color: "#1A1A1A",
-                fontSize: "18px",
-                fontWeight: "600",
-              }}
-            >
-              Product Specifications
-            </h3>
-            <GridableDiv gridCol="1fr 1fr 1fr" gap="20px" width="100%">
-              {selectedCategory.attributes.map((attrItem) => {
-                const attr = attrItem.details;
-                if (!attr) return null;
-
-                return (
-                  <div className="product__item" key={attr.code}>
-                    <label htmlFor={attr.code}>{attr.label}</label>
-                    {attr.type === "select" ? (
-                      <Select
-                        placeholder={`Select ${attr.label}`}
-                        backgroundColor="#FAFAFA"
-                        width="100%"
-                        border={formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined}
-                        options={attr.options.map((opt) => ({
-                          value: opt,
-                          label: opt,
-                        }))}
-                        value={dynamicAttributes[attr.code]}
-                        onChange={(value) =>
-                          handleAttributeChange(attr.code, value)
-                        }
-                      />
-                    ) : attr.type === "boolean" ? (
-                      <Select
-                        placeholder={`Select ${attr.label}`}
-                        backgroundColor="#FAFAFA"
-                        width="100%"
-                        border={formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined}
-                        options={[
-                          { value: true, label: "Yes" },
-                          { value: false, label: "No" },
-                        ]}
-                        value={dynamicAttributes[attr.code]}
-                        onChange={(value) =>
-                          handleAttributeChange(attr.code, value)
-                        }
-                      />
-                    ) : (
-                      <CustomInput
-                        placeholder={`Input ${attr.label}`}
-                        backgroundColor="#FAFAFA"
-                        type={attr.type === "number" ? "number" : "text"}
-                        style={{ border: formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined }}
-                        status={formErrors.attributes?.[attr.code] ? "error" : undefined}
-                        borderColor={formErrors.attributes?.[attr.code] ? "#FC5353" : undefined}
-                        value={dynamicAttributes[attr.code] || ""}
-                        onChange={(e) =>
-                          handleAttributeChange(attr.code, e.target.value)
-                        }
-                      />
-                    )}
-                    {formErrors.attributes?.[attr.code] && (
-                      <p style={{ color: "#FC5353", fontSize: "12px", marginTop: "4px" }}>
-                        {attr.label} is required.
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </GridableDiv>
-          </FlexibleDiv>
+          <div className="section__card">
+            <div className="section__card__header">
+              <h3>Product Specifications</h3>
+              <p>Additional details specific to {categoryName}.</p>
+            </div>
+            <div className="section__card__body">
+              <div className="field__row" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                {selectedCategory.attributes.map((attrItem) => {
+                  const attr = attrItem.details;
+                  if (!attr) return null;
+                  return (
+                    <div className="product__item" key={attr.code}>
+                      <label htmlFor={attr.code}>
+                        {attr.label}
+                        {attrItem.isRequired ? <span className="req"> *</span> : <span className="opt"> (optional)</span>}
+                      </label>
+                      {attr.type === "select" || attr.type === "boolean" ? (
+                        <Select
+                          placeholder={`Select ${attr.label}`}
+                          backgroundColor="#FAFAFA"
+                          width="100%"
+                          border={formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined}
+                          options={attr.type === "boolean"
+                            ? [{ value: true, label: "Yes" }, { value: false, label: "No" }]
+                            : attr.options.map((opt) => ({ value: opt, label: opt }))}
+                          value={dynamicAttributes[attr.code]}
+                          onChange={(value) => handleAttributeChange(attr.code, value)}
+                        />
+                      ) : (
+                        <CustomInput
+                          placeholder={`Enter ${attr.label}`}
+                          backgroundColor="#FAFAFA"
+                          type={attr.type === "number" ? "number" : "text"}
+                          style={{ border: formErrors.attributes?.[attr.code] ? "1px solid #FC5353" : undefined }}
+                          status={formErrors.attributes?.[attr.code] ? "error" : undefined}
+                          borderColor={formErrors.attributes?.[attr.code] ? "#FC5353" : undefined}
+                          value={dynamicAttributes[attr.code] || ""}
+                          onChange={(e) => handleAttributeChange(attr.code, e.target.value)}
+                        />
+                      )}
+                      {formErrors.attributes?.[attr.code] && <p className="field__error">{attr.label} is required.</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* ── Submit button ────────────────────────────────────────────────── */}
-        <FlexibleDiv
-          justifyContent="end"
-          margin="30px 0px 0px 0px"
-          className="add_btn"
-        >
+        {/* ── Submit bar ─────────────────────────────────────────────────── */}
+        <div className="submit__bar">
+          <p className="submit__note">
+            Your listing will go live after our team reviews it — usually within 24 hours.
+          </p>
           <Button
             onClick={handleCreateProduct}
             loading={isSubmitting}
             disabled={isSubmitting || anyUploading}
             title={anyUploading ? "Please wait for images to finish uploading" : undefined}
           >
-            {anyUploading ? "Uploading images…" : "Add Product"}
+            {anyUploading ? "Uploading images…" : isSubmitting ? "Submitting…" : "Submit Listing"}
           </Button>
-        </FlexibleDiv>
-      </FlexibleDiv>
+        </div>
+
+      </div>
 
       {/* ── Result Modal ──────────────────────────────────────────────────── */}
       <StyledModal
@@ -796,51 +683,27 @@ export const CreateTab = ({
       >
         {modalError ? (
           <>
-            <h2 style={{ textAlign: "center" }}>Product Submission Failed</h2>
-            <p
-              style={{
-                textAlign: "center",
-                margin: "16px 0px",
-                color: "#777777",
-              }}
-            >
-              {errorText}
-            </p>
+            <h2 style={{ textAlign: "center", fontSize: "1.1rem", marginBottom: 8 }}>Submission Failed</h2>
+            <p style={{ textAlign: "center", color: "#777", margin: "0 0 24px" }}>{errorText}</p>
           </>
         ) : (
           <>
-            <h2 style={{ textAlign: "center" }}>Product Submission Received</h2>
-            <p
-              style={{
-                textAlign: "center",
-                margin: "16px 0px",
-                color: "#777777",
-              }}
-            >
-              Thank you for adding your product to our platform. Your listing
-              has been received and is now in the review process. Our team will
-              carefully assess your product to ensure it meets our quality
-              standards and guidelines.
+            <h2 style={{ textAlign: "center", fontSize: "1.1rem", marginBottom: 8 }}>Listing Submitted!</h2>
+            <p style={{ textAlign: "center", color: "#777", margin: "0 0 24px" }}>
+              Your product is now under review. Our team will assess it within 24 hours and notify you once it goes live.
             </p>
           </>
         )}
-
-        <FlexibleDiv flexWrap="nowrap" gap="24px">
+        <div style={{ display: "flex", gap: 12 }}>
           <Button
             border="1px solid #FC5353"
             color="#FC5353"
             hoverBg="white"
             hoverColor="var(--oosriPrimary)"
             width="100%"
-            onClick={() => {
-              if (modalError) {
-                setOpenModal(false);
-              } else {
-                resetForm();
-              }
-            }}
+            onClick={() => { if (modalError) { setOpenModal(false); } else { resetForm(); } }}
           >
-            Cancel
+            {modalError ? "Close" : "Add Another"}
           </Button>
           <Button
             onClick={() => (window.location = "/products")}
@@ -849,9 +712,9 @@ export const CreateTab = ({
             backgroundColor="var(--oosriPrimary)"
             width="100%"
           >
-            Go to All Products
+            View My Products
           </Button>
-        </FlexibleDiv>
+        </div>
       </StyledModal>
     </>
   );
