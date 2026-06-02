@@ -1,8 +1,12 @@
 import DashboardLayout from "@/components/layouts/DashboardLayout/dashboard-layout";
 import { DashboardWrapper } from "./dashboard.styles";
 import React, { useMemo, useState } from "react";
-import "chartkick/chart.js";
-import { AreaChart } from "react-chartkick";
+import dynamic from "next/dynamic";
+
+const AreaChart = dynamic(
+  () => import("chartkick/chart.js").then(() => import("react-chartkick")).then((m) => m.AreaChart),
+  { ssr: false, loading: () => <div style={{ height: 200 }} /> }
+);
 import { Table } from "antd";
 import Link from "next/link";
 import dayjs from "dayjs";
