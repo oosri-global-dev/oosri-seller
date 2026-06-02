@@ -403,7 +403,32 @@ export const ReturnDetailWrapper = styled.div`
 
   /* ── Mobile ── */
   @media (max-width: 768px) {
-    .page__header { flex-direction: column; }
-    .page__header .action__btns { width: 100%; .btn__approve, .btn__reject { flex: 1; justify-content: center; } }
+    gap: 14px;
+
+    .page__header {
+      flex-direction: column;
+      padding: 16px;
+
+      .return__ref { font-size: 1.05rem; }
+      .action__btns {
+        width: 100%;
+        .btn__approve, .btn__reject { flex: 1; justify-content: center; }
+      }
+    }
+
+    .info__card { padding: 16px; }
+
+    .status__banner { padding: 12px 14px; font-size: .82rem; }
+
+    .timeline__item .tl__top {
+      gap: 6px;
+      .tl__time { width: 100%; margin-left: 0; }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page__header { padding: 14px; }
+    .info__card { padding: 14px; }
+    .cards__grid { gap: 12px; }
   }
 `;

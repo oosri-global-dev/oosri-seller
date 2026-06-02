@@ -226,6 +226,53 @@ export default function ReturnsScreen() {
           />
         </div>
 
+        {/* ── Mobile cards (≤640px) ── */}
+        <div className="mobile__return__list">
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "32px 24px", color: "#ccc" }}>
+              <ReturnIcon size={28} style={{ marginBottom: 10 }} />
+              <p style={{ fontWeight: 600, color: "#888", margin: "0 0 4px" }}>No return requests yet</p>
+              <p style={{ fontSize: "0.82rem", margin: 0 }}>When buyers submit return requests, they will appear here.</p>
+            </div>
+          ) : filtered.map((row) => {
+            const orderId = String(row.orderId?._id || row.orderId || "");
+            return (
+              <div
+                key={String(row._id || row.id)}
+                className="mobile__return__card"
+                onClick={() => push(`/returns/${row._id || row.id}`)}
+              >
+                <div className="mrc__top">
+                  <div className="mrc__ids">
+                    <span className="mrc__return__id">#{String(row._id || row.id).slice(-8).toUpperCase()}</span>
+                    <span className="mrc__order__id">Order #{orderId.slice(-6).toUpperCase()}</span>
+                  </div>
+                  <StatusBadge status={row.status} />
+                </div>
+                <div className="mrc__body">
+                  <div className="mrc__field">
+                    <span className="mrc__label">Buyer</span>
+                    <span className="mrc__value">{row.buyerId?.fullName || "—"}</span>
+                  </div>
+                  <div className="mrc__field">
+                    <span className="mrc__label">Reason</span>
+                    <span className="mrc__value">{REASON_LABELS[row.reason] || row.reason || "—"}</span>
+                  </div>
+                  <div className="mrc__field">
+                    <span className="mrc__label">Date</span>
+                    <span className="mrc__value">{row.createdAt ? dayjs(row.createdAt).format("MMM D, YYYY") : "—"}</span>
+                  </div>
+                </div>
+                <div className="mrc__footer">
+                  <span className="mrc__review">
+                    {row.status === "pending" ? "Review →" : "View details →"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
       </ReturnsWrapper>
     </DashboardLayout>
   );
